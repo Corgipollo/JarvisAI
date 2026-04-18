@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="120" height="120">
+  <defs>
+    <radialGradient id="core-glow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#00d4ff" stop-opacity="0.8"/>
+      <stop offset="60%" stop-color="#00d4ff" stop-opacity="0.2"/>
+      <stop offset="100%" stop-color="#00d4ff" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="2" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <filter id="glow-strong">
+      <feGaussianBlur stdDeviation="4" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Background circle -->
+  <circle cx="60" cy="60" r="56" fill="#0a0e17" stroke="#00d4ff" stroke-width="1.5" opacity="0.9"/>
+
+  <!-- Outer ring -->
+  <circle cx="60" cy="60" r="50" fill="none" stroke="#00d4ff" stroke-width="0.8" opacity="0.4"/>
+
+  <!-- Arc decorations -->
+  <path d="M 60 14 A 46 46 0 0 1 100 40" fill="none" stroke="#00d4ff" stroke-width="2" stroke-linecap="round" opacity="0.6" filter="url(#glow)"/>
+  <path d="M 20 40 A 46 46 0 0 1 60 14" fill="none" stroke="#00d4ff" stroke-width="2" stroke-linecap="round" opacity="0.6" filter="url(#glow)"/>
+  <path d="M 100 80 A 46 46 0 0 1 60 106" fill="none" stroke="#00d4ff" stroke-width="2" stroke-linecap="round" opacity="0.6" filter="url(#glow)"/>
+  <path d="M 60 106 A 46 46 0 0 1 20 80" fill="none" stroke="#00d4ff" stroke-width="2" stroke-linecap="round" opacity="0.6" filter="url(#glow)"/>
+
+  <!-- Core glow -->
+  <circle cx="60" cy="60" r="28" fill="url(#core-glow)"/>
+
+  <!-- Inner hexagon / reactor shape -->
+  <polygon points="60,35 81,47.5 81,72.5 60,85 39,72.5 39,47.5" fill="none" stroke="#00d4ff" stroke-width="1.5" opacity="0.7" filter="url(#glow)"/>
+
+  <!-- Inner triangle (arc reactor style) -->
+  <polygon points="60,42 75,67 45,67" fill="none" stroke="#00d4ff" stroke-width="2" opacity="0.9" filter="url(#glow-strong)"/>
+
+  <!-- Center dot -->
+  <circle cx="60" cy="58" r="5" fill="#00d4ff" opacity="0.9" filter="url(#glow-strong)"/>
+  <circle cx="60" cy="58" r="2.5" fill="#ffffff" opacity="0.95"/>
+
+  <!-- Small accent dots -->
+  <circle cx="60" cy="35" r="2" fill="#00d4ff" opacity="0.8"/>
+  <circle cx="81" cy="47.5" r="2" fill="#00d4ff" opacity="0.8"/>
+  <circle cx="81" cy="72.5" r="2" fill="#00d4ff" opacity="0.8"/>
+  <circle cx="60" cy="85" r="2" fill="#00d4ff" opacity="0.8"/>
+  <circle cx="39" cy="72.5" r="2" fill="#00d4ff" opacity="0.8"/>
+  <circle cx="39" cy="47.5" r="2" fill="#00d4ff" opacity="0.8"/>
+</svg>
