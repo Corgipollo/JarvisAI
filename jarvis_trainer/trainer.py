@@ -37,17 +37,17 @@ except ImportError:
 
 
 async def run_task(task: dict) -> dict:
-    """Ejecuta una task del YAML y devuelve resultado."""
+    """Ejecuta una task del YAML y devuelve resultado con tiempo medido."""
     tid = task["id"]
     action = task["action"]
     target = task["target"]
     expect_failure = task.get("expect_failure", False)
 
     if is_sandbox():
-        # Modo seguro: solo registra que SE INTENTARIA hacer
         sandbox_log(f"would_run:{action}:{target}", {"task_id": tid})
-        # Aun asi, ejecutamos open_app que en si es idempotente
-        # (si ya esta abierta solo trae al frente)
+
+    import time as _time
+    t0 = _time.perf_counter()
 
     if action == "open_app":
         from backend.integrations.pc_control import open_app
@@ -61,24 +61,26 @@ async def run_task(task: dict) -> dict:
     else:
         return {"task_id": tid, "ok": False, "error": f"action desconocida: {action}"}
 
+    elapsed_ms = int((_time.perf_counter() - t0) * 1000)
     success = bool(result.get("success"))
 
-    # Si esperabamos que falle, invertir
     if expect_failure:
         success = not success
 
     if success:
         strategy = result.get("strategy") or "unknown"
         attempts_before = len(result.get("attempts", []))
-        memory.log_learning(tid, strategy, attempts_before)
+        memory.log_learning(tid, strategy, attempts_before, elapsed_ms=elapsed_ms)
     else:
-        memory.log_error(tid, str(result.get("error", "unknown")), result.get("attempts", []))
+        memory.log_error(tid, str(result.get("error", "unknown")),
+                         result.get("attempts", []), elapsed_ms=elapsed_ms)
 
     return {
         "task_id": tid,
         "ok": success,
         "strategy": result.get("strategy"),
         "attempts": len(result.get("attempts", [])),
+        "elapsed_ms": elapsed_ms,
         "expect_failure": expect_failure,
     }
 

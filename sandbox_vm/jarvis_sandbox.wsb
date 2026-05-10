@@ -12,7 +12,7 @@
     <MappedFolder>
       <HostFolder>C:\Users\Emmanuel\Documents\JarvisAI</HostFolder>
       <SandboxFolder>C:\Users\WDAGUtilityAccount\Desktop\JarvisAI</SandboxFolder>
-      <ReadOnly>true</ReadOnly>
+      <ReadOnly>false</ReadOnly>
     </MappedFolder>
   </MappedFolders>
 

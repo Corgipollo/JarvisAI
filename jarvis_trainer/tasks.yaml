@@ -1,41 +1,69 @@
 # Tareas curriculum para entrenar a Jarvis.
 #
-# Cada tarea: action + target. El trainer las ejecuta y registra resultado.
-# Apps en SANDBOX_MODE no se abren realmente — solo se simula y loguea.
-#
-# Mantenerlo CORTO. Mas tareas = mas tiempo de training y mas spam si SANDBOX=0.
+# Mix de apps built-in Windows (siempre disponibles) + apps populares que
+# se instalan via winget en la sandbox. Si una falla, el trainer la registra
+# y aprende a no priorizarla.
 
 tasks:
-  # === apertura de apps (cubre cascada open_app) ===
-  - id: open_telegram
-    action: open_app
-    target: telegram
-
-  - id: open_spotify
-    action: open_app
-    target: spotify
-
-  - id: open_chrome
-    action: open_app
-    target: chrome
-
-  - id: open_obsidian
-    action: open_app
-    target: obsidian
-
-  - id: open_vscode
-    action: open_app
-    target: visual studio code
-
+  # === apps built-in Windows (siempre OK en cualquier sandbox fresca) ===
   - id: open_calculator
     action: open_app
     target: calculadora
+
+  - id: open_notepad
+    action: open_app
+    target: notepad
+
+  - id: open_paint
+    action: open_app
+    target: paint
 
   - id: open_explorer
     action: open_app
     target: explorador
 
-  # === acciones de sistema (idempotentes, seguras) ===
+  - id: open_settings
+    action: open_app
+    target: configuracion
+
+  - id: open_taskmgr
+    action: open_app
+    target: administrador de tareas
+
+  - id: open_edge
+    action: open_app
+    target: edge
+
+  # === apps instaladas via winget (opcion B) ===
+  - id: open_chrome
+    action: open_app
+    target: chrome
+
+  - id: open_spotify
+    action: open_app
+    target: spotify
+
+  - id: open_telegram
+    action: open_app
+    target: telegram
+
+  - id: open_discord
+    action: open_app
+    target: discord
+
+  - id: open_vscode
+    action: open_app
+    target: visual studio code
+
+  - id: open_obsidian
+    action: open_app
+    target: obsidian
+
+  - id: open_brave
+    action: open_app
+    target: brave
+
+  # === acciones de sistema (queries idempotentes) ===
   - id: query_battery
     action: system
     target: bateria
@@ -48,7 +76,7 @@ tasks:
     action: system
     target: ram
 
-  # === apps que NO existen — verificar manejo de error ===
+  # === control negativo: app que no existe (debe fallar) ===
   - id: open_inexistente
     action: open_app
     target: aplicacion_que_no_existe_xyz_12345

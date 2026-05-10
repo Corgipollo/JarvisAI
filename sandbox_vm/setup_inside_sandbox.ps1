@@ -1,14 +1,17 @@
 #
-# setup_inside_sandbox.ps1
+# setup_inside_sandbox.ps1 — Bootstrap completo + training loop infinito.
 #
-# Se ejecuta DENTRO de la Windows Sandbox al arrancar (LogonCommand del .wsb).
+# Pedido por Emmanuel 2026-05-09:
+#   "que nunca pare de entrenar hasta que pueda hacer todo super rapido y
+#    bien hecho como una persona"
 #
-# Tareas:
-#   1. Bootstraps Python embeddable (no requiere admin, ~12 MB descarga)
-#   2. Instala pip + dependencias minimas (faster-whisper NO, solo lo del trainer)
-#   3. Copia JarvisAI mapeado (read-only) a una carpeta writable
-#   4. Corre el trainer en modo REAL (estamos aislados, ya no necesitamos sandbox flag)
-#   5. Loguea todo a C:\jarvis_sandbox.log
+# Flujo:
+#   1. Bootstrap Python embeddable
+#   2. Instalar deps Python
+#   3. Instalar apps reales via winget (Chrome, Spotify, Telegram, Discord,
+#      VSCode, Obsidian, Brave) — opcion B del user
+#   4. Loop INFINITO: trainer cada 3 minutos, persistiendo learnings al
+#      JarvisAI mapeado (ReadOnly=false en .wsb)
 #
 
 $ErrorActionPreference = "Continue"
@@ -20,25 +23,16 @@ function Log($msg) {
     Add-Content -Path $LOG -Value $line
 }
 
-Log "=== Jarvis Sandbox Boot ==="
-Log "Hostname: $env:COMPUTERNAME"
-Log "User: $env:USERNAME"
+Log "=== Jarvis Sandbox Boot (training loop infinito) ==="
 
-# Paths dentro de la sandbox
-$JARVIS_RO = "C:\Users\WDAGUtilityAccount\Desktop\JarvisAI"
-$JARVIS_RW = "C:\JarvisAI"
+# Paths
+$JARVIS_HOST = "C:\Users\WDAGUtilityAccount\Desktop\JarvisAI"  # mapeado read-write
 $PYTHON_DIR = "C:\python"
 $PYTHON_EXE = "$PYTHON_DIR\python.exe"
 
-# 1. Copiar JarvisAI a carpeta writable (la mapeada es read-only)
-Log "Copiando JarvisAI a $JARVIS_RW (writable)..."
-if (-not (Test-Path $JARVIS_RW)) {
-    New-Item -ItemType Directory -Path $JARVIS_RW -Force | Out-Null
-}
-Copy-Item -Path "$JARVIS_RO\*" -Destination $JARVIS_RW -Recurse -Force -ErrorAction SilentlyContinue
-Log "Copiado OK."
-
-# 2. Bootstrap Python embeddable
+# ============================================================================
+# 1. Bootstrap Python embeddable
+# ============================================================================
 if (-not (Test-Path $PYTHON_EXE)) {
     Log "Descargando Python 3.12 embeddable..."
     $PythonZip = "C:\python_embed.zip"
@@ -48,65 +42,110 @@ if (-not (Test-Path $PYTHON_EXE)) {
         Expand-Archive -Path $PythonZip -DestinationPath $PYTHON_DIR -Force
         Log "Python extraido en $PYTHON_DIR"
 
-        # Habilitar import de site-packages en embeddable
+        # Habilitar import site-packages
         $pthFile = Get-ChildItem "$PYTHON_DIR\python*._pth" | Select-Object -First 1
         if ($pthFile) {
             (Get-Content $pthFile.FullName) -replace '^#import site', 'import site' |
                 Set-Content $pthFile.FullName
-            Log "_pth file ajustado."
         }
 
         # Bootstrap pip
         Log "Bootstrap pip..."
         Invoke-WebRequest -Uri "https://bootstrap.pypa.io/get-pip.py" -OutFile "C:\get-pip.py" -UseBasicParsing
-        & $PYTHON_EXE "C:\get-pip.py" --no-warn-script-location
+        & $PYTHON_EXE "C:\get-pip.py" --no-warn-script-location | Out-Null
         Log "pip OK."
     } catch {
         Log "ERROR descarga Python: $_"
-        Write-Host "FALLO descarga Python. Revisa conexion. Saliendo." -ForegroundColor Red
         return
     }
 } else {
     Log "Python ya existe en $PYTHON_DIR"
 }
 
-# 3. Instalar dependencias del trainer
-Log "Instalando dependencias..."
-$Deps = @(
-    "pyautogui",
-    "psutil",
-    "pygetwindow",
-    "pyyaml",
-    "pywin32",
-    "requests"
-)
+# ============================================================================
+# 2. Instalar dependencias Python
+# ============================================================================
+Log "Instalando deps Python..."
+$Deps = @("pyautogui", "psutil", "pygetwindow", "pyyaml", "pywin32", "requests")
 foreach ($dep in $Deps) {
     & $PYTHON_EXE -m pip install --no-warn-script-location --quiet $dep 2>&1 | Out-Null
-    Log "  instalado: $dep"
+}
+Log "Deps Python instaladas."
+
+# ============================================================================
+# 3. Instalar apps reales via winget (opcion B)
+# ============================================================================
+Log "=== Instalando apps reales via winget ==="
+
+# Verificar winget
+$wingetPath = (Get-Command winget -ErrorAction SilentlyContinue).Path
+if (-not $wingetPath) {
+    Log "winget no detectado. Saltando instalacion de apps. (Tasks built-in seguiran funcionando)"
+} else {
+    Log "winget encontrado: $wingetPath"
+
+    # Apps a instalar — silent + accept terms
+    $AppsToInstall = @(
+        @{Id="Google.Chrome"; Name="Chrome"},
+        @{Id="Spotify.Spotify"; Name="Spotify"},
+        @{Id="Telegram.TelegramDesktop"; Name="Telegram"},
+        @{Id="Discord.Discord"; Name="Discord"},
+        @{Id="Microsoft.VisualStudioCode"; Name="VSCode"},
+        @{Id="Obsidian.Obsidian"; Name="Obsidian"},
+        @{Id="Brave.Brave"; Name="Brave"}
+    )
+
+    foreach ($app in $AppsToInstall) {
+        Log "Instalando $($app.Name)..."
+        try {
+            & winget install --id $app.Id --silent --accept-package-agreements --accept-source-agreements --disable-interactivity 2>&1 | Out-Null
+            Log "  $($app.Name): OK"
+        } catch {
+            Log "  $($app.Name): fallo ($_)"
+        }
+    }
+    Log "=== Instalacion apps completada ==="
 }
 
-# 4. Variables de entorno
-$env:PYTHONPATH = $JARVIS_RW
-$env:JARVIS_SANDBOX = "0"  # estamos en VM real, no necesitamos modo sandbox software
+# ============================================================================
+# 4. Pre-scan Windows: el trainer necesita el inventory
+# ============================================================================
+Log "Generando inventory inicial de Windows..."
+Set-Location $JARVIS_HOST
+& $PYTHON_EXE "$JARVIS_HOST\backend\integrations\windows_intel.py" all 2>&1 |
+    Select-Object -Last 10 | ForEach-Object { Log "  $_" }
 
-# 5. Correr trainer en loop infinito cada 5 min (mientras la sandbox este viva)
-Log "=== Iniciando training loop (cada 5 min) ==="
-Set-Location $JARVIS_RW
+# ============================================================================
+# 5. LOOP INFINITO de training — nunca para
+# ============================================================================
+Log ""
+Log "=================================================="
+Log "  TRAINING LOOP INFINITO — cada 3 minutos"
+Log "  No se detiene hasta que cierres la sandbox"
+Log "=================================================="
+Log ""
 
-$IterationLog = "C:\jarvis_iterations.log"
+$env:PYTHONPATH = $JARVIS_HOST
+$env:JARVIS_SANDBOX = "0"  # estamos en VM aislada — no necesitamos modo software-sandbox
+
+$IterationLog = "$JARVIS_HOST\data\jarvis_iterations.log"
 $Iteration = 0
 
 while ($true) {
     $Iteration++
-    Log "--- Iteracion #$Iteration ---"
+    $StartTime = Get-Date
+    Log ""
+    Log "================ ITERACION #$Iteration ================"
+
     try {
-        & $PYTHON_EXE "$JARVIS_RW\jarvis_trainer\trainer.py" 2>&1 |
-            Tee-Object -FilePath $IterationLog -Append
-        Log "Iteracion #$Iteration completada."
+        & $PYTHON_EXE "$JARVIS_HOST\jarvis_trainer\trainer.py" 2>&1 |
+            ForEach-Object { Log "  $_" }
     } catch {
-        Log "Error en iteracion #${Iteration}: $_"
+        Log "ERROR iteracion #${Iteration}: $_"
     }
 
-    Log "Esperando 5 minutos para siguiente iteracion..."
-    Start-Sleep -Seconds 300
+    $Elapsed = ((Get-Date) - $StartTime).TotalSeconds
+    Log "Iteracion #$Iteration termino en $([math]::Round($Elapsed, 1))s"
+    Log "Esperando 3 minutos para siguiente iteracion..."
+    Start-Sleep -Seconds 180
 }
