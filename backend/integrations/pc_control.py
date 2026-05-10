@@ -595,8 +595,8 @@ async def open_app(app_name: str, max_attempts: int = 5) -> dict:
             continue
 
         if executed and app:
-            # Verificar que efectivamente esta corriendo
-            for _ in range(6):  # ~3s total
+            # Verificar que efectivamente esta corriendo (3s grace)
+            for _ in range(6):
                 await asyncio.sleep(0.5)
                 if _is_app_running(app):
                     attempt_log["verified"] = True
@@ -608,8 +608,27 @@ async def open_app(app_name: str, max_attempts: int = 5) -> dict:
                         "strategy": strategy_name,
                     }
 
-        # Si no hay catalogo, asumimos exito si executed=True (no podemos verificar)
+        # Si no hay catalogo, NO asumimos exito por ejecutar — verificamos que
+        # NO abrio una pestana del navegador con "search?q=<nombre>" (caso comun
+        # cuando Windows Search no encuentra la app y abre Bing).
         if executed and not app:
+            await asyncio.sleep(1.0)
+            opened_browser_search = False
+            if HAS_PYGETWINDOW:
+                try:
+                    for w in gw.getAllWindows():
+                        title = (w.title or "").lower()
+                        if app_query.lower() in title and (
+                            "bing" in title or "google" in title or "search" in title
+                        ):
+                            opened_browser_search = True
+                            break
+                except Exception:
+                    pass
+            if opened_browser_search:
+                attempt_log["false_positive"] = "browser_search_only"
+                attempts.append(attempt_log)
+                continue
             attempts.append(attempt_log)
             return {
                 "success": True,
