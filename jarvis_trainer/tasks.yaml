@@ -76,11 +76,8 @@ tasks:
     action: system
     target: ram
 
-  # === control negativo: app que no existe (debe fallar) ===
-  - id: open_inexistente
-    action: open_app
-    target: aplicacion_que_no_existe_xyz_12345
-    expect_failure: true
+  # NOTE: removida la task open_inexistente — abria pestanas Bing cada 30min.
+  # Si necesitamos control negativo, usar uno que no genere efectos secundarios.
 
   # === skills nuevas (mouse, screen reading, web, files) ===
   - id: skill_screenshot
