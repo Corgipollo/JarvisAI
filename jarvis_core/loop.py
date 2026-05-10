@@ -60,10 +60,46 @@ def write_live_state(machine: StateMachine, current_task: dict | None,
                           encoding="utf-8")
 
 
+def _is_inside_sandbox_vm() -> bool:
+    """Detecta si estamos dentro de la Windows Sandbox VM (no en el host)."""
+    import os, socket
+    # Sandbox VM siempre tiene hostname 'WDAGUtilityAccount' o user 'WDAGUtilityAccount'
+    user = (os.environ.get("USERNAME") or "").lower()
+    host = socket.gethostname().lower()
+    return "wdagutilityaccount" in user or "wdagutilityaccount" in host
+
+
+def _safety_gate() -> tuple[bool, str]:
+    """Decide si el loop puede ejecutar tareas que tocan apps reales.
+
+    Gate: solo se permite si estamos en sandbox VM REAL o si el usuario
+    setea JARVIS_FORCE_HOST=1 explicitamente.
+    """
+    import os
+    if _is_inside_sandbox_vm():
+        return True, "running_inside_sandbox_vm"
+    if os.environ.get("JARVIS_FORCE_HOST") == "1":
+        return True, "forced_host_mode"
+    if os.environ.get("JARVIS_SANDBOX") == "1":
+        return True, "software_sandbox_logging_only"
+    return False, "no_sandbox_no_force_host"
+
+
 async def execute_task(task: dict) -> dict:
-    """Ejecuta una task vía nlp.execute_natural (cascade simple → ask_brain)."""
+    """Ejecuta una task. Por seguridad NO toca apps reales fuera de la VM.
+
+    Si estamos en host real sin JARVIS_FORCE_HOST=1 ni JARVIS_SANDBOX=1,
+    devuelve error claro en lugar de ejecutar.
+    """
+    allowed, reason = _safety_gate()
+    if not allowed:
+        msg = (f"BLOCKED: no estoy en sandbox VM y no tengo JARVIS_FORCE_HOST=1 ni "
+               f"JARVIS_SANDBOX=1. Reason: {reason}")
+        log(f"[blocked] {task['text'][:60]} — {reason}")
+        return {"success": False, "error": msg, "blocked": True}
+
     from backend.skills.nlp import execute_natural
-    log(f"[execute] {task['text'][:80]}")
+    log(f"[execute] {task['text'][:80]} (gate: {reason})")
     try:
         result = await execute_natural(task["text"])
         return result
