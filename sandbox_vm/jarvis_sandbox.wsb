@@ -1,0 +1,22 @@
+<Configuration>
+  <VGpu>Enable</VGpu>
+  <Networking>Default</Networking>
+  <AudioInput>Disable</AudioInput>
+  <VideoInput>Disable</VideoInput>
+  <ProtectedClient>Enable</ProtectedClient>
+  <ClipboardRedirection>Enable</ClipboardRedirection>
+  <PrinterRedirection>Disable</PrinterRedirection>
+  <MemoryInMB>6144</MemoryInMB>
+
+  <MappedFolders>
+    <MappedFolder>
+      <HostFolder>C:\Users\Emmanuel\Documents\JarvisAI</HostFolder>
+      <SandboxFolder>C:\Users\WDAGUtilityAccount\Desktop\JarvisAI</SandboxFolder>
+      <ReadOnly>true</ReadOnly>
+    </MappedFolder>
+  </MappedFolders>
+
+  <LogonCommand>
+    <Command>powershell.exe -NoExit -ExecutionPolicy Bypass -File C:\Users\WDAGUtilityAccount\Desktop\JarvisAI\sandbox_vm\setup_inside_sandbox.ps1</Command>
+  </LogonCommand>
+</Configuration>
