@@ -12,3 +12,7 @@ venv/
 data/windows_inventory.json
 data/*.json
 generated/
+data/jarvis_errors.jsonl
+data/jarvis_learnings.jsonl
+data/jarvis_runs.jsonl
+data/jarvis_sandbox.jsonl

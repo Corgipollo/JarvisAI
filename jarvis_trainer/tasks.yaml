@@ -1,0 +1,55 @@
+# Tareas curriculum para entrenar a Jarvis.
+#
+# Cada tarea: action + target. El trainer las ejecuta y registra resultado.
+# Apps en SANDBOX_MODE no se abren realmente — solo se simula y loguea.
+#
+# Mantenerlo CORTO. Mas tareas = mas tiempo de training y mas spam si SANDBOX=0.
+
+tasks:
+  # === apertura de apps (cubre cascada open_app) ===
+  - id: open_telegram
+    action: open_app
+    target: telegram
+
+  - id: open_spotify
+    action: open_app
+    target: spotify
+
+  - id: open_chrome
+    action: open_app
+    target: chrome
+
+  - id: open_obsidian
+    action: open_app
+    target: obsidian
+
+  - id: open_vscode
+    action: open_app
+    target: visual studio code
+
+  - id: open_calculator
+    action: open_app
+    target: calculadora
+
+  - id: open_explorer
+    action: open_app
+    target: explorador
+
+  # === acciones de sistema (idempotentes, seguras) ===
+  - id: query_battery
+    action: system
+    target: bateria
+
+  - id: query_disk
+    action: system
+    target: disco
+
+  - id: query_ram
+    action: system
+    target: ram
+
+  # === apps que NO existen — verificar manejo de error ===
+  - id: open_inexistente
+    action: open_app
+    target: aplicacion_que_no_existe_xyz_12345
+    expect_failure: true
