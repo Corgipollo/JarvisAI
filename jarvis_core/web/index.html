@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Jarvis OS</title>
+<style>
+  :root {
+    --bg: #0a0a14;
+    --bg-2: #14142a;
+    --txt: #d8e0ff;
+    --accent: #4d96ff;
+    --green: #6bcb77;
+    --red: #ff6b6b;
+    --yellow: #ffd93d;
+    --purple: #9b89b3;
+    --mono: 'Cascadia Mono', 'Consolas', 'Courier New', monospace;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: linear-gradient(135deg, var(--bg) 0%, var(--bg-2) 100%);
+    color: var(--txt);
+    font-family: var(--mono);
+    height: 100vh;
+    overflow: hidden;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: 320px 1fr 360px;
+    grid-template-rows: 60px 1fr 200px;
+    height: 100vh;
+    gap: 1px;
+    background: #000;
+  }
+  .header {
+    grid-column: 1 / -1;
+    background: var(--bg-2);
+    display: flex; align-items: center;
+    padding: 0 24px;
+    border-bottom: 1px solid #2a2a4a;
+  }
+  .header h1 { font-size: 18px; letter-spacing: 4px; }
+  .header h1 span.accent { color: var(--accent); }
+  .panel { background: var(--bg-2); padding: 16px; overflow-y: auto; }
+  .panel h2 {
+    font-size: 11px; letter-spacing: 3px; opacity: .5;
+    margin-bottom: 12px;
+  }
+  /* avatar */
+  .avatar-box {
+    display: flex; flex-direction: column; align-items: center;
+    justify-content: center; padding: 32px 16px;
+  }
+  .avatar {
+    width: 220px; height: 220px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 100px;
+    transition: all 0.6s cubic-bezier(.2,.8,.2,1);
+    box-shadow: 0 0 80px var(--accent);
+  }
+  .state-label {
+    margin-top: 18px;
+    font-size: 13px; letter-spacing: 4px;
+    text-transform: uppercase;
+  }
+  .metrics {
+    margin-top: 18px; width: 100%;
+    font-size: 11px; opacity: .7;
+  }
+  .metrics div { display: flex; justify-content: space-between; padding: 2px 0; }
+  /* queue list */
+  .queue-list { list-style: none; }
+  .queue-list li {
+    background: #1a1a36;
+    margin-bottom: 6px;
+    padding: 8px 12px;
+    border-radius: 4px;
+    font-size: 12px;
+    border-left: 3px solid var(--accent);
+  }
+  .queue-list li.in_progress { border-left-color: var(--yellow); animation: pulse 1.4s infinite; }
+  .queue-list li.completed { border-left-color: var(--green); opacity: .55; }
+  .queue-list li.failed { border-left-color: var(--red); opacity: .65; }
+  @keyframes pulse { 0%,100% { background: #1a1a36; } 50% { background: #2a2a56; } }
+  .task-id { opacity: .4; font-size: 10px; margin-right: 6px; }
+  /* terminal */
+  .terminal {
+    grid-column: 1 / -1;
+    background: #050511;
+    display: flex; flex-direction: column;
+    border-top: 1px solid #2a2a4a;
+  }
+  .terminal-output {
+    flex: 1; overflow-y: auto;
+    padding: 12px 18px;
+    font-size: 12px; line-height: 1.6;
+  }
+  .terminal-output .ts { opacity: .35; }
+  .terminal-output .me { color: var(--green); }
+  .terminal-output .jarvis { color: var(--accent); }
+  .terminal-input {
+    border-top: 1px solid #2a2a4a;
+    padding: 12px 18px;
+    display: flex; gap: 12px;
+  }
+  .terminal-input span.prompt { color: var(--accent); }
+  .terminal-input input {
+    flex: 1; background: transparent; border: 0; outline: 0;
+    color: var(--txt); font-family: var(--mono); font-size: 13px;
+  }
+</style>
+</head>
+<body>
+<div class="grid">
+
+  <div class="header">
+    <h1><span class="accent">JARVIS</span> OS · cuerpo virtual</h1>
+    <div style="margin-left:auto; font-size:11px; opacity:.5;" id="conn-status">conectando…</div>
+  </div>
+
+  <!-- AVATAR -->
+  <div class="panel avatar-box">
+    <div class="avatar" id="avatar" style="background: var(--accent);">🤖</div>
+    <div class="state-label" id="state-label">CARGANDO</div>
+    <div class="metrics" id="metrics"></div>
+  </div>
+
+  <!-- QUEUE -->
+  <div class="panel">
+    <h2>Cola de tareas</h2>
+    <ul class="queue-list" id="queue-list"></ul>
+  </div>
+
+  <!-- LAST COMPLETED -->
+  <div class="panel">
+    <h2>Última completada</h2>
+    <div id="last-completed" style="font-size:12px; opacity:.7;">—</div>
+    <h2 style="margin-top:24px;">Stats</h2>
+    <div id="stats" style="font-size:11px; opacity:.6;"></div>
+  </div>
+
+  <!-- TERMINAL -->
+  <div class="terminal">
+    <div class="terminal-output" id="output">
+      <div><span class="ts">[boot]</span> <span class="jarvis">SISTEMA ACTIVO. MODO OPERATIVO CARGADO. ESPERANDO COMANDO.</span></div>
+    </div>
+    <div class="terminal-input">
+      <span class="prompt">&gt;</span>
+      <input id="cmd" placeholder="escribe una tarea (ej: 'abre spotify y ponme musica')" autofocus />
+    </div>
+  </div>
+</div>
+
+<script>
+const ws = new WebSocket(`ws://${location.host}/ws/state`);
+const $ = id => document.getElementById(id);
+const fmt = (sec) => new Date(sec * 1000).toLocaleTimeString();
+
+ws.addEventListener('open', () => $('conn-status').textContent = '● conectado');
+ws.addEventListener('close', () => $('conn-status').textContent = '● desconectado');
+
+ws.addEventListener('message', (e) => {
+  const s = JSON.parse(e.data);
+  if (s.expression) {
+    $('avatar').style.background = s.expression.color;
+    $('avatar').textContent = s.expression.emoji;
+    $('state-label').textContent = s.expression.label.toUpperCase();
+  }
+  if (s.queue_stats) {
+    $('stats').innerHTML =
+      `pendientes: ${s.queue_stats.pending}<br>en proceso: ${s.queue_stats.in_progress}<br>completadas: ${s.queue_stats.completed}<br>fallidas: ${s.queue_stats.failed}`;
+  }
+  if (s.queue) {
+    $('queue-list').innerHTML = s.queue.slice(-15).reverse().map(t =>
+      `<li class="${t.status}"><span class="task-id">${t.id}</span>${t.text}</li>`
+    ).join('');
+  }
+  if (s.last_completed) {
+    $('last-completed').innerHTML =
+      `<div style="color:var(--green); font-size:11px;">[${s.last_completed.id}]</div>${s.last_completed.text}<br><div style="font-size:10px; opacity:.5; margin-top:6px;">${(s.last_completed.result_short || '').slice(0, 120)}</div>`;
+  }
+});
+
+$('cmd').addEventListener('keydown', async (e) => {
+  if (e.key === 'Enter' && $('cmd').value.trim()) {
+    const text = $('cmd').value.trim();
+    $('cmd').value = '';
+    const out = $('output');
+    out.innerHTML += `<div><span class="ts">[${new Date().toLocaleTimeString()}]</span> <span class="me">tu:</span> ${text}</div>`;
+    out.scrollTop = out.scrollHeight;
+    try {
+      const r = await fetch('/tasks', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({text, priority: 7})
+      });
+      const j = await r.json();
+      out.innerHTML += `<div><span class="ts">[${new Date().toLocaleTimeString()}]</span> <span class="jarvis">jarvis:</span> tarea ${j.id} encolada (prioridad ${j.priority})</div>`;
+      out.scrollTop = out.scrollHeight;
+    } catch (err) {
+      out.innerHTML += `<div style="color:var(--red);">error: ${err.message}</div>`;
+    }
+  }
+});
+</script>
+</body>
+</html>
