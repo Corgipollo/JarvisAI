@@ -81,3 +81,20 @@ tasks:
     action: open_app
     target: aplicacion_que_no_existe_xyz_12345
     expect_failure: true
+
+  # === skills nuevas (mouse, screen reading, web, files) ===
+  - id: skill_screenshot
+    action: skill
+    target: screenshot
+
+  - id: skill_screen_size
+    action: skill
+    target: screen_size
+
+  - id: skill_list_documents
+    action: skill
+    target: list_documents
+
+  - id: skill_mouse_position
+    action: skill
+    target: mouse_position

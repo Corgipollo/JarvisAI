@@ -36,6 +36,24 @@ except ImportError:
     HAS_YAML = False
 
 
+async def _run_skill(target: str) -> dict:
+    """Ejercita skills nuevas (mouse/vision/files) sin efectos visibles."""
+    from backend.skills import mouse, vision, files
+    if target == "screenshot":
+        r = vision.screenshot(save=True)
+        return {"success": r["success"], "strategy": "vision.screenshot"}
+    if target == "screen_size":
+        r = mouse.screen_size()
+        return {"success": r["success"], "strategy": "mouse.screen_size"}
+    if target == "mouse_position":
+        r = mouse.get_position()
+        return {"success": r["success"], "strategy": "mouse.get_position"}
+    if target == "list_documents":
+        r = files.list_dir(r"%USERPROFILE%\Documents")
+        return {"success": r["success"], "strategy": "files.list_dir"}
+    return {"success": False, "error": f"skill desconocida: {target}"}
+
+
 async def run_task(task: dict) -> dict:
     """Ejecuta una task del YAML y devuelve resultado con tiempo medido."""
     tid = task["id"]
@@ -58,6 +76,8 @@ async def run_task(task: dict) -> dict:
     elif action == "close_app":
         from backend.integrations.pc_control import close_app
         result = await close_app(target)
+    elif action == "skill":
+        result = await _run_skill(target)
     else:
         return {"task_id": tid, "ok": False, "error": f"action desconocida: {action}"}
 

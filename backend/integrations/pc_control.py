@@ -639,9 +639,31 @@ async def open_app(app_name: str, max_attempts: int = 5) -> dict:
 
         attempts.append(attempt_log)
 
+    # Ultimo recurso: ASK BRAIN. Le preguntamos a Claude que pasos seguir.
+    try:
+        from backend.skills.ask_brain import jarvis_handle
+        brain_context = {
+            "failed_attempts": attempts,
+            "app_query": app_query,
+            "search_term": search_term,
+            "in_inventory": bool(inv_record),
+        }
+        brain_result = await jarvis_handle(f"abrir {app_query}", brain_context)
+        if brain_result.get("success"):
+            attempts.append({"strategy": "ask_brain", "executed": True, "verified": True})
+            return {
+                "success": True,
+                "message": f"{app_name} abierta via ask_brain (LLM)",
+                "attempts": attempts,
+                "strategy": "ask_brain",
+                "brain_plan": brain_result.get("plan"),
+            }
+    except Exception as e:
+        attempts.append({"strategy": "ask_brain", "error": str(e)})
+
     return {
         "success": False,
-        "error": f"No pude abrir {app_name} despues de {len(attempts)} intentos",
+        "error": f"No pude abrir {app_name} despues de {len(attempts)} intentos (incluido ask_brain)",
         "attempts": attempts,
         "strategy": None,
     }
