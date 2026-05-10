@@ -28,6 +28,16 @@ except ImportError:
 try:
     import pytesseract
     from PIL import Image
+    # Default path Windows install via winget
+    _tess_paths = [
+        r"C:\Program Files\Tesseract-OCR\tesseract.exe",
+        r"C:\Program Files (x86)\Tesseract-OCR\tesseract.exe",
+    ]
+    for _p in _tess_paths:
+        from pathlib import Path as _P
+        if _P(_p).exists():
+            pytesseract.pytesseract.tesseract_cmd = _p
+            break
     HAS_TESSERACT = True
 except ImportError:
     HAS_TESSERACT = False

@@ -98,3 +98,19 @@ tasks:
   - id: skill_mouse_position
     action: skill
     target: mouse_position
+
+  - id: skill_read_screen_ocr
+    action: skill
+    target: read_screen_ocr
+
+  - id: skill_web_search_ddg
+    action: skill
+    target: web_search_ddg
+
+  - id: skill_grep_claude_md
+    action: skill
+    target: grep_claude_md
+
+  - id: skill_file_info_readme
+    action: skill
+    target: file_info_readme

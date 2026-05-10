@@ -37,7 +37,7 @@ except ImportError:
 
 
 async def _run_skill(target: str) -> dict:
-    """Ejercita skills nuevas (mouse/vision/files) sin efectos visibles."""
+    """Ejercita skills nuevas (mouse/vision/files/browser) sin efectos visibles."""
     from backend.skills import mouse, vision, files
     if target == "screenshot":
         r = vision.screenshot(save=True)
@@ -51,6 +51,24 @@ async def _run_skill(target: str) -> dict:
     if target == "list_documents":
         r = files.list_dir(r"%USERPROFILE%\Documents")
         return {"success": r["success"], "strategy": "files.list_dir"}
+    if target == "read_screen_ocr":
+        r = vision.read_screen()
+        return {"success": r["success"], "strategy": f"vision.{r.get('engine', 'unknown')}"}
+    if target == "web_search_ddg":
+        try:
+            from backend.skills.browser import quick_search, HAS_PLAYWRIGHT
+            if not HAS_PLAYWRIGHT:
+                return {"success": False, "error": "playwright no instalado", "strategy": "browser.unavailable"}
+            r = await quick_search("hello world", engine="duckduckgo")
+            return {"success": r.get("success", False), "strategy": "browser.quick_search"}
+        except Exception as e:
+            return {"success": False, "error": str(e), "strategy": "browser.error"}
+    if target == "grep_claude_md":
+        r = files.grep(r"%USERPROFILE%\.claude\CLAUDE.md", "Grop")
+        return {"success": r["success"], "strategy": "files.grep"}
+    if target == "file_info_readme":
+        r = files.file_info(r"C:\Users\Emmanuel\Documents\JarvisAI\README.md")
+        return {"success": r["success"], "strategy": "files.file_info"}
     return {"success": False, "error": f"skill desconocida: {target}"}
 
 
