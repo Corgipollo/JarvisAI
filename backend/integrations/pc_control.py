@@ -76,7 +76,6 @@ from __future__ import annotations
 
 import asyncio
 import os
-import platform
 import shutil
 import subprocess
 import time
@@ -101,6 +100,17 @@ try:
     HAS_PYGETWINDOW = True
 except ImportError:
     HAS_PYGETWINDOW = False
+
+# Windows Intel — knowledge base local del sistema
+try:
+    from . import windows_intel
+    HAS_WINTEL = True
+except ImportError:
+    try:
+        import windows_intel  # type: ignore
+        HAS_WINTEL = True
+    except ImportError:
+        HAS_WINTEL = False
 
 
 # ============================================================================
@@ -531,10 +541,43 @@ async def open_app(app_name: str, max_attempts: int = 5) -> dict:
     # Determinar termino de busqueda (si no esta en catalogo, usar el nombre tal cual)
     search_term = app["search"] if app else app_query
 
-    # Cascada
-    strategies: list[tuple[str, Callable[[], bool]]] = [
-        ("start_menu_search", lambda: _try_start_menu_search(search_term)),
-    ]
+    # Estrategia 0 (PRIORIDAD MAXIMA): usar el inventory real de Windows si existe.
+    # El inventory es generado por windows_intel.scan_all() y contiene apps reales
+    # detectadas en el sistema (App Paths, Taskbar, Start Menu, Uninstall keys).
+    inv_record = None
+    if HAS_WINTEL:
+        try:
+            inv_record = windows_intel.find_app_in_inventory(app_query)
+        except Exception:
+            inv_record = None
+
+    def _try_inventory() -> bool:
+        if not inv_record or not inv_record.get("target"):
+            return False
+        target = inv_record["target"]
+        try:
+            # UWP apps usan shell:AppsFolder URL — necesita os.startfile o explorer
+            if inv_record.get("is_uwp") or target.startswith("shell:"):
+                subprocess.Popen(["explorer.exe", target], shell=False)
+                time.sleep(1.5)
+                return True
+            if Path(target).exists():
+                subprocess.Popen([target], shell=False)
+                time.sleep(1.5)
+                return True
+            if shutil.which(target):
+                subprocess.Popen([target], shell=False)
+                time.sleep(1.5)
+                return True
+            return False
+        except Exception:
+            return False
+
+    # Cascada (con inventory primero si disponible)
+    strategies: list[tuple[str, Callable[[], bool]]] = []
+    if inv_record:
+        strategies.append((f"inventory_{inv_record.get('source', 'unknown')}", _try_inventory))
+    strategies.append(("start_menu_search", lambda: _try_start_menu_search(search_term)))
     if app:
         strategies.append(("protocol", lambda: _try_protocol(app)))
         strategies.append(("known_paths", lambda: _try_known_paths(app)))

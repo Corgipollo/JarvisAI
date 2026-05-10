@@ -7,3 +7,8 @@ dist/
 build/
 venv/
 .venv/
+
+# Windows Intel — datos sensibles del sistema local de cada user
+data/windows_inventory.json
+data/*.json
+generated/
