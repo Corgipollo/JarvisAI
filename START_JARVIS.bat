@@ -75,6 +75,75 @@ if not exist "C:\Program Files\Tesseract-OCR\tesseract.exe" (
     echo   Tesseract ya instalado.
 )
 
+echo.
+echo ============================================================================
+echo  [4.5/9] INSTALANDO APPS QUE JARVIS VA A USAR (15-25 min, solo 1 vez)
+echo ============================================================================
+echo.
+
+REM Navegadores
+echo   * Google Chrome...
+winget install --id Google.Chrome --accept-package-agreements --accept-source-agreements --silent --disable-interactivity 2>nul
+echo   * Brave Browser...
+winget install --id Brave.Brave --accept-package-agreements --accept-source-agreements --silent --disable-interactivity 2>nul
+echo   * Firefox...
+winget install --id Mozilla.Firefox --accept-package-agreements --accept-source-agreements --silent --disable-interactivity 2>nul
+
+REM Editores y code
+echo   * Visual Studio Code...
+winget install --id Microsoft.VisualStudioCode --accept-package-agreements --accept-source-agreements --silent --disable-interactivity 2>nul
+echo   * Notepad++...
+winget install --id Notepad++.Notepad++ --accept-package-agreements --accept-source-agreements --silent --disable-interactivity 2>nul
+
+REM Comunicación (lo que Emmanuel usa diario)
+echo   * Telegram Desktop...
+winget install --id Telegram.TelegramDesktop --accept-package-agreements --accept-source-agreements --silent --disable-interactivity 2>nul
+echo   * Discord...
+winget install --id Discord.Discord --accept-package-agreements --accept-source-agreements --silent --disable-interactivity 2>nul
+echo   * WhatsApp...
+winget install --id 9NKSQGP7F2NH --accept-package-agreements --accept-source-agreements --silent --disable-interactivity 2>nul
+echo   * Zoom...
+winget install --id Zoom.Zoom --accept-package-agreements --accept-source-agreements --silent --disable-interactivity 2>nul
+
+REM Video / Audio editing
+echo   * CapCut Desktop...
+winget install --id Bytedance.CapCut --accept-package-agreements --accept-source-agreements --silent --disable-interactivity 2>nul
+echo   * OBS Studio (grabacion)...
+winget install --id OBSProject.OBSStudio --accept-package-agreements --accept-source-agreements --silent --disable-interactivity 2>nul
+echo   * VLC media player...
+winget install --id VideoLAN.VLC --accept-package-agreements --accept-source-agreements --silent --disable-interactivity 2>nul
+
+REM Audio
+echo   * Spotify...
+winget install --id Spotify.Spotify --accept-package-agreements --accept-source-agreements --silent --disable-interactivity 2>nul
+
+REM Notes y productividad
+echo   * Obsidian...
+winget install --id Obsidian.Obsidian --accept-package-agreements --accept-source-agreements --silent --disable-interactivity 2>nul
+echo   * Notion...
+winget install --id Notion.Notion --accept-package-agreements --accept-source-agreements --silent --disable-interactivity 2>nul
+
+REM Utilidades
+echo   * 7-Zip...
+winget install --id 7zip.7zip --accept-package-agreements --accept-source-agreements --silent --disable-interactivity 2>nul
+echo   * PowerToys (productividad pro)...
+winget install --id Microsoft.PowerToys --accept-package-agreements --accept-source-agreements --silent --disable-interactivity 2>nul
+echo   * Windows Terminal...
+winget install --id Microsoft.WindowsTerminal --accept-package-agreements --accept-source-agreements --silent --disable-interactivity 2>nul
+
+REM Imagen / Diseño
+echo   * GIMP (alternativa Photoshop)...
+winget install --id GIMP.GIMP --accept-package-agreements --accept-source-agreements --silent --disable-interactivity 2>nul
+
+REM Antigravity (Claude IDE) — opcional pero útil
+echo   * Antigravity Claude IDE...
+winget install --id Anthropic.Antigravity --accept-package-agreements --accept-source-agreements --silent --disable-interactivity 2>nul
+
+echo.
+echo   Apps instaladas. (Algunas pueden haber fallado si winget no las tiene —
+echo   no es critico. Jarvis aprendera a usarlas/instalarlas despues.)
+echo.
+
 REM Refrescar PATH despues de winget
 call refreshenv >nul 2>&1
 set "PATH=%PATH%;%LOCALAPPDATA%\Programs\Python\Python311;%LOCALAPPDATA%\Programs\Python\Python311\Scripts;C:\Program Files\nodejs;C:\Program Files\Git\cmd"
