@@ -28,11 +28,8 @@ from __future__ import annotations
 
 import json
 import re
-import shutil
 import subprocess
 import sys
-import tempfile
-import time
 import uuid
 from datetime import datetime
 from pathlib import Path
@@ -63,7 +60,6 @@ def search_and_download(query: str, max_videos: int = 3,
     log(f"buscando tutoriales: '{query}' (top {max_videos})")
     search_url = f"ytsearch{max_videos}:{query} tutorial"
 
-    info_json = cache_dir / "info.json"
     cmd = [
         "yt-dlp", "--no-warnings", "--quiet",
         "--print-json", "--no-download",
@@ -103,8 +99,8 @@ def search_and_download(query: str, max_videos: int = 3,
             v["url"],
         ]
         try:
-            r = subprocess.run(cmd, capture_output=True, text=True,
-                               timeout=180, encoding="utf-8", errors="replace")
+            subprocess.run(cmd, capture_output=True, text=True,
+                           timeout=180, encoding="utf-8", errors="replace")
             files = list(cache_dir.glob(f"{v['id']}.*"))
             video_file = next((f for f in files if f.suffix in (".mp4", ".webm", ".mkv")), None)
             if video_file:
