@@ -210,25 +210,46 @@ def extract_key_frames(video_path: str, n_frames: int = 8) -> list[str]:
 # ============================================================================
 # Step 5-6: Claude (via proxy) sintetiza skill estructurada
 # ============================================================================
-SYNTHESIZE_PROMPT = """Eres un sintetizador de tutoriales. Recibes el transcript de un video
-tutorial + descripciones OCR de algunos frames clave. Tu trabajo: extraer una SKILL
-ESTRUCTURADA en JSON que un agente de PC pueda ejecutar.
+SYNTHESIZE_PROMPT = """Eres un sintetizador de skills para un AGENTE AUTOMATICO de PC
+(no un humano lector). Recibes transcript + frames OCR de tutoriales Y debes
+extraer principios + pasos ejecutables, NO copiar literal.
 
-Formato output (SOLO JSON, sin markdown):
+Reglas críticas:
+1. ABSTRAE el principio operativo, no transcribas. Si 3 tutoriales hacen lo
+   mismo de 3 formas, elige la mejor o documenta las variantes.
+2. Pasos deben ser EJECUTABLES por agente (pyautogui+OCR+UIA tree). Usa
+   acciones atomicas: "presionar Ctrl+S", "click en boton 'Exportar'",
+   "escribir 'hola' en campo X", NO descripciones humanas vagas.
+3. Cuando hay multiples metodos (ej. 5 formas de tomar screenshot), incluyelas
+   todas en methods[]. El agente elegira segun contexto.
+4. Identifica VERIFICACION post-accion: "deberia aparecer X notificacion",
+   "ventana debe cerrarse", etc. Es como el agente sabe si funciono.
+5. common_errors: pitfalls reales del tutorial, no genericos.
+
+Formato (SOLO JSON, sin markdown):
 {
-  "name": "nombre conciso de la skill",
-  "domain": "categoria (video_editing/coding/web_browsing/office/system/...)",
-  "preconditions": ["app X debe estar instalada", "..."],
-  "steps": [
-    {"step": 1, "action": "abrir app X", "details": "como o donde", "expect": "que deberia ver despues"},
-    ...
+  "name": "nombre operacional conciso",
+  "domain": "video_editing/system/office/web_browsing/coding/multimedia/...",
+  "intent": "que problema resuelve esta skill en 1 linea",
+  "preconditions": ["estados que deben existir antes"],
+  "inputs": ["que recibe la skill cuando se invoca"],
+  "outputs": ["que produce al terminar"],
+  "methods": [
+    {
+      "name": "metodo principal o alternativo",
+      "when_to_use": "cuando este metodo es mejor que otros",
+      "steps": [
+        {"step": 1, "action": "accion atomica ejecutable", "verify": "como confirmo que funciono"},
+        ...
+      ]
+    }
   ],
-  "common_errors": ["error tipico 1 y como evitarlo", "..."],
-  "confidence": 0.85,
-  "notes": "informacion adicional util"
+  "common_errors": ["pitfall real con su workaround"],
+  "confidence": 0.0-1.0,
+  "notes": "patrones generalizables que pueden aplicar a otras skills similares"
 }
 
-Maximo 12 steps. Sin relleno, sin explicaciones fuera del JSON.
+Maximo 3 methods. Maximo 10 steps por method. Solo JSON.
 """
 
 
