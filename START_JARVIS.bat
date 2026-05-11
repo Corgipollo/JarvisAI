@@ -204,6 +204,34 @@ REM Deshabilitar UAC para Jarvis (en sandbox VM, es seguro y evita popups)
 echo   * Deshabilitar UAC en VM (seguro porque es sandbox)...
 reg add "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System" /v "EnableLUA" /t REG_DWORD /d 0 /f >nul 2>&1
 
+REM ============================================================================
+REM Saltar/ocultar activacion Windows (user no tiene licencia, VM es sandbox)
+REM ============================================================================
+echo   * Ocultando nag de 'Activar Windows'...
+
+REM Extender periodo de gracia 30 dias (se puede 'rearm' 3 veces = 90 dias)
+slmgr /rearm >nul 2>&1
+
+REM Ocultar el watermark "Activate Windows" en escritorio
+reg add "HKEY_CURRENT_USER\Control Panel\Desktop" /v "PaintDesktopVersion" /t REG_DWORD /d 0 /f >nul 2>&1
+
+REM Deshabilitar notificaciones "Activate Windows now"
+reg add "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Activation" /v "Manual" /t REG_DWORD /d 1 /f >nul 2>&1
+reg add "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Activation" /v "NotificationDisabled" /t REG_DWORD /d 1 /f >nul 2>&1
+
+REM Desactivar servicio de notificacion de activacion
+sc config "wlidsvc" start= disabled >nul 2>&1
+
+REM Permitir personalizacion sin activacion (algunos settings se ocultan sin license)
+reg add "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Windows Activation Technologies" /v "DisableActivationFeatureNotice" /t REG_DWORD /d 1 /f >nul 2>&1
+
+REM Saltar OOBE si todavia esta en proceso
+reg add "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\OOBE" /v "DisablePrivacyExperience" /t REG_DWORD /d 1 /f >nul 2>&1
+
+echo   Windows sin activar — watermark oculto, sin notificaciones molestas.
+echo   (Limitaciones menores: no personalizar wallpaper desde Settings, no
+echo    cambiar accent colors. Pero TODO lo demas funciona indefinidamente.)
+
 REM Reiniciar Explorer para aplicar cambios
 echo   * Aplicando cambios (reinicio explorer)...
 taskkill /f /im explorer.exe >nul 2>&1
