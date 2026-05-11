@@ -322,7 +322,7 @@ def save_skill(skill: dict) -> Path:
 # ============================================================================
 # Main pipeline
 # ============================================================================
-def learn_skill(query: str, max_videos: int = 3) -> dict | None:
+def learn_skill(query: str, max_videos: int = 6) -> dict | None:
     """Pipeline E2E: query → skill aprendida en biblioteca."""
     log(f"=== APRENDIENDO: '{query}' ===")
     videos = search_and_download(query, max_videos=max_videos)

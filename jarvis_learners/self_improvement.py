@@ -136,7 +136,7 @@ async def process_gap(gap: dict) -> dict | None:
         if learner_type == "github":
             skill = github_learner.learn_from_github(gap["query"])
         else:
-            skill = skill_learner.learn_skill(gap["query"], max_videos=2)
+            skill = skill_learner.learn_skill(gap["query"], max_videos=6)
         if skill:
             mark_addressed(gap, skill["id"], learner_type)
             return skill
