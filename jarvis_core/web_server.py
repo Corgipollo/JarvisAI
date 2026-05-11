@@ -36,10 +36,80 @@ app = FastAPI(title="Jarvis OS")
 
 @app.get("/")
 async def root():
+    dashboard = WEB_DIR / "dashboard.html"
+    if dashboard.exists():
+        return FileResponse(str(dashboard))
     index = WEB_DIR / "index.html"
     if index.exists():
         return FileResponse(str(index))
     return HTMLResponse("<h1>Jarvis OS</h1><p>UI no instalada</p>")
+
+
+@app.get("/events")
+async def get_events(since: float = 0):
+    """Pull eventos del stream + stats agregadas para el dashboard."""
+    from jarvis_core.event_stream import tail_events
+    events = tail_events(since_ts=float(since), max_events=80)
+
+    # Stats agregadas
+    skill_dir = ROOT / "data" / "skill_library"
+    role_dir = ROOT / "data" / "role_library"
+    tutorial_dir = ROOT / "data" / "tutorial_cache"
+
+    skills_count = 0
+    skills_list = []
+    if skill_dir.exists():
+        idx = skill_dir / "_index.jsonl"
+        if idx.exists():
+            for line in idx.read_text(encoding="utf-8").splitlines():
+                try:
+                    skills_list.append(json.loads(line))
+                except Exception:
+                    continue
+            skills_count = len(skills_list)
+
+    roles_count = len(list(role_dir.glob("*.json"))) if role_dir.exists() else 0
+
+    tutorials_count = 0
+    frames_count = 0
+    if tutorial_dir.exists():
+        for d in tutorial_dir.iterdir():
+            if d.is_dir():
+                tutorials_count += len(list(d.glob("*.mp4")))
+                for fr_dir in d.glob("*_frames"):
+                    frames_count += len(list(fr_dir.glob("*.jpg")))
+
+    events_file = ROOT / "data" / "jarvis_events.jsonl"
+    events_total = 0
+    if events_file.exists():
+        try:
+            events_total = sum(1 for _ in events_file.open("r", encoding="utf-8"))
+        except Exception:
+            pass
+
+    qstats = queue_manager.stats()
+
+    live_state = ROOT / "data" / "jarvis_live_state.json"
+    state = {}
+    if live_state.exists():
+        try:
+            state = json.loads(live_state.read_text(encoding="utf-8"))
+        except Exception:
+            pass
+
+    return {
+        "events": events,
+        "stats": {
+            "skills": skills_count,
+            "roles": roles_count,
+            "tutorials": tutorials_count,
+            "frames": frames_count,
+            "queue_pending": qstats.get("pending", 0),
+            "events_total": events_total,
+        },
+        "skills_list": skills_list,
+        "state": state,
+    }
 
 
 @app.get("/state")

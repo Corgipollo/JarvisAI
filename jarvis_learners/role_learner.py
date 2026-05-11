@@ -205,8 +205,8 @@ def transcribe_videos(videos: list[dict]) -> str:
 def synthesize_role(role: str, transcript: str) -> dict | None:
     user_prompt = (
         f"ROL A INVESTIGAR: {role}\n\n"
-        f"TRANSCRIPCIONES (mezcla de varios videos sobre el rol):\n"
-        f"{transcript[:8000]}\n\n"
+        f"TRANSCRIPCIONES (mezcla de varios videos sobre el rol, truncado):\n"
+        f"{transcript[:4500]}\n\n"
         f"Devuelve SOLO el JSON del role profile."
     )
     try:

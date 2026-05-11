@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<title>JARVIS — Training Live</title>
+<style>
+  :root {
+    --bg: #050511;
+    --bg-2: #0e0e22;
+    --txt: #d8e0ff;
+    --accent: #4d96ff;
+    --green: #6bcb77;
+    --red: #ff6b6b;
+    --yellow: #ffd93d;
+    --purple: #c89bff;
+    --mono: 'Cascadia Mono', 'Consolas', 'Courier New', monospace;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: radial-gradient(ellipse at top, var(--bg-2), var(--bg));
+    color: var(--txt); font-family: var(--mono);
+    height: 100vh; overflow: hidden;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: 340px 1fr 320px;
+    grid-template-rows: 56px 1fr;
+    height: 100vh; gap: 1px; background: #000;
+  }
+  .header {
+    grid-column: 1/-1; background: var(--bg-2);
+    display: flex; align-items: center; padding: 0 24px;
+    border-bottom: 1px solid #1f1f3a;
+  }
+  .header h1 { font-size: 15px; letter-spacing: 6px; }
+  .header h1 span { color: var(--accent); }
+  .panel { background: var(--bg-2); padding: 18px; overflow-y: auto; }
+  .panel h2 {
+    font-size: 10px; letter-spacing: 4px; opacity: .45;
+    margin-bottom: 14px; text-transform: uppercase;
+  }
+  /* Avatar */
+  .avatar-wrap {
+    display: flex; flex-direction: column; align-items: center;
+    padding: 30px 12px;
+  }
+  .avatar {
+    width: 200px; height: 200px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 90px;
+    background: var(--accent);
+    box-shadow: 0 0 60px var(--accent), inset 0 0 40px rgba(255,255,255,.15);
+    transition: all .8s cubic-bezier(.2,.8,.2,1);
+    animation: breathe 4s ease-in-out infinite;
+  }
+  @keyframes breathe {
+    0%,100% { transform: scale(1); }
+    50% { transform: scale(1.04); }
+  }
+  .state-label {
+    margin-top: 18px; font-size: 14px; letter-spacing: 5px;
+    text-transform: uppercase; opacity: .9;
+  }
+  .stats {
+    margin-top: 22px; width: 100%; font-size: 11px;
+  }
+  .stats .row {
+    display: flex; justify-content: space-between;
+    padding: 6px 0; border-bottom: 1px solid #1a1a36;
+  }
+  .stats .row span:last-child { color: var(--accent); }
+  /* Terminal cinematic */
+  .terminal {
+    background: #03030a; padding: 16px 20px;
+    font-size: 12px; line-height: 1.7;
+    overflow-y: auto; height: 100%;
+  }
+  .terminal .ev {
+    margin-bottom: 4px; word-break: break-word;
+  }
+  .terminal .ts { opacity: .3; }
+  .terminal .src { color: var(--purple); }
+  .terminal .info { color: var(--txt); }
+  .terminal .success { color: var(--green); }
+  .terminal .warn { color: var(--yellow); }
+  .terminal .error { color: var(--red); }
+  .terminal .learning { color: var(--accent); font-weight: bold; }
+  .terminal .discover { color: #ff9b6b; }
+  .terminal .new::before { content: '▸ '; }
+  /* Skills list */
+  .skill-item {
+    background: #14142a; padding: 9px 12px;
+    margin-bottom: 5px; border-radius: 4px;
+    font-size: 11px; border-left: 3px solid var(--green);
+  }
+  .skill-item .name { color: var(--accent); }
+  .skill-item .meta { opacity: .5; font-size: 10px; margin-top: 3px; }
+  .empty { opacity: .4; font-size: 11px; padding: 20px 0; text-align: center; }
+</style>
+</head>
+<body>
+<div class="grid">
+  <div class="header">
+    <h1><span>JARVIS</span> · TRAINING LIVE</h1>
+    <div style="margin-left:auto; font-size:10px; opacity:.5;" id="conn">conectando...</div>
+  </div>
+  <!-- AVATAR + STATS -->
+  <div class="panel">
+    <div class="avatar-wrap">
+      <div class="avatar" id="avatar">🤖</div>
+      <div class="state-label" id="state-label">INICIANDO</div>
+    </div>
+    <h2 style="margin-top:24px;">métricas</h2>
+    <div class="stats" id="stats">
+      <div class="row"><span>skills</span><span id="stat-skills">0</span></div>
+      <div class="row"><span>roles aprendidos</span><span id="stat-roles">0</span></div>
+      <div class="row"><span>tutoriales bajados</span><span id="stat-tutorials">0</span></div>
+      <div class="row"><span>frames procesados</span><span id="stat-frames">0</span></div>
+      <div class="row"><span>cola pendiente</span><span id="stat-queue">0</span></div>
+      <div class="row"><span>eventos hoy</span><span id="stat-events">0</span></div>
+    </div>
+  </div>
+  <!-- TERMINAL EVENTS -->
+  <div class="panel" style="padding:0;">
+    <h2 style="padding:18px 18px 8px;">event stream cinematic</h2>
+    <div class="terminal" id="terminal">
+      <div class="ev"><span class="ts">[boot]</span> <span class="info">esperando primer evento...</span></div>
+    </div>
+  </div>
+  <!-- SKILLS APRENDIDAS -->
+  <div class="panel">
+    <h2>skills aprendidas</h2>
+    <div id="skills-list"><div class="empty">sin skills aún</div></div>
+  </div>
+</div>
+<script>
+const $ = id => document.getElementById(id);
+const term = $('terminal');
+let lastTs = 0;
+
+function fmtTime(iso) {
+  return new Date(iso).toLocaleTimeString('es-MX', { hour12: false });
+}
+function appendEvent(e) {
+  const div = document.createElement('div');
+  div.className = 'ev new ' + (e.level || 'info');
+  div.innerHTML =
+    '<span class="ts">[' + fmtTime(e.iso) + ']</span> ' +
+    '<span class="src">[' + e.source + ']</span> ' +
+    '<span class="' + (e.level || 'info') + '">' + e.msg + '</span>';
+  term.appendChild(div);
+  term.scrollTop = term.scrollHeight;
+  // Keep last 200 events visible
+  while (term.children.length > 200) term.removeChild(term.firstChild);
+}
+async function poll() {
+  try {
+    const r = await fetch('/events?since=' + lastTs);
+    const data = await r.json();
+    for (const e of data.events || []) {
+      if (e.ts > lastTs) {
+        appendEvent(e);
+        lastTs = e.ts;
+      }
+    }
+    $('conn').textContent = '● live';
+    $('conn').style.color = '#6bcb77';
+    // Stats
+    const s = data.stats || {};
+    $('stat-skills').textContent = s.skills || 0;
+    $('stat-roles').textContent = s.roles || 0;
+    $('stat-tutorials').textContent = s.tutorials || 0;
+    $('stat-frames').textContent = s.frames || 0;
+    $('stat-queue').textContent = s.queue_pending || 0;
+    $('stat-events').textContent = s.events_total || 0;
+    // Avatar state
+    const st = data.state || {};
+    const expr = st.expression || {};
+    if (expr.color) $('avatar').style.background = expr.color;
+    if (expr.emoji) $('avatar').textContent = expr.emoji;
+    if (expr.label) $('state-label').textContent = expr.label.toUpperCase();
+    // Skills list
+    if (data.skills_list && data.skills_list.length) {
+      $('skills-list').innerHTML = data.skills_list.slice(-15).reverse().map(sk =>
+        '<div class="skill-item">' +
+        '<div class="name">' + sk.name + '</div>' +
+        '<div class="meta">' + (sk.domain || '?') + ' · conf ' + (sk.confidence || '?') + '</div>' +
+        '</div>'
+      ).join('');
+    }
+  } catch (e) {
+    $('conn').textContent = '● desconectado';
+    $('conn').style.color = '#ff6b6b';
+  }
+}
+setInterval(poll, 1500);
+poll();
+</script>
+</body>
+</html>
