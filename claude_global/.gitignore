@@ -1,0 +1,12 @@
+# Nunca commitear estas:
+.credentials.json
+.telegram-config
+*.token
+*.key
+settings.local.json
+projects/
+agent-memory/
+telemetry/
+rag-vault/
+file-history/
+backups/
