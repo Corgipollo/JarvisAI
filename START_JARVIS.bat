@@ -144,6 +144,76 @@ echo   Apps instaladas. (Algunas pueden haber fallado si winget no las tiene —
 echo   no es critico. Jarvis aprendera a usarlas/instalarlas despues.)
 echo.
 
+echo ============================================================================
+echo  [4.6/9] AUTO-CONFIGURANDO apps (extensiones VS Code, Git, etc.)
+echo ============================================================================
+echo.
+
+REM Git config (necesario para commits)
+echo   * Git config (user/email)...
+git config --global user.name "Jarvis VM" 2>nul
+git config --global user.email "jarvis@vm.local" 2>nul
+git config --global init.defaultBranch main 2>nul
+git config --global pull.rebase false 2>nul
+
+REM VS Code extensiones esenciales
+echo   * VS Code extensiones (Python, GitLens, Pylance, etc.)...
+where code >nul 2>&1
+if not errorlevel 1 (
+    call code --install-extension ms-python.python --force >nul 2>&1
+    call code --install-extension ms-python.vscode-pylance --force >nul 2>&1
+    call code --install-extension eamodio.gitlens --force >nul 2>&1
+    call code --install-extension ms-vscode.live-server --force >nul 2>&1
+    call code --install-extension dbaeumer.vscode-eslint --force >nul 2>&1
+    call code --install-extension esbenp.prettier-vscode --force >nul 2>&1
+    call code --install-extension ms-azuretools.vscode-docker --force >nul 2>&1
+    call code --install-extension yzhang.markdown-all-in-one --force >nul 2>&1
+    call code --install-extension PKief.material-icon-theme --force >nul 2>&1
+)
+
+REM Windows Terminal: setear default profile a PowerShell 7
+echo   * Windows Terminal config...
+where pwsh >nul 2>&1
+if errorlevel 1 (
+    winget install --id Microsoft.PowerShell --silent --disable-interactivity 2>nul
+)
+
+REM PowerToys auto-start
+echo   * PowerToys autostart...
+schtasks /create /tn "PowerToys" /tr "%LOCALAPPDATA%\PowerToys\PowerToys.exe" /sc onlogon /rl highest /f 2>nul
+
+REM Setear Brave como default browser por flag (alternativa: Chrome)
+echo   * Brave como default browser (silent)...
+where brave.exe >nul 2>&1
+if not errorlevel 1 (
+    reg add "HKEY_CURRENT_USER\Software\Brave\PreFlightCheck" /v "SetDefaultBrowser" /t REG_DWORD /d 1 /f >nul 2>&1
+)
+
+REM Desactivar Bing/sugerencias web en Windows Search (para que apps locales se prioricen)
+echo   * Windows Search optimizado (sin Bing online)...
+reg add "HKEY_CURRENT_USER\Software\Policies\Microsoft\Windows\Explorer" /v "DisableSearchBoxSuggestions" /t REG_DWORD /d 1 /f >nul 2>&1
+
+REM Mostrar extensiones de archivo (mejor para Jarvis)
+echo   * Mostrar extensiones de archivo...
+reg add "HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v "HideFileExt" /t REG_DWORD /d 0 /f >nul 2>&1
+
+REM Mostrar archivos ocultos (Jarvis necesita acceder a %APPDATA% y similar)
+reg add "HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v "Hidden" /t REG_DWORD /d 1 /f >nul 2>&1
+
+REM Deshabilitar UAC para Jarvis (en sandbox VM, es seguro y evita popups)
+echo   * Deshabilitar UAC en VM (seguro porque es sandbox)...
+reg add "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System" /v "EnableLUA" /t REG_DWORD /d 0 /f >nul 2>&1
+
+REM Reiniciar Explorer para aplicar cambios
+echo   * Aplicando cambios (reinicio explorer)...
+taskkill /f /im explorer.exe >nul 2>&1
+timeout /t 1 /nobreak >nul
+start explorer.exe
+
+echo.
+echo   Auto-configuracion completa.
+echo.
+
 REM Refrescar PATH despues de winget
 call refreshenv >nul 2>&1
 set "PATH=%PATH%;%LOCALAPPDATA%\Programs\Python\Python311;%LOCALAPPDATA%\Programs\Python\Python311\Scripts;C:\Program Files\nodejs;C:\Program Files\Git\cmd"
