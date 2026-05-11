@@ -36,6 +36,13 @@ from pathlib import Path
 
 import requests
 
+# Force UTF-8 stdout/stderr on Windows (titles with non-ASCII chars crash cp1252)
+try:
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+except Exception:
+    pass
+
 ROOT = Path(__file__).resolve().parents[1]
 SKILLS_DIR = ROOT / "data" / "skill_library"
 TUTORIAL_CACHE = ROOT / "data" / "tutorial_cache"
@@ -228,12 +235,15 @@ Maximo 12 steps. Sin relleno, sin explicaciones fuera del JSON.
 def synthesize_skill(query: str, transcript: str, frames_ocr: list[str],
                      sources: list[str]) -> dict | None:
     """Llama a Claude (vía proxy) para sintetizar skill estructurada."""
+    # Limit frames OCR to top 60 most informative (skip very short)
+    informative_frames = [f for f in frames_ocr if len(f) > 30][:60]
+
     user_prompt = (
         f"OBJETIVO: aprender '{query}'\n\n"
         f"TRANSCRIPT (mezcla de {len(sources)} tutoriales):\n"
-        f"{transcript[:6000]}\n\n"
-        f"FRAMES OCR:\n"
-        + "\n".join(frames_ocr[:10])
+        f"{transcript[:3500]}\n\n"
+        f"FRAMES OCR (timeline visual):\n"
+        + "\n".join(informative_frames)
         + "\n\nDevuelve SOLO el JSON de la skill."
     )
 
@@ -246,7 +256,7 @@ def synthesize_skill(query: str, transcript: str, frames_ocr: list[str],
                 "messages": [{"role": "user", "content": user_prompt}],
                 "max_tokens": 4096,
             },
-            timeout=120,
+            timeout=300,
         )
         r.raise_for_status()
         text = r.json()["content"][0]["text"]

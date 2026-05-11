@@ -90,24 +90,40 @@ def _system_text(system) -> str:
 
 
 def call_claude_cli(messages: list[dict], system: str, model: str, timeout: int) -> str:
-    # Concatenar messages como conversación
-    convo_parts = []
-    for m in messages:
-        role = m.get("role", "user").upper()
+    """Envia mensajes a Claude CLI. Solo el ULTIMO user message como prompt
+    (Claude CLI no es multi-turn aware, lo trata como una sola request).
+    History previa se inyecta al system_prompt como contexto.
+    """
+    # Separar history vs ultimo user
+    last_user_text = ""
+    history_parts = []
+    for i, m in enumerate(messages):
+        role = m.get("role", "user")
         text = _extract_text(m.get("content", ""))
-        convo_parts.append(f"[{role}]:\n{text}")
-    user_prompt = "\n\n".join(convo_parts)
+        if i == len(messages) - 1 and role == "user":
+            last_user_text = text
+        else:
+            history_parts.append(f"{role}: {text}")
 
-    args = [CLAUDE_BIN, "-p", user_prompt,
+    if not last_user_text:
+        # Fallback: todo concat
+        last_user_text = "\n\n".join(history_parts) or _extract_text(messages[-1].get("content", ""))
+
+    # System prompt = system original + history previa (si existe)
+    full_system = system or ""
+    if history_parts:
+        full_system += "\n\n=== CONVERSATION HISTORY ===\n" + "\n\n".join(history_parts)
+
+    args = [CLAUDE_BIN, "-p", last_user_text,
             "--dangerously-skip-permissions",
             "--model", model]
 
     sys_file = None
-    if system:
+    if full_system.strip():
         sys_file = tempfile.NamedTemporaryFile(
             mode="w", suffix="_sys.md", delete=False, encoding="utf-8"
         )
-        sys_file.write(system)
+        sys_file.write(full_system)
         sys_file.close()
         args += ["--system-prompt-file", sys_file.name]
 

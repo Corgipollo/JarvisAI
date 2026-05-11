@@ -22,6 +22,12 @@ from pathlib import Path
 
 import requests
 
+try:
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+except Exception:
+    pass
+
 ROOT = Path(__file__).resolve().parents[1]
 SKILLS_DIR = ROOT / "data" / "skill_library"
 REPO_CACHE = ROOT / "data" / "github_cache"
