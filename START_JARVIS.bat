@@ -159,14 +159,43 @@ echo   Self-improvement:   procesando gaps.json
 echo   Coach:              decidiendo curriculum cada 15min
 echo   SUPER_PROMPT:       en tu clipboard (Ctrl+V para pegar en Claude)
 echo.
-echo === SIGUIENTE PASO ===
-echo   1. Login en Claude CLI:  claude login    (1 sola vez, OAuth)
-echo   2. Abre Claude CLI o Antigravity
-echo   3. Pega el SUPER_PROMPT (Ctrl+V) y enviar
-echo   4. Claude adentro tomara el control y entrenara solo
+
+REM ----- AUTO-LAUNCH Claude CLI con SUPER_PROMPT -----
+echo === [10/10] Verificando login Claude CLI ===
+where claude >nul 2>&1
+if errorlevel 1 (
+    echo   Claude CLI no instalado correctamente. Saliendo.
+    pause
+    exit /b 1
+)
+
+REM Test rapido: si claude no esta logueado, pedirlo
+claude -p "ok" --dangerously-skip-permissions 2>&1 | findstr /C:"Not logged in" >nul
+if not errorlevel 1 (
+    echo.
+    echo   Claude CLI NO esta logueado. Ejecutando: claude login
+    echo   Se abrira un navegador para autenticacion OAuth.
+    echo.
+    claude login
+)
+
 echo.
-echo Esta ventana se cerrara en 30 segundos. Los servicios siguen corriendo
-echo en background. Para verlos: Win+T (taskbar) — los iconos con "Jarvis ..."
+echo === LANZANDO CLAUDE CON SUPER_PROMPT (automático) ===
 echo.
-timeout /t 30 /nobreak
+cd /d "%JARVIS_DIR%"
+python AUTO_TALK_TO_CLAUDE.py
+
+REM Cuando Claude termine la sesion, los servicios siguen corriendo
+echo.
+echo === SESION CLAUDE TERMINADA ===
+echo Los 4 servicios siguen vivos en background:
+echo   - claude_proxy   :8088
+echo   - dashboard      :7777
+echo   - self_improvement
+echo   - coach
+echo.
+echo Para verlos: Win+T (taskbar) - iconos minimizados "Jarvis ..."
+echo Para detenerlos: cierra esas ventanas minimizadas.
+echo.
+pause
 endlocal
