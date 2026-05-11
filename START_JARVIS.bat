@@ -307,6 +307,22 @@ start "Jarvis Self-Improvement" /MIN cmd /c "cd /d %JARVIS_DIR% && set JARVIS_SA
 REM Coach
 start "Jarvis Coach" /MIN cmd /c "cd /d %JARVIS_DIR% && python jarvis_learners\coach.py"
 
+REM Telegram bot (si config_telegram.json existe)
+if exist "%JARVIS_DIR%\config_telegram.json" (
+    echo   * Telegram bot...
+    start "Jarvis Telegram Bot" /MIN cmd /c "cd /d %JARVIS_DIR% && python jarvis_bridge\telegram_bot.py"
+    start "Jarvis Telegram Notifier" /MIN cmd /c "cd /d %JARVIS_DIR% && python jarvis_bridge\telegram_notifier.py"
+)
+
+REM State backup auto cada 5 skills
+start "Jarvis State Backup" /MIN cmd /c "cd /d %JARVIS_DIR% && python jarvis_bridge\state_backup.py"
+
+REM Self-optimizer (cada 60 min revisa metricas y ajusta)
+start "Jarvis Self-Optimizer" /MIN cmd /c "cd /d %JARVIS_DIR% && python jarvis_learners\self_optimizer.py"
+
+REM Proactive suggester (cada 30 min sugiere tareas)
+start "Jarvis Proactive" /MIN cmd /c "cd /d %JARVIS_DIR% && python jarvis_learners\proactive_suggester.py"
+
 timeout /t 3 /nobreak >nul
 
 echo.
