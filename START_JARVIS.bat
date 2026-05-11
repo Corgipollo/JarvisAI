@@ -77,71 +77,66 @@ if not exist "C:\Program Files\Tesseract-OCR\tesseract.exe" (
 
 echo.
 echo ============================================================================
-echo  [4.5/9] INSTALANDO APPS QUE JARVIS VA A USAR (15-25 min, solo 1 vez)
+echo  [4.5/9] INSTALANDO APPS QUE JARVIS VA A USAR (idempotente)
 echo ============================================================================
 echo.
 
+REM ---- Cache de apps ya instaladas (1 sola llamada a winget list) ----
+echo   Detectando apps ya instaladas...
+set "INSTALLED_CACHE=%TEMP%\jarvis_installed.txt"
+winget list --accept-source-agreements > "%INSTALLED_CACHE%" 2>nul
+echo   OK cache generado en %INSTALLED_CACHE%
+
+REM Helper inline: si app ya esta en cache, skip; sino install
+REM Uso: call :try_install "Nombre legible" "ID.del.paquete"
+goto :skip_helper
+
+:try_install
+findstr /I /C:"%~2" "%INSTALLED_CACHE%" >nul 2>&1
+if not errorlevel 1 (
+    echo   [SKIP] %~1 ya instalado
+    goto :eof
+)
+echo   [INSTALL] %~1...
+winget install --id %~2 --accept-package-agreements --accept-source-agreements --silent --disable-interactivity 2>nul
+goto :eof
+
+:skip_helper
+
 REM Navegadores
-echo   * Google Chrome...
-winget install --id Google.Chrome --accept-package-agreements --accept-source-agreements --silent --disable-interactivity 2>nul
-echo   * Brave Browser...
-winget install --id Brave.Brave --accept-package-agreements --accept-source-agreements --silent --disable-interactivity 2>nul
-echo   * Firefox...
-winget install --id Mozilla.Firefox --accept-package-agreements --accept-source-agreements --silent --disable-interactivity 2>nul
+call :try_install "Google Chrome" "Google.Chrome"
+call :try_install "Brave Browser" "Brave.Brave"
+call :try_install "Firefox" "Mozilla.Firefox"
 
 REM Editores y code
-echo   * Visual Studio Code...
-winget install --id Microsoft.VisualStudioCode --accept-package-agreements --accept-source-agreements --silent --disable-interactivity 2>nul
-echo   * Notepad++...
-winget install --id Notepad++.Notepad++ --accept-package-agreements --accept-source-agreements --silent --disable-interactivity 2>nul
+call :try_install "Visual Studio Code" "Microsoft.VisualStudioCode"
+call :try_install "Notepad++" "Notepad++.Notepad++"
 
-REM Comunicación (lo que Emmanuel usa diario)
-echo   * Telegram Desktop...
-winget install --id Telegram.TelegramDesktop --accept-package-agreements --accept-source-agreements --silent --disable-interactivity 2>nul
-echo   * Discord...
-winget install --id Discord.Discord --accept-package-agreements --accept-source-agreements --silent --disable-interactivity 2>nul
-echo   * WhatsApp...
-winget install --id 9NKSQGP7F2NH --accept-package-agreements --accept-source-agreements --silent --disable-interactivity 2>nul
-echo   * Zoom...
-winget install --id Zoom.Zoom --accept-package-agreements --accept-source-agreements --silent --disable-interactivity 2>nul
+REM Comunicacion
+call :try_install "Telegram Desktop" "Telegram.TelegramDesktop"
+call :try_install "Discord" "Discord.Discord"
+call :try_install "WhatsApp" "WhatsApp.WhatsApp"
+call :try_install "Zoom" "Zoom.Zoom"
 
-REM Video / Audio editing
-echo   * CapCut Desktop...
-winget install --id Bytedance.CapCut --accept-package-agreements --accept-source-agreements --silent --disable-interactivity 2>nul
-echo   * OBS Studio (grabacion)...
-winget install --id OBSProject.OBSStudio --accept-package-agreements --accept-source-agreements --silent --disable-interactivity 2>nul
-echo   * VLC media player...
-winget install --id VideoLAN.VLC --accept-package-agreements --accept-source-agreements --silent --disable-interactivity 2>nul
+REM Video / Audio
+call :try_install "CapCut Desktop" "Bytedance.CapCut"
+call :try_install "OBS Studio" "OBSProject.OBSStudio"
+call :try_install "VLC media player" "VideoLAN.VLC"
+call :try_install "Spotify" "Spotify.Spotify"
 
-REM Audio
-echo   * Spotify...
-winget install --id Spotify.Spotify --accept-package-agreements --accept-source-agreements --silent --disable-interactivity 2>nul
-
-REM Notes y productividad
-echo   * Obsidian...
-winget install --id Obsidian.Obsidian --accept-package-agreements --accept-source-agreements --silent --disable-interactivity 2>nul
-echo   * Notion...
-winget install --id Notion.Notion --accept-package-agreements --accept-source-agreements --silent --disable-interactivity 2>nul
+REM Notes
+call :try_install "Obsidian" "Obsidian.Obsidian"
+call :try_install "Notion" "Notion.Notion"
 
 REM Utilidades
-echo   * 7-Zip...
-winget install --id 7zip.7zip --accept-package-agreements --accept-source-agreements --silent --disable-interactivity 2>nul
-echo   * PowerToys (productividad pro)...
-winget install --id Microsoft.PowerToys --accept-package-agreements --accept-source-agreements --silent --disable-interactivity 2>nul
-echo   * Windows Terminal...
-winget install --id Microsoft.WindowsTerminal --accept-package-agreements --accept-source-agreements --silent --disable-interactivity 2>nul
-
-REM Imagen / Diseño
-echo   * GIMP (alternativa Photoshop)...
-winget install --id GIMP.GIMP --accept-package-agreements --accept-source-agreements --silent --disable-interactivity 2>nul
-
-REM Antigravity (Claude IDE) — opcional pero útil
-echo   * Antigravity Claude IDE...
-winget install --id Anthropic.Antigravity --accept-package-agreements --accept-source-agreements --silent --disable-interactivity 2>nul
+call :try_install "7-Zip" "7zip.7zip"
+call :try_install "PowerToys" "Microsoft.PowerToys"
+call :try_install "Windows Terminal" "Microsoft.WindowsTerminal"
+call :try_install "GIMP" "GIMP.GIMP"
+call :try_install "Antigravity Claude IDE" "Anthropic.Antigravity"
 
 echo.
-echo   Apps instaladas. (Algunas pueden haber fallado si winget no las tiene —
-echo   no es critico. Jarvis aprendera a usarlas/instalarlas despues.)
+echo   Apps procesadas (ya instaladas: SKIP, faltantes: INSTALL).
 echo.
 
 echo ============================================================================
