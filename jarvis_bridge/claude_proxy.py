@@ -89,6 +89,47 @@ def _system_text(system) -> str:
     return str(system)
 
 
+# =============================================================================
+# MEMORIA PERSISTENTE (simula chat continuo entre llamadas)
+# =============================================================================
+MEMORY_FILE = Path(__file__).resolve().parents[1] / "data" / "claude_persistent_memory.jsonl"
+MEMORY_LAST_N = 20  # ultimas N interacciones se inyectan como contexto
+
+
+def _load_recent_memory() -> str:
+    """Lee las ultimas N entradas del memory file y formatea como contexto."""
+    if not MEMORY_FILE.exists():
+        return ""
+    try:
+        lines = MEMORY_FILE.read_text(encoding="utf-8").splitlines()[-MEMORY_LAST_N:]
+    except Exception:
+        return ""
+    parts = []
+    for line in lines:
+        try:
+            entry = json.loads(line)
+            parts.append(f"[USER@{entry.get('ts','?')[:19]}]: {entry.get('user','')[:300]}")
+            parts.append(f"[CLAUDE]: {entry.get('claude','')[:500]}")
+        except Exception:
+            continue
+    return "\n".join(parts)
+
+
+def _save_memory(user_text: str, claude_text: str, session_id: str | None = None):
+    MEMORY_FILE.parent.mkdir(parents=True, exist_ok=True)
+    entry = {
+        "ts": time.strftime("%Y-%m-%dT%H:%M:%S"),
+        "session_id": session_id or "default",
+        "user": user_text[:2000],
+        "claude": claude_text[:5000],
+    }
+    try:
+        with MEMORY_FILE.open("a", encoding="utf-8") as f:
+            f.write(json.dumps(entry, ensure_ascii=False) + "\n")
+    except Exception:
+        pass
+
+
 def call_claude_cli(messages: list[dict], system: str, model: str, timeout: int) -> str:
     """Envia mensajes a Claude CLI. Solo el ULTIMO user message como prompt
     (Claude CLI no es multi-turn aware, lo trata como una sola request).
@@ -147,10 +188,29 @@ async def messages_endpoint(req: MessagesRequest):
     model = req.model or DEFAULT_MODEL
     system = _system_text(req.system)
 
+    # MEMORIA PERSISTENTE: inyectar contexto previo si NO hay opt-out
+    if os.getenv("CLAUDE_PROXY_NO_MEMORY") != "1":
+        recent = _load_recent_memory()
+        if recent:
+            system = (system + "\n\n=== MEMORIA PERSISTENTE (chat continuo de Jarvis) ===\n"
+                      + recent + "\n=== FIN MEMORIA ===").strip()
+
     try:
         text = call_claude_cli(req.messages, system, model, TIMEOUT_S)
     except subprocess.TimeoutExpired:
         raise HTTPException(504, "claude CLI timeout")
+
+    # Guardar la interaccion en memoria (ultimo user + response)
+    try:
+        last_user = ""
+        for m in reversed(req.messages):
+            if m.get("role") == "user":
+                last_user = _extract_text(m.get("content", ""))
+                break
+        if last_user:
+            _save_memory(last_user, text)
+    except Exception:
+        pass
 
     # Approx token count (Claude doesn't expose via CLI)
     approx_in = sum(len(_extract_text(m.get("content", ""))) for m in req.messages) // 4

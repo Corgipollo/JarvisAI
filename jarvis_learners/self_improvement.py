@@ -23,7 +23,6 @@ from __future__ import annotations
 import asyncio
 import json
 import sys
-import time
 from collections import Counter
 from datetime import datetime
 from pathlib import Path
@@ -183,16 +182,21 @@ def generate_new_gaps_from_coach() -> list[str]:
                 continue
 
     prompt = (
-        f"Eres el COACH de Jarvis (asistente Windows en VM). "
-        f"Jarvis ya aprendio estas {len(existing)} skills:\n"
+        f"Eres el COACH personal de Jarvis (asistente Windows que vive en VM 24/7). "
+        f"Emmanuel (su humano) quiere que Jarvis sea como una persona real que aprende "
+        f"continuamente y nunca para.\n\n"
+        f"Skills ya aprendidas ({len(existing)}):\n"
         + "\n".join(f"- {s}" for s in existing[:30])
-        + f"\n\nSugiere 10 NUEVAS skills que Jarvis deberia aprender ahora "
-        f"para ser un secretario/asistente personal mas util. Que sean POPULARES en YouTube "
-        f"(asegura que yt-dlp encuentre tutoriales). Mezclar: apps comunes (Excel, Photoshop), "
-        f"comandos Windows, productividad, comunicacion, automatizacion. "
-        f"Cada query debe ser una busqueda corta tipo 'tutorial X' o 'como hacer Y'. "
-        f"Responde JSON estricto:\n"
-        f'{{"queries": ["tutorial X", "como Y", "Z basics"...]}}'
+        + f"\n\nGenera 10 NUEVAS skills VARIADAS que un asistente personal humano necesita. "
+        f"Sé CREATIVO, no repitas tipos. Mezcla obligatoriamente:\n"
+        f"- 2 de manipulación MOUSE/teclado (drag, arrastrar archivos, redimensionar ventanas, hover menus)\n"
+        f"- 2 de escribir DOCUMENTOS (Word, Google Docs, Markdown, formatear texto)\n"
+        f"- 2 de organizar/mover ARCHIVOS Y CARPETAS (mover, copiar, comprimir zip, crear shortcuts)\n"
+        f"- 2 de COMUNICACIÓN (email Outlook, Slack, Discord, video calls)\n"
+        f"- 2 PRODUCTIVIDAD/profesionales (Excel formulas, calendario, taskbar, busqueda avanzada)\n\n"
+        f"Cada query debe ser CORTA (3-6 palabras), específica para YouTube tutoriales POPULARES "
+        f"(asegura que existan tutoriales). NO repitas cosas que ya aprendio.\n\n"
+        f'Responde JSON estricto: {{"queries": ["tutorial Word formato", "como arrastrar archivos windows", ...]}}'
     )
     res = ask_claude_json(prompt, schema_hint='{"queries": [...]}')
     if res and "queries" in res and isinstance(res["queries"], list):
