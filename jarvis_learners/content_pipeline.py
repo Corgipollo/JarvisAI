@@ -71,7 +71,7 @@ def research_topic(topic: str, depth: int = 3) -> dict:
     # YouTube search (sin descarga, solo metadata)
     try:
         proc = subprocess.run(
-            ["yt-dlp", "--no-warnings", "--quiet",
+            [sys.executable, "-m", "yt_dlp", "--no-warnings", "--quiet",
              "--print-json", "--no-download",
              "--match-filter", "duration<600",
              f"ytsearch{depth*2}:{topic}"],
@@ -152,7 +152,6 @@ def generate_voiceover(script: dict, out_dir: Path, voice: str = "es-MX-DaliaNeu
     except ImportError:
         return None
     log("generando voiceover...")
-    audio_files = []
     full_text = script.get("hook", "")
     for seg in script.get("body", []):
         full_text += " " + seg.get("text", "")

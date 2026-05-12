@@ -68,7 +68,7 @@ def search_and_download(query: str, max_videos: int = 3,
     search_url = f"ytsearch{max_videos}:{query} tutorial"
 
     cmd = [
-        "yt-dlp", "--no-warnings", "--quiet",
+        sys.executable, "-m", "yt_dlp", "--no-warnings", "--quiet",
         "--print-json", "--no-download",
         "--match-filter", f"duration<{max_duration_s}",
         "-f", "best[height<=480]/best",
@@ -100,7 +100,7 @@ def search_and_download(query: str, max_videos: int = 3,
     for v in videos[:max_videos]:
         out_tpl = cache_dir / f"{v['id']}.%(ext)s"
         cmd = [
-            "yt-dlp", "--no-warnings", "--quiet",
+            sys.executable, "-m", "yt_dlp", "--no-warnings", "--quiet",
             "-f", "best[height<=360]/best",
             "-o", str(out_tpl),
             v["url"],

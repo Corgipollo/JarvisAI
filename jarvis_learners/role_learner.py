@@ -122,7 +122,7 @@ def search_role_content(role: str, max_videos: int = 5) -> list[dict]:
         log(f"  buscando: {q}")
         try:
             proc = subprocess.run(
-                ["yt-dlp", "--no-warnings", "--quiet",
+                [sys.executable, "-m", "yt_dlp", "--no-warnings", "--quiet",
                  "--print-json", "--no-download",
                  "--match-filter", "duration<900",
                  f"ytsearch{max_videos // len(queries) + 1}:{q}"],
@@ -161,7 +161,7 @@ def search_role_content(role: str, max_videos: int = 5) -> list[dict]:
         try:
             import subprocess as sp
             sp.run(
-                ["yt-dlp", "--no-warnings", "--quiet",
+                [sys.executable, "-m", "yt_dlp", "--no-warnings", "--quiet",
                  "-f", "best[height<=240]/best",
                  "-o", str(out_tpl),
                  v["url"]],

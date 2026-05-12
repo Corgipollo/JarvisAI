@@ -262,10 +262,17 @@ python -m pip install --upgrade pip --quiet
 python -m pip install --quiet ^
     pyautogui psutil pygetwindow pyyaml pywin32 ^
     fastapi uvicorn ^
-    pytesseract pillow ^
+    pytesseract pillow imagehash ^
     faster-whisper edge-tts ^
     requests playwright python-telegram-bot anthropic yt-dlp ^
     beautifulsoup4 lxml
+
+REM Verificar que yt-dlp funciona via -m antes de seguir
+python -m yt_dlp --version >nul 2>&1
+if errorlevel 1 (
+    echo   WARN: yt-dlp module no responde, reinstalando...
+    python -m pip install --force-reinstall --quiet yt-dlp
+)
 
 echo [7/9] Instalando Claude CLI + Playwright Chromium...
 where claude >nul 2>&1
@@ -317,6 +324,9 @@ start "Jarvis Self-Optimizer" /MIN cmd /c "cd /d %JARVIS_DIR% && python jarvis_l
 
 REM Proactive suggester (cada 30 min sugiere tareas)
 start "Jarvis Proactive" /MIN cmd /c "cd /d %JARVIS_DIR% && python jarvis_learners\proactive_suggester.py"
+
+REM Watchdog (cada 3 min monitorea salud + restart auto)
+start "Jarvis Watchdog" /MIN cmd /c "cd /d %JARVIS_DIR% && python jarvis_learners\watchdog.py"
 
 timeout /t 3 /nobreak >nul
 

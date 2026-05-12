@@ -16,3 +16,16 @@ data/jarvis_errors.jsonl
 data/jarvis_learnings.jsonl
 data/jarvis_runs.jsonl
 data/jarvis_sandbox.jsonl
+
+# Jarvis runtime data (no commitear)
+data/video_analysis/
+data/tutorial_cache/
+data/role_content_cache/
+data/skill_library/
+data/role_library/
+data/*.log
+data/*.jsonl
+*.mp4
+*.mp3
+*.wav
+*.webm
