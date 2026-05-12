@@ -157,21 +157,102 @@ def stats() -> dict:
     }
 
 
+def generate_new_gaps_from_coach() -> list[str]:
+    """Pide al coach (Claude) que sugiera NUEVAS skills a aprender
+    basado en lo que ya tiene en skill_library. Cierra el loop autonomo:
+    cuando se acaban los gaps, el coach genera mas. Nunca termina.
+    """
+    try:
+        from jarvis_bridge.jarvis_brain import ask_claude_json, ping_proxy
+    except ImportError:
+        log("  coach: jarvis_brain no disponible, no puedo generar gaps")
+        return []
+    if not ping_proxy():
+        log("  coach: proxy no responde, skip")
+        return []
+
+    # Lista de skills actuales
+    existing = []
+    if SKILLS_DIR.exists():
+        for f in SKILLS_DIR.glob("*.json"):
+            if f.name.startswith("_"):
+                continue
+            try:
+                existing.append(json.loads(f.read_text(encoding="utf-8")).get("name", f.stem))
+            except Exception:
+                continue
+
+    prompt = (
+        f"Eres el COACH de Jarvis (asistente Windows en VM). "
+        f"Jarvis ya aprendio estas {len(existing)} skills:\n"
+        + "\n".join(f"- {s}" for s in existing[:30])
+        + f"\n\nSugiere 10 NUEVAS skills que Jarvis deberia aprender ahora "
+        f"para ser un secretario/asistente personal mas util. Que sean POPULARES en YouTube "
+        f"(asegura que yt-dlp encuentre tutoriales). Mezclar: apps comunes (Excel, Photoshop), "
+        f"comandos Windows, productividad, comunicacion, automatizacion. "
+        f"Cada query debe ser una busqueda corta tipo 'tutorial X' o 'como hacer Y'. "
+        f"Responde JSON estricto:\n"
+        f'{{"queries": ["tutorial X", "como Y", "Z basics"...]}}'
+    )
+    res = ask_claude_json(prompt, schema_hint='{"queries": [...]}')
+    if res and "queries" in res and isinstance(res["queries"], list):
+        log(f"  coach genero {len(res['queries'])} nuevos gaps")
+        return [str(q) for q in res["queries"] if q]
+    return []
+
+
+def append_gaps_to_file(new_queries: list[str]):
+    """Agrega queries nuevas a gaps.json sin perder las existentes."""
+    DATA_DIR.mkdir(parents=True, exist_ok=True)
+    existing = []
+    if GAPS_FILE.exists():
+        try:
+            existing = json.loads(GAPS_FILE.read_text(encoding="utf-8")).get("queries", [])
+        except Exception:
+            existing = []
+    # Dedup
+    seen = set(existing)
+    for q in new_queries:
+        if q not in seen:
+            existing.append(q)
+            seen.add(q)
+    GAPS_FILE.write_text(
+        json.dumps({"queries": existing, "priority": "high",
+                    "last_coach_refill": datetime.now().isoformat()},
+                   ensure_ascii=False, indent=2),
+        encoding="utf-8",
+    )
+
+
 async def improvement_loop(tick_minutes: int = 10, max_gaps_per_tick: int = 1):
-    """Loop autonomo. Corre indefinido."""
-    log(f"=== AUTO-MEJORA INICIADA (tick {tick_minutes}min) ===")
+    """Loop autonomo PERPETUO. Cuando gaps se acaba, el coach genera mas."""
+    log(f"=== AUTO-MEJORA INICIADA (tick {tick_minutes}min, modo perpetuo) ===")
     log(f"Stats: {stats()}")
+
+    empty_ticks = 0
 
     while True:
         gaps = load_gaps()
         addressed = load_addressed()
-        # Filtrar ya hechos
         pending = [g for g in gaps if g["query"] not in addressed]
         pending.sort(key=lambda g: -g.get("priority", 0))
 
         if not pending:
-            log(f"sin gaps pendientes, durmiendo {tick_minutes}min")
+            empty_ticks += 1
+            # Despues de 2 ticks sin gaps, pedir al coach mas (cada 20min)
+            if empty_ticks >= 2:
+                log("sin gaps pendientes 20min, consultando coach para generar nuevos...")
+                new_queries = generate_new_gaps_from_coach()
+                if new_queries:
+                    append_gaps_to_file(new_queries)
+                    log(f"  +{len(new_queries)} nuevos gaps agregados a gaps.json")
+                    empty_ticks = 0
+                else:
+                    log("  coach no devolvio queries, esperando otro tick")
+            else:
+                log(f"sin gaps pendientes, durmiendo {tick_minutes}min (empty_ticks={empty_ticks})")
         else:
+            empty_ticks = 0
             log(f"{len(pending)} gaps pendientes, procesando top {max_gaps_per_tick}")
             for gap in pending[:max_gaps_per_tick]:
                 skill = await process_gap(gap)
@@ -179,6 +260,8 @@ async def improvement_loop(tick_minutes: int = 10, max_gaps_per_tick: int = 1):
                     log(f"  +skill: {skill['name']} ({len(skill.get('steps',[]))} steps)")
                 else:
                     log(f"  no pude aprender: {gap['query']}")
+                    # Marcar como addressed para no quedarse colgado en queries imposibles
+                    mark_addressed(gap, skill_id="(failed)", source_type="failed")
 
         await asyncio.sleep(tick_minutes * 60)
 
