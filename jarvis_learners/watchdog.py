@@ -290,6 +290,26 @@ def tick(state: dict) -> dict:
             for et, count in err_types.items():
                 if count >= 3:
                     log(f"  ERROR_REPEATED: {et} x{count} en ultimos 20")
+                    # AUTO-HEAL: solo intentamos 1 vez por tipo, registramos en state
+                    healed_key = f"healed::{et}"
+                    if not state.get(healed_key):
+                        # Tomar el ultimo error completo de ese tipo
+                        sample_err = None
+                        for line in reversed(recent):
+                            try:
+                                e = json.loads(line)
+                                if e.get("error_type") == et:
+                                    sample_err = e
+                                    break
+                            except Exception:
+                                continue
+                        if sample_err:
+                            log(f"  AUTO-HEAL attempting for {et}...")
+                            if attempt_auto_heal(sample_err):
+                                state[healed_key] = datetime.now().isoformat()
+                                log(f"  AUTO-HEAL OK for {et}")
+                            else:
+                                log(f"  AUTO-HEAL no propuso fix util")
         except Exception:
             pass
 
@@ -299,12 +319,156 @@ def tick(state: dict) -> dict:
     return state
 
 
+def attempt_auto_heal(error_record: dict) -> bool:
+    """Le pregunta a Claude via jarvis_brain como arreglar este error.
+
+    Espera respuesta JSON con {file, find, replace}. Aplica el patch
+    leyendo+modificando+escribiendo el archivo. Retorna True si pudo aplicar.
+
+    Es DEFENSIVO: solo aplica si los strings find/replace son razonables
+    (find debe existir exactamente, replace debe ser != find).
+    """
+    try:
+        sys.path.insert(0, str(ROOT))
+        from jarvis_bridge.jarvis_brain import ask_claude_json, ping_proxy
+    except ImportError:
+        log("  WARN auto_heal: no puedo importar jarvis_brain")
+        return False
+
+    if not ping_proxy():
+        log("  WARN auto_heal: proxy no responde")
+        return False
+
+    prompt = (
+        f"Eres ingeniero senior. Te paso un error de Jarvis (asistente Windows en VM).\n"
+        f"Error: {json.dumps(error_record, ensure_ascii=False)[:1500]}\n\n"
+        f"Si conoces el fix EXACTO, responde con este JSON (sin texto extra):\n"
+        f'{{"file": "ruta/relativa.py", "find": "linea_o_bloque_actual", '
+        f'"replace": "linea_o_bloque_nuevo", "reason": "por que"}}\n\n'
+        f'Si NO sabes el fix concreto, responde: {{"file": null}}\n'
+        f"REGLAS: find debe ser texto exacto que aparece en el archivo. "
+        f"replace debe ser diferente y correcto. No inventes APIs. "
+        f"Ruta relativa al directorio C:/Jarvis (ej: jarvis_learners/skill_learner.py)."
+    )
+
+    fix = ask_claude_json(prompt, schema_hint='{"file": ..., "find": ..., "replace": ..., "reason": ...}')
+    if not fix or not fix.get("file"):
+        return False
+
+    target = ROOT / fix["file"]
+    if not target.exists() or not target.is_file():
+        log(f"  auto_heal: archivo no existe {target}")
+        return False
+
+    try:
+        content = target.read_text(encoding="utf-8")
+    except Exception as e:
+        log(f"  auto_heal: no pude leer {target}: {e}")
+        return False
+
+    find = fix.get("find", "")
+    replace = fix.get("replace", "")
+    if not find or find == replace:
+        return False
+    if find not in content:
+        log(f"  auto_heal: find no aparece en {target.name}")
+        return False
+
+    # Backup antes de tocar
+    backup = target.with_suffix(target.suffix + f".bak_{int(time.time())}")
+    try:
+        backup.write_text(content, encoding="utf-8")
+    except Exception:
+        pass
+
+    new_content = content.replace(find, replace, 1)
+    try:
+        target.write_text(new_content, encoding="utf-8")
+        log(f"  auto_heal: parche aplicado a {target.name} ({fix.get('reason', '')[:80]})")
+
+        # Reiniciar el servicio relacionado (si es uno de los nuestros)
+        target_stem = target.stem
+        procs_now = get_python_processes()
+        for p in procs_now:
+            if target_stem in p["cmd"]:
+                log(f"    -> restart {target_stem} (pid {p['pid']})")
+                kill_pid(p["pid"])
+                time.sleep(1)
+                matching_service = next((s for s in SERVICES if Path(s["script"]).stem == target_stem), None)
+                if matching_service:
+                    start_service(matching_service)
+                break
+        return True
+    except Exception as e:
+        log(f"  auto_heal: write fallo: {e}")
+        # Restaurar backup
+        try:
+            target.write_text(content, encoding="utf-8")
+        except Exception:
+            pass
+        return False
+
+
+def send_daily_report():
+    """Mensaje diario via Telegram (si configurado) con resumen."""
+    try:
+        cfg = json.loads((ROOT / "config_telegram.json").read_text(encoding="utf-8"))
+    except Exception:
+        return
+    token = cfg.get("bot_token")
+    chat_id = cfg.get("admin_chat_id")
+    if not token or not chat_id:
+        return
+
+    skills = count_skills()
+    gaps_file = DATA / "gaps.json"
+    pending = 0
+    if gaps_file.exists():
+        try:
+            pending = len(json.loads(gaps_file.read_text(encoding="utf-8")).get("queries", []))
+        except Exception:
+            pass
+
+    state = load_state()
+    restarts_today = sum(
+        1 for r in state.get("restart_history", [])
+        if r.get("ts", "").startswith(datetime.now().strftime("%Y-%m-%d"))
+    )
+    free = disk_free_gb()
+
+    msg = (
+        f"*Daily Jarvis Report*\n\n"
+        f"Skills aprendidas: *{skills}*\n"
+        f"Gaps pendientes:   {pending}\n"
+        f"Restarts hoy:      {restarts_today}\n"
+        f"Disk free:         {free:.1f} GB\n\n"
+        f"Sigo trabajando."
+    )
+    try:
+        requests.post(
+            f"https://api.telegram.org/bot{token}/sendMessage",
+            json={"chat_id": chat_id, "text": msg, "parse_mode": "Markdown"},
+            timeout=10,
+        )
+    except Exception:
+        pass
+
+
 def main():
     log(f"watchdog iniciado (tick {TICK_SECONDS}s)")
     state = load_state()
+    last_daily_report = state.get("last_daily_report", "1970-01-01")
     while True:
         try:
             state = tick(state)
+            # Reporte diario a las 7 AM
+            now = datetime.now()
+            today_str = now.strftime("%Y-%m-%d")
+            if now.hour >= 7 and last_daily_report < today_str:
+                send_daily_report()
+                last_daily_report = today_str
+                state["last_daily_report"] = today_str
+                save_state(state)
         except KeyboardInterrupt:
             log("watchdog detenido por usuario")
             break
