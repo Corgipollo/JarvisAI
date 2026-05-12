@@ -1,0 +1,82 @@
+@echo off
+REM ============================================================================
+REM SOLO_ENTRENA.bat — Arranca lo MINIMO para que se entrene solo
+REM ============================================================================
+REM Sin watchdog, sin coach, sin telegram, sin dashboard.
+REM Solo:
+REM   1. claude_proxy (cerebro gratis :8088)
+REM   2. self_improvement (procesa gaps.json, aprende skills)
+REM   3. self_optimizer (re-aprende skills debiles)
+REM
+REM Uso: doble-click en este archivo.
+REM ============================================================================
+
+title Jarvis Entrenamiento
+
+set JARVIS_DIR=C:\Jarvis
+cd /d %JARVIS_DIR%
+
+echo ============================================================================
+echo                   JARVIS - SOLO ENTRENAMIENTO
+echo ============================================================================
+echo.
+
+REM ----- Verificar Python -----
+where python >nul 2>&1
+if errorlevel 1 (
+    echo ERROR: Python no instalado. Corre START_JARVIS.bat primero.
+    pause
+    exit /b 1
+)
+
+REM ----- Verificar yt-dlp como modulo (no como exe) -----
+echo Verificando yt-dlp module...
+python -m yt_dlp --version
+if errorlevel 1 (
+    echo   Instalando yt-dlp...
+    python -m pip install --quiet yt-dlp
+)
+
+REM ----- Matar procesos viejos colgados -----
+echo Limpiando procesos viejos...
+taskkill /F /IM python.exe 2>nul
+
+REM ----- Wait 2 sec -----
+timeout /t 2 /nobreak >nul
+
+REM ----- Arrancar claude_proxy (CRITICO: cerebro gratis) -----
+echo.
+echo Arrancando claude_proxy en :8088...
+start "Jarvis Proxy" /MIN cmd /c "cd /d %JARVIS_DIR% && python -m uvicorn jarvis_bridge.claude_proxy:app --host 127.0.0.1 --port 8088"
+timeout /t 5 /nobreak >nul
+
+REM ----- Health check del proxy -----
+echo Verificando proxy...
+curl -s -m 5 http://127.0.0.1:8088/health
+if errorlevel 1 (
+    echo   WARN: proxy aun no responde, continuando igual...
+)
+
+REM ----- Arrancar self_improvement (el que aprende) -----
+echo.
+echo Arrancando self_improvement loop...
+start "Jarvis Self-Improvement" cmd /c "cd /d %JARVIS_DIR% && python jarvis_learners\self_improvement.py"
+timeout /t 3 /nobreak >nul
+
+REM ----- Arrancar self_optimizer (re-aprende skills debiles) -----
+echo Arrancando self_optimizer loop...
+start "Jarvis Self-Optimizer" /MIN cmd /c "cd /d %JARVIS_DIR% && python jarvis_learners\self_optimizer.py"
+
+echo.
+echo ============================================================================
+echo                   JARVIS ENTRENANDO. CIERRA ESTA VENTANA.
+echo ============================================================================
+echo.
+echo Para ver progreso:
+echo   - dir C:\Jarvis\data\skill_library
+echo   - type C:\Jarvis\data\self_improvement.log
+echo.
+echo Self-improvement procesa gaps.json cada 10 min.
+echo Cada skill tarda 10-20 min en aprenderse (download video + transcribir + analizar).
+echo.
+pause
