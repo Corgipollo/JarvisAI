@@ -225,6 +225,13 @@ Reglas críticas:
 4. Identifica VERIFICACION post-accion: "deberia aparecer X notificacion",
    "ventana debe cerrarse", etc. Es como el agente sabe si funciono.
 5. common_errors: pitfalls reales del tutorial, no genericos.
+6. GENERALIZACIÓN OBLIGATORIA: ¿que OTRAS tareas usan el mismo principio?
+   Ej: si la skill es "arrastrar carpeta", documenta que el mismo gesto sirve
+   para "arrastrar archivo", "arrastrar link", "arrastrar tab del browser",
+   "arrastrar ventana", "drag&drop a Trash". Documenta en generalizes_to[].
+7. PATRONES ABSTRACTOS: si el tutorial muestra "Ctrl+S guarda", documenta que
+   "Ctrl+key" es patron general para shortcuts. Si muestra "right-click menu",
+   documenta que es patron universal de contexto. Eso entra en notes[].
 
 Formato (SOLO JSON, sin markdown):
 {
@@ -246,7 +253,10 @@ Formato (SOLO JSON, sin markdown):
   ],
   "common_errors": ["pitfall real con su workaround"],
   "confidence": 0.0-1.0,
-  "notes": "patrones generalizables que pueden aplicar a otras skills similares"
+  "generalizes_to": [
+     "lista de OTRAS tareas que comparten el mismo gesto/principio. Ej si esta skill es 'drag carpeta', incluir: 'drag archivo individual', 'drag varios archivos seleccionados', 'drag link de browser', 'drag tab a otra ventana', 'drag a papelera'"
+  ],
+  "notes": "patrones abstractos universales que aplican: ej 'Ctrl+letra=shortcut universal app', 'right-click=menu contextual universal', 'drag&drop=mover sin teclado universal'"
 }
 
 Maximo 3 methods. Maximo 10 steps por method. Solo JSON.

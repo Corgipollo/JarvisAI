@@ -183,26 +183,84 @@ def generate_new_gaps_from_coach() -> list[str]:
 
     prompt = (
         f"Eres el COACH personal de Jarvis (asistente Windows que vive en VM 24/7). "
-        f"Emmanuel (su humano) quiere que Jarvis sea como una persona real que aprende "
-        f"continuamente y nunca para.\n\n"
+        f"Emmanuel quiere un Jarvis que NUNCA pare de aprender y que cada skill GENERALICE.\n\n"
         f"Skills ya aprendidas ({len(existing)}):\n"
         + "\n".join(f"- {s}" for s in existing[:30])
-        + f"\n\nGenera 10 NUEVAS skills VARIADAS que un asistente personal humano necesita. "
-        f"Sé CREATIVO, no repitas tipos. Mezcla obligatoriamente:\n"
-        f"- 2 de manipulación MOUSE/teclado (drag, arrastrar archivos, redimensionar ventanas, hover menus)\n"
-        f"- 2 de escribir DOCUMENTOS (Word, Google Docs, Markdown, formatear texto)\n"
-        f"- 2 de organizar/mover ARCHIVOS Y CARPETAS (mover, copiar, comprimir zip, crear shortcuts)\n"
-        f"- 2 de COMUNICACIÓN (email Outlook, Slack, Discord, video calls)\n"
-        f"- 2 PRODUCTIVIDAD/profesionales (Excel formulas, calendario, taskbar, busqueda avanzada)\n\n"
-        f"Cada query debe ser CORTA (3-6 palabras), específica para YouTube tutoriales POPULARES "
-        f"(asegura que existan tutoriales). NO repitas cosas que ya aprendio.\n\n"
-        f'Responde JSON estricto: {{"queries": ["tutorial Word formato", "como arrastrar archivos windows", ...]}}'
+        + f"\n\nGenera 10 NUEVAS skills VARIADAS. Filosofía Voyager: cada skill enseña principios "
+        f"que se generalizan a 5+ tareas relacionadas. NO repitas tipos ya cubiertos.\n\n"
+        f"Mezcla obligatoria (10 skills, 1-2 por categoría rotando):\n"
+        f"- APPS CREATIVAS complejas: CapCut, Photoshop, Premiere, Figma, Canva, Audacity\n"
+        f"- MOUSE/teclado precisión: drag, multi-select Ctrl/Shift+click, lazo, doble-click acciones\n"
+        f"- ESCRIBIR docs: Word formato, GoogleDocs collab, Markdown tablas, Excel formulas\n"
+        f"- ARCHIVOS/carpetas: zip extract, sync OneDrive, cortar/pegar, propiedades archivo\n"
+        f"- COMUNICACIÓN: Zoom call, Slack threads, Discord voice, WhatsApp web\n"
+        f"- BROWSER avanzado: pestañas, marcadores, descargas, modo incognito, devtools\n"
+        f"- TERMINAL/sistema: PowerShell pipes, env vars, scheduled tasks, services\n"
+        f"- AUTOMATION: AutoHotkey basics, Power Automate, IFTTT desktop, macros\n\n"
+        f"REGLA: cada query DEBE ser una skill que se generaliza. Ej: 'tutorial photoshop layers' "
+        f"genera principio aplicable a Figma, Illustrator, Krita. NO queries one-off.\n\n"
+        f"Query corta (3-6 palabras), POPULAR en YouTube (asegura tutoriales). "
+        f"NO repitas existentes.\n\n"
+        f'Responde JSON: {{"queries": ["tutorial capcut basico", "photoshop layers tutorial", ...]}}'
     )
     res = ask_claude_json(prompt, schema_hint='{"queries": [...]}')
     if res and "queries" in res and isinstance(res["queries"], list):
         log(f"  coach genero {len(res['queries'])} nuevos gaps")
         return [str(q) for q in res["queries"] if q]
-    return []
+
+    # FALLBACK: si Claude falla, el coach SIEMPRE sabe que hacer.
+    # Curriculum infinito por niveles. Va rotando.
+    log("  coach Claude fallo, usando curriculum fallback")
+    fallback_curriculum = [
+        # NIVEL 1: Mouse/teclado/ventanas
+        "como arrastrar archivos windows", "como redimensionar ventana windows",
+        "alt tab cambiar ventanas rapido", "win key shortcuts windows 11",
+        "como seleccionar multiples archivos windows", "como usar mouse derecho windows",
+        "como hacer doble click",  "scroll mouse rueda windows",
+        # NIVEL 2: Apps comunes
+        "tutorial chrome basico", "tutorial firefox basico", "tutorial brave basico",
+        "tutorial word formato", "tutorial excel formulas", "tutorial powerpoint",
+        "tutorial onenote", "tutorial outlook calendario",
+        # NIVEL 3: Apps creativas
+        "tutorial capcut editor basico", "tutorial capcut transiciones",
+        "tutorial photoshop layers", "tutorial photoshop seleccion",
+        "tutorial premiere pro corte", "tutorial canva diseno",
+        "tutorial figma frames", "tutorial audacity grabar",
+        "tutorial obs grabar pantalla", "tutorial gimp editar",
+        # NIVEL 4: Comunicacion
+        "tutorial zoom call", "tutorial slack threads", "tutorial discord voice",
+        "tutorial whatsapp web", "tutorial telegram channels", "tutorial gmail filtros",
+        # NIVEL 5: Productividad pro
+        "tutorial notion bases datos", "tutorial obsidian plugins", "tutorial trello tableros",
+        "tutorial asana tareas", "tutorial google calendar avanzado",
+        # NIVEL 6: Sistema/terminal
+        "tutorial powershell pipes", "tutorial cmd batch script",
+        "tutorial regedit registry", "tutorial scheduled tasks windows",
+        "tutorial services windows", "tutorial powershell variables",
+        # NIVEL 7: Automatizacion
+        "tutorial autohotkey basico", "tutorial power automate desktop",
+        "tutorial macros excel", "tutorial python scripts windows",
+        # NIVEL 8: Files avanzado
+        "tutorial 7zip comprimir", "tutorial bulk rename windows",
+        "tutorial onedrive sync", "tutorial backup windows 11",
+        "tutorial dropbox compartir", "tutorial wetransfer enviar",
+        # NIVEL 9: Browser power
+        "tutorial chrome extensiones", "tutorial chrome devtools",
+        "tutorial chrome marcadores", "tutorial chrome perfiles",
+        # NIVEL 10: AI / dev
+        "tutorial chatgpt avanzado", "tutorial claude ai prompts",
+        "tutorial github desktop", "tutorial vscode debugger",
+        "tutorial git basico windows",
+    ]
+    # Filtra las que ya estan en skills
+    existing_lower = {s.lower() for s in existing}
+    available = [q for q in fallback_curriculum if not any(s in q.lower() for s in existing_lower)]
+    # Toma 10 al azar para variedad
+    import random
+    random.shuffle(available)
+    selected = available[:10]
+    log(f"  fallback: {len(selected)} queries seleccionadas")
+    return selected
 
 
 def append_gaps_to_file(new_queries: list[str]):
