@@ -49,24 +49,18 @@ echo    OK
 echo.
 
 REM ---- 3. Scheduled task: arrancar Jarvis al login ----
-echo [3/4] Scheduled task JarvisAutoStart...
+echo [3/4] Scheduled tasks (one-line, sin ^ continuation)...
 schtasks /delete /tn "JarvisAutoStart" /f >nul 2>&1
-schtasks /create /tn "JarvisAutoStart" ^
-    /tr "cmd /c \"cd /d C:\Jarvis && SOLO_ENTRENA.bat\"" ^
-    /sc onlogon /ru emman /rl highest /f >nul
+schtasks /create /tn "JarvisAutoStart" /tr "cmd /c cd /d C:\Jarvis && SOLO_ENTRENA.bat" /sc onlogon /f >nul 2>&1
 
-REM Backup task: arranca tambien al boot (sin login) por si auto-logon falla
-schtasks /delete /tn "JarvisAtBoot" /f >nul 2>&1
-schtasks /create /tn "JarvisAtBoot" ^
-    /tr "cmd /c \"cd /d C:\Jarvis && SOLO_ENTRENA.bat\"" ^
-    /sc onstart /ru SYSTEM /rl highest /f >nul
-
-REM Otro backup: cada 30 min revisa si Jarvis corre, si no, lo lanza
 schtasks /delete /tn "JarvisHeartbeat" /f >nul 2>&1
-schtasks /create /tn "JarvisHeartbeat" ^
-    /tr "cmd /c \"tasklist | findstr python.exe >nul || (cd /d C:\Jarvis && SOLO_ENTRENA.bat)\"" ^
-    /sc minute /mo 30 /ru emman /rl highest /f >nul
-echo    OK - tareas: JarvisAutoStart (login), JarvisAtBoot (boot), JarvisHeartbeat (cada 30min)
+schtasks /create /tn "JarvisHeartbeat" /tr "cmd /c tasklist | findstr python.exe >nul || (cd /d C:\Jarvis && SOLO_ENTRENA.bat)" /sc minute /mo 30 /f >nul 2>&1
+
+REM Boot-time task como SYSTEM (sobrevive logout/relogin)
+schtasks /delete /tn "JarvisAtBoot" /f >nul 2>&1
+schtasks /create /tn "JarvisAtBoot" /tr "cmd /c cd /d C:\Jarvis && SOLO_ENTRENA.bat" /sc onstart /ru SYSTEM /rl highest /f >nul 2>&1
+
+echo    OK - 3 scheduled tasks creadas
 echo.
 
 REM ---- 4. Disable update auto-restart si es posible ----
