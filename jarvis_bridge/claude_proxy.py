@@ -155,6 +155,15 @@ def call_claude_cli(messages: list[dict], system: str, model: str, timeout: int)
     if history_parts:
         full_system += "\n\n=== CONVERSATION HISTORY ===\n" + "\n\n".join(history_parts)
 
+    # Inyectar instruccion de max effort al system para que Opus piense profundo
+    if "MAX_EFFORT_INSTRUCTION" not in full_system:
+        full_system = (
+            "MAX_EFFORT_INSTRUCTION: Piensa profundamente paso a paso ANTES de responder. "
+            "Razona internamente todas las opciones, considera edge cases, generaliza patrones. "
+            "Calidad maxima sobre velocidad. Eres el cerebro maestro de Jarvis, no des respuestas superficiales.\n\n"
+            + full_system
+        )
+
     args = [CLAUDE_BIN, "-p", last_user_text,
             "--dangerously-skip-permissions",
             "--model", model]
