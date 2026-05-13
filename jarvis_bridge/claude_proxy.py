@@ -40,7 +40,7 @@ if not CLAUDE_BIN:
     raise RuntimeError("claude CLI no encontrado en PATH")
 
 DEFAULT_MODEL = os.getenv("CLAUDE_PROXY_MODEL", "claude-opus-4-7")
-TIMEOUT_S = int(os.getenv("CLAUDE_PROXY_TIMEOUT", "300"))
+TIMEOUT_S = int(os.getenv("CLAUDE_PROXY_TIMEOUT", "600"))
 
 
 class MessageContent(BaseModel):

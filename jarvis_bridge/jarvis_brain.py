@@ -22,8 +22,8 @@ from pathlib import Path
 import requests
 
 PROXY = "http://127.0.0.1:8088"
-DEFAULT_MODEL = "claude-sonnet-4-6"
-DEFAULT_TIMEOUT = 120
+DEFAULT_MODEL = "claude-opus-4-7"
+DEFAULT_TIMEOUT = 600
 
 
 def ask_claude(
