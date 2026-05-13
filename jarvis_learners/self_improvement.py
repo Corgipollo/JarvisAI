@@ -319,10 +319,25 @@ async def improvement_loop(tick_minutes: int = 10, max_gaps_per_tick: int = 1):
             for gap in pending[:max_gaps_per_tick]:
                 skill = await process_gap(gap)
                 if skill:
-                    log(f"  +skill: {skill['name']} ({len(skill.get('steps',[]))} steps)")
+                    conf = skill.get("confidence", 0)
+                    log(f"  +skill: {skill['name']} (conf={conf:.2f}, {len(skill.get('steps',[]))} steps)")
+                    # MASTER MODE: si confidence baja, re-aprende con mas videos
+                    # antes de avanzar a la siguiente. Como un LLM: domina antes de avanzar.
+                    if conf < 0.7:
+                        log(f"  MASTER MODE: confidence {conf:.2f} < 0.7, reaprendo con mas tutoriales...")
+                        # Re-encolar query mejorada
+                        deep_query = f"{gap['query']} tutorial profundo paso a paso"
+                        try:
+                            data = json.loads(GAPS_FILE.read_text(encoding="utf-8"))
+                            if deep_query not in data.get("queries", []):
+                                data.setdefault("queries", []).insert(0, deep_query)
+                                GAPS_FILE.write_text(json.dumps(data, ensure_ascii=False, indent=2),
+                                                     encoding="utf-8")
+                                log(f"    re-encolado prioritario: '{deep_query}'")
+                        except Exception:
+                            pass
                 else:
                     log(f"  no pude aprender: {gap['query']}")
-                    # Marcar como addressed para no quedarse colgado en queries imposibles
                     mark_addressed(gap, skill_id="(failed)", source_type="failed")
 
         await asyncio.sleep(tick_minutes * 60)

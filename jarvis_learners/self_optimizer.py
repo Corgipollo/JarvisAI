@@ -121,15 +121,21 @@ def analyze_slow_tasks() -> list[dict]:
 
 
 def request_relearn_with_more_videos(skill_name: str, current_videos: int = 3):
-    """Encola re-learn del skill con más videos."""
+    """Encola re-learn del skill con más videos.
+
+    FIX: NO usar prefijo [DEEP] en query (rompe busqueda YouTube).
+    Lo marcamos con sufijo natural language: 'avanzado tutorial profundo'.
+    El skill_learner detecta el sufijo y baja a 10 videos.
+    """
     gaps = DATA_DIR / "gaps.json"
     if not gaps.exists():
         return
     data = json.loads(gaps.read_text(encoding="utf-8"))
-    # Marca con prefijo [DEEP] para que skill_learner use max_videos=10
-    relearn_query = f"[DEEP] {skill_name}"
+    # Limpiar nombre: underscore → espacio, sin prefijos artificiales
+    clean_name = skill_name.replace("_", " ").strip()
+    relearn_query = f"{clean_name} avanzado tutorial completo"
     if relearn_query not in data.get("queries", []):
-        data["queries"].insert(0, relearn_query)  # prioritario
+        data["queries"].insert(0, relearn_query)
         gaps.write_text(json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8")
         emit_opt("relearn_request", skill_name, f"{current_videos} videos", "10 videos",
                  "low executability or confidence")
