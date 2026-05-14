@@ -35,11 +35,35 @@ if not exist OS-Atlas (
 )
 echo.
 
-echo [3/3] MobileAgent (Alibaba X-PLUG) - 3 agentes pipeline...
+echo [3/6] MobileAgent (Alibaba X-PLUG) - 3 agentes pipeline...
 if not exist MobileAgent (
     git clone https://github.com/X-PLUG/MobileAgent
 ) else (
     cd MobileAgent && git pull && cd ..
+)
+echo.
+
+echo [4/6] browser-use - automatizacion browser con Playwright + LLM...
+if not exist browser-use (
+    git clone https://github.com/browser-use/browser-use
+) else (
+    cd browser-use && git pull && cd ..
+)
+echo.
+
+echo [5/6] awesome-computer-use - lista maestra de recursos...
+if not exist awesome-computer-use (
+    git clone https://github.com/ranpox/awesome-computer-use
+) else (
+    cd awesome-computer-use && git pull && cd ..
+)
+echo.
+
+echo [6/6] ShowUI - alternativa grounding 2B...
+if not exist ShowUI (
+    git clone https://github.com/showlab/ShowUI
+) else (
+    cd ShowUI && git pull && cd ..
 )
 echo.
 
