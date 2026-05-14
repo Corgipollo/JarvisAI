@@ -39,8 +39,8 @@ CLAUDE_BIN = shutil.which("claude") or shutil.which("claude.cmd")
 if not CLAUDE_BIN:
     raise RuntimeError("claude CLI no encontrado en PATH")
 
-DEFAULT_MODEL = os.getenv("CLAUDE_PROXY_MODEL", "claude-opus-4-7")
-TIMEOUT_S = int(os.getenv("CLAUDE_PROXY_TIMEOUT", "600"))
+DEFAULT_MODEL = os.getenv("CLAUDE_PROXY_MODEL", "claude-haiku-4-5-20251001")
+TIMEOUT_S = int(os.getenv("CLAUDE_PROXY_TIMEOUT", "120"))
 
 
 class MessageContent(BaseModel):
@@ -155,12 +155,10 @@ def call_claude_cli(messages: list[dict], system: str, model: str, timeout: int)
     if history_parts:
         full_system += "\n\n=== CONVERSATION HISTORY ===\n" + "\n\n".join(history_parts)
 
-    # Inyectar instruccion de max effort al system para que Opus piense profundo
-    if "MAX_EFFORT_INSTRUCTION" not in full_system:
+    # Instruccion compacta para Haiku (rapido + suficiente)
+    if "FAST_INSTRUCTION" not in full_system:
         full_system = (
-            "MAX_EFFORT_INSTRUCTION: Piensa profundamente paso a paso ANTES de responder. "
-            "Razona internamente todas las opciones, considera edge cases, generaliza patrones. "
-            "Calidad maxima sobre velocidad. Eres el cerebro maestro de Jarvis, no des respuestas superficiales.\n\n"
+            "FAST_INSTRUCTION: Responde DIRECTO y CONCISO. Sin preamble. JSON cuando se pida.\n\n"
             + full_system
         )
 
