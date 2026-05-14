@@ -108,6 +108,9 @@ start "Environment Mapper" /MIN cmd /c "cd /d %JARVIS_DIR% && python jarvis_swar
 echo Arrancando APP INSPECTOR (abre cada app y mapea sus botones)...
 start "App Inspector" /MIN cmd /c "cd /d %JARVIS_DIR% && python jarvis_swarm\app_inspector.py"
 
+echo Arrancando SYSTEM BRAIN (conocimiento nativo Windows sin screenshots)...
+start "System Brain" /MIN cmd /c "cd /d %JARVIS_DIR% && python jarvis_swarm\system_brain.py"
+
 echo.
 echo ============================================================================
 echo                   JARVIS ENTRENANDO. CIERRA ESTA VENTANA.
