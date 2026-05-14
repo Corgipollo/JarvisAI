@@ -87,6 +87,21 @@ class BaseAgent:
             pass
         return events[-n:]
 
+    def read_unified_context(self) -> dict:
+        """Lee el contexto global compartido (lo que ven TODOS los agentes).
+
+        Cualquier agente debe llamar esto ANTES de tomar decision importante.
+        Contiene: pantalla actual, tarea activa, recursos, errores recientes,
+        skills count, system_brain summary, etc.
+        """
+        unified_file = ROOT / "data" / "unified_context.json"
+        if not unified_file.exists():
+            return {}
+        try:
+            return json.loads(unified_file.read_text(encoding="utf-8"))
+        except Exception:
+            return {}
+
     def ask_claude(self, prompt: str, system: str | None = None, max_tokens: int = 1000) -> str | None:
         """Helper: pregunta a Claude via proxy local."""
         try:

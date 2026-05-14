@@ -111,6 +111,9 @@ start "App Inspector" /MIN cmd /c "cd /d %JARVIS_DIR% && python jarvis_swarm\app
 echo Arrancando SYSTEM BRAIN (conocimiento nativo Windows sin screenshots)...
 start "System Brain" /MIN cmd /c "cd /d %JARVIS_DIR% && python jarvis_swarm\system_brain.py"
 
+echo Arrancando UNIFIED CONTEXT (contexto global compartido cada 5s)...
+start "Unified Context" /MIN cmd /c "cd /d %JARVIS_DIR% && python jarvis_swarm\unified_context.py"
+
 echo.
 echo ============================================================================
 echo                   JARVIS ENTRENANDO. CIERRA ESTA VENTANA.
