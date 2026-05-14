@@ -71,8 +71,14 @@ REM ----- Arrancar watchdog (AUTO-HEAL: detecta errores y los arregla solo via C
 echo Arrancando watchdog (auto-heal errores)...
 start "Jarvis Watchdog" /MIN cmd /c "cd /d %JARVIS_DIR% && python jarvis_learners\watchdog.py"
 
-REM ----- Arrancar dialog_guardian (DETECTA dialogs/popups y los cierra solo via Claude vision) -----
-echo Arrancando dialog_guardian (cierra popups solo)...
+REM ----- Arrancar dialog_killer NATIVO (pywinauto UI Automation, 50ms por dialog) -----
+echo Instalando pywinauto si falta...
+python -m pip install --quiet pywinauto 2>nul
+echo Arrancando dialog_killer NATIVO (cierra dialogs Windows instantaneo)...
+start "Jarvis Dialog Killer" /MIN cmd /c "cd /d %JARVIS_DIR% && python jarvis_swarm\dialog_killer_native.py"
+
+REM ----- Arrancar dialog_guardian backup (Claude vision para casos raros) -----
+echo Arrancando dialog_guardian (Claude vision backup)...
 start "Jarvis Dialog Guardian" /MIN cmd /c "cd /d %JARVIS_DIR% && python jarvis_learners\dialog_guardian.py"
 
 REM ----- Arrancar SWARM agents (21+ cerebros especializados) -----
