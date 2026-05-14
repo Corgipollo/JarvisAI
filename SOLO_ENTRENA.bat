@@ -96,6 +96,9 @@ start "META Agent" /MIN cmd /c "cd /d %JARVIS_DIR% && python jarvis_swarm\meta_a
 echo Arrancando AUTO PRACTICE (ejecuta skills aprendidas cada 30 min)...
 start "Auto Practice" /MIN cmd /c "cd /d %JARVIS_DIR% && python jarvis_swarm\auto_practice.py"
 
+echo Arrancando LEARNING SUPERVISOR (Claude verifica comprension profunda)...
+start "Learning Supervisor" /MIN cmd /c "cd /d %JARVIS_DIR% && python jarvis_swarm\learning_supervisor.py"
+
 echo.
 echo ============================================================================
 echo                   JARVIS ENTRENANDO. CIERRA ESTA VENTANA.
