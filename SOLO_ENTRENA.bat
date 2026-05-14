@@ -93,6 +93,9 @@ start "Curiosity Agent" /MIN cmd /c "cd /d %JARVIS_DIR% && python jarvis_swarm\a
 echo Arrancando META AGENT (auto-construye nuevos cerebros)...
 start "META Agent" /MIN cmd /c "cd /d %JARVIS_DIR% && python jarvis_swarm\meta_agent.py"
 
+echo Arrancando AUTO PRACTICE (ejecuta skills aprendidas cada 30 min)...
+start "Auto Practice" /MIN cmd /c "cd /d %JARVIS_DIR% && python jarvis_swarm\auto_practice.py"
+
 echo.
 echo ============================================================================
 echo                   JARVIS ENTRENANDO. CIERRA ESTA VENTANA.
