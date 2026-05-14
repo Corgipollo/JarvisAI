@@ -67,6 +67,10 @@ REM ----- Arrancar self_optimizer (re-aprende skills debiles) -----
 echo Arrancando self_optimizer loop...
 start "Jarvis Self-Optimizer" /MIN cmd /c "cd /d %JARVIS_DIR% && python jarvis_learners\self_optimizer.py"
 
+REM ----- Arrancar coach (decide proxima skill via Claude + fallback seed queries) -----
+echo Arrancando coach (curriculum + gap generator)...
+start "Jarvis Coach" /MIN cmd /c "cd /d %JARVIS_DIR% && python jarvis_learners\coach.py"
+
 REM ----- Arrancar watchdog (AUTO-HEAL: detecta errores y los arregla solo via Claude) -----
 echo Arrancando watchdog (auto-heal errores)...
 start "Jarvis Watchdog" /MIN cmd /c "cd /d %JARVIS_DIR% && python jarvis_learners\watchdog.py"
