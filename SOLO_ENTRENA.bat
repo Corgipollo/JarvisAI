@@ -75,6 +75,18 @@ REM ----- Arrancar dialog_guardian (DETECTA dialogs/popups y los cierra solo via
 echo Arrancando dialog_guardian (cierra popups solo)...
 start "Jarvis Dialog Guardian" /MIN cmd /c "cd /d %JARVIS_DIR% && python jarvis_learners\dialog_guardian.py"
 
+REM ----- Arrancar SWARM agents (21+ cerebros especializados) -----
+echo Arrancando swarm core agents (6 cerebros)...
+start "Mouse Master" /MIN cmd /c "cd /d %JARVIS_DIR% && python jarvis_swarm\agents_core.py mouse_master"
+start "App Explorer" /MIN cmd /c "cd /d %JARVIS_DIR% && python jarvis_swarm\agents_core.py app_explorer"
+start "Error Resolver" /MIN cmd /c "cd /d %JARVIS_DIR% && python jarvis_swarm\agents_core.py error_resolver"
+start "Code Advisor" /MIN cmd /c "cd /d %JARVIS_DIR% && python jarvis_swarm\agents_core.py code_advisor"
+start "Skill Reviewer" /MIN cmd /c "cd /d %JARVIS_DIR% && python jarvis_swarm\agents_core.py skill_reviewer"
+start "Curiosity Agent" /MIN cmd /c "cd /d %JARVIS_DIR% && python jarvis_swarm\agents_core.py curiosity"
+
+echo Arrancando META AGENT (auto-construye nuevos cerebros)...
+start "META Agent" /MIN cmd /c "cd /d %JARVIS_DIR% && python jarvis_swarm\meta_agent.py"
+
 echo.
 echo ============================================================================
 echo                   JARVIS ENTRENANDO. CIERRA ESTA VENTANA.
