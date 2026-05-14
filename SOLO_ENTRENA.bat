@@ -102,6 +102,12 @@ start "Learning Supervisor" /MIN cmd /c "cd /d %JARVIS_DIR% && python jarvis_swa
 echo Arrancando SCREEN AWARENESS (ve la pantalla siempre cada 5s)...
 start "Screen Awareness" /MIN cmd /c "cd /d %JARVIS_DIR% && python jarvis_swarm\screen_awareness.py"
 
+echo Arrancando ENVIRONMENT MAPPER (mapa completo Windows cada 6h)...
+start "Environment Mapper" /MIN cmd /c "cd /d %JARVIS_DIR% && python jarvis_swarm\environment_mapper.py"
+
+echo Arrancando APP INSPECTOR (abre cada app y mapea sus botones)...
+start "App Inspector" /MIN cmd /c "cd /d %JARVIS_DIR% && python jarvis_swarm\app_inspector.py"
+
 echo.
 echo ============================================================================
 echo                   JARVIS ENTRENANDO. CIERRA ESTA VENTANA.
