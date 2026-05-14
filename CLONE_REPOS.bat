@@ -59,11 +59,27 @@ if not exist awesome-computer-use (
 )
 echo.
 
-echo [6/6] ShowUI - alternativa grounding 2B...
+echo [6/8] ShowUI - alternativa grounding 2B...
 if not exist ShowUI (
     git clone https://github.com/showlab/ShowUI
 ) else (
     cd ShowUI && git pull && cd ..
+)
+echo.
+
+echo [7/8] OSWorld - 369 tareas Windows/Linux/macOS REALES...
+if not exist OSWorld (
+    git clone https://github.com/xlang-ai/OSWorld
+) else (
+    cd OSWorld && git pull && cd ..
+)
+echo.
+
+echo [8/8] WindowsAgentArena - 154 tareas Windows-specific (Microsoft)...
+if not exist WindowsAgentArena (
+    git clone https://github.com/microsoft/WindowsAgentArena
+) else (
+    cd WindowsAgentArena && git pull && cd ..
 )
 echo.
 
