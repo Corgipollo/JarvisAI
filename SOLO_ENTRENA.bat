@@ -71,6 +71,10 @@ REM ----- Arrancar watchdog (AUTO-HEAL: detecta errores y los arregla solo via C
 echo Arrancando watchdog (auto-heal errores)...
 start "Jarvis Watchdog" /MIN cmd /c "cd /d %JARVIS_DIR% && python jarvis_learners\watchdog.py"
 
+REM ----- Arrancar dialog_guardian (DETECTA dialogs/popups y los cierra solo via Claude vision) -----
+echo Arrancando dialog_guardian (cierra popups solo)...
+start "Jarvis Dialog Guardian" /MIN cmd /c "cd /d %JARVIS_DIR% && python jarvis_learners\dialog_guardian.py"
+
 echo.
 echo ============================================================================
 echo                   JARVIS ENTRENANDO. CIERRA ESTA VENTANA.
