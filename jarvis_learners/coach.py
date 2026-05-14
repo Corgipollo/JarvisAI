@@ -153,15 +153,60 @@ def call_coach(state: dict) -> dict:
         log(f"coach proxy fallo: {e}")
         return {"decision": "wait", "reasoning": f"proxy_error: {e}"}
 
-    m = re.search(r"\{.*\}", text, flags=re.DOTALL)
-    if not m:
-        log(f"coach respuesta sin JSON: {text[:200]}")
-        return {"decision": "wait", "reasoning": "no_json"}
-    try:
-        return json.loads(m.group(0))
-    except json.JSONDecodeError as e:
-        log(f"coach JSON inválido: {e}")
-        return {"decision": "wait", "reasoning": "json_invalid"}
+    # Extract JSON robustly: try fenced block first, then balanced braces, then fallback
+    def _extract_json(s: str) -> dict | None:
+        fenced = re.search(r"```(?:json)?\s*(\{.*?\})\s*```", s, flags=re.DOTALL)
+        candidates = []
+        if fenced:
+            candidates.append(fenced.group(1))
+        # Balanced braces scan
+        depth = 0
+        start = -1
+        for i, c in enumerate(s):
+            if c == "{":
+                if depth == 0:
+                    start = i
+                depth += 1
+            elif c == "}":
+                depth -= 1
+                if depth == 0 and start >= 0:
+                    candidates.append(s[start:i + 1])
+                    start = -1
+        for cand in candidates:
+            try:
+                obj = json.loads(cand)
+                if isinstance(obj, dict) and "decision" in obj:
+                    return obj
+            except json.JSONDecodeError:
+                continue
+        return None
+
+    parsed = _extract_json(text)
+    if parsed:
+        return parsed
+
+    log(f"coach respuesta sin JSON valido, usando fallback. Texto: {text[:200]}")
+    # Fallback: si hay gaps pendientes y queue >= 10, decision wait. Si hay <10, encolar seed.
+    pending = state.get("pending_count", 0)
+    if pending >= 10:
+        return {"decision": "wait", "reasoning": "queue_full_fallback"}
+    SEED_QUERIES = [
+        "como hacer doble click rapido en Windows tutorial",
+        "como arrastrar archivo entre dos ventanas Explorer tutorial",
+        "como abrir Bloc de Notas y escribir texto guardar tutorial",
+        "como copiar y pegar archivos Ctrl C Ctrl V tutorial",
+        "como crear carpeta nueva en escritorio tutorial",
+        "como cambiar fondo de escritorio Windows tutorial",
+        "como tomar screenshot recortado Windows Snip tutorial",
+        "como minimizar todas las ventanas Windows D tutorial",
+        "como usar buscador del Menu Inicio Windows tutorial",
+        "como organizar iconos del escritorio por tipo tutorial",
+    ]
+    import random
+    q = random.choice(SEED_QUERIES)
+    return {"decision": "new_skill", "query": q, "level": 1,
+            "reasoning": "seed fallback (Claude no devolvio JSON)",
+            "expected_outcome": "skill basica nivel 1"}
 
 
 def append_gap(query: str):
