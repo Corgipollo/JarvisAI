@@ -99,6 +99,9 @@ start "Auto Practice" /MIN cmd /c "cd /d %JARVIS_DIR% && python jarvis_swarm\aut
 echo Arrancando LEARNING SUPERVISOR (Claude verifica comprension profunda)...
 start "Learning Supervisor" /MIN cmd /c "cd /d %JARVIS_DIR% && python jarvis_swarm\learning_supervisor.py"
 
+echo Arrancando SCREEN AWARENESS (ve la pantalla siempre cada 5s)...
+start "Screen Awareness" /MIN cmd /c "cd /d %JARVIS_DIR% && python jarvis_swarm\screen_awareness.py"
+
 echo.
 echo ============================================================================
 echo                   JARVIS ENTRENANDO. CIERRA ESTA VENTANA.
