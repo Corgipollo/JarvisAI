@@ -124,21 +124,43 @@ def search_and_download(query: str, max_videos: int = 3,
 # Step 3-4: Transcribe + extract frames
 # ============================================================================
 def transcribe_video(video_path: str) -> str:
-    """faster-whisper transcribe audio."""
+    """faster-whisper transcribe audio con memory gating + auto-unload."""
     try:
         from faster_whisper import WhisperModel
     except ImportError:
         log("faster-whisper no instalado, skip transcript")
         return ""
-    model = WhisperModel("base", device="cpu", compute_type="int8")
-    segs, info = model.transcribe(
-        video_path, language=None,  # auto-detect
-        vad_filter=True, condition_on_previous_text=False,
-    )
-    text_chunks = []
-    for s in segs:
-        text_chunks.append(s.text.strip())
-    return " ".join(text_chunks)
+
+    # Memory gate: if <2GB avail, downgrade to tiny; if <1GB, skip
+    model_size = "base"
+    try:
+        import psutil
+        avail_gb = psutil.virtual_memory().available / (1024**3)
+        if avail_gb < 1.0:
+            log(f"  RAM critica ({avail_gb:.1f}GB), skip transcript")
+            return ""
+        if avail_gb < 2.0:
+            model_size = "tiny"
+            log(f"  RAM baja ({avail_gb:.1f}GB), usando whisper tiny")
+    except ImportError:
+        pass
+
+    import gc
+    model = None
+    try:
+        model = WhisperModel(model_size, device="cpu", compute_type="int8")
+        segs, info = model.transcribe(
+            video_path, language=None,
+            vad_filter=True, condition_on_previous_text=False,
+        )
+        text_chunks = [s.text.strip() for s in segs]
+        return " ".join(text_chunks)
+    except MemoryError:
+        log("  MemoryError durante transcribe, skip")
+        return ""
+    finally:
+        del model
+        gc.collect()
 
 
 def extract_all_frames_with_ocr(video_path: str, fps: float = 1.0,

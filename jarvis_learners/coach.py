@@ -136,22 +136,37 @@ def call_coach(state: dict) -> dict:
         "ts": datetime.now().isoformat(),
     }, ensure_ascii=False, indent=2)
 
-    try:
-        r = requests.post(
-            f"{PROXY_URL}/v1/messages",
-            json={
-                "model": "claude-sonnet-4-6",
-                "system": COACH_PROMPT,
-                "messages": [{"role": "user", "content": user_prompt}],
-                "max_tokens": 1500,
-            },
-            timeout=180,
-        )
-        r.raise_for_status()
-        text = r.json()["content"][0]["text"]
-    except Exception as e:
-        log(f"coach proxy fallo: {e}")
-        return {"decision": "wait", "reasoning": f"proxy_error: {e}"}
+    # Retry transient errors (timeout / connection reset) up to 3 times with backoff
+    text = None
+    last_err = None
+    for attempt in range(3):
+        try:
+            r = requests.post(
+                f"{PROXY_URL}/v1/messages",
+                json={
+                    "model": "claude-sonnet-4-6",
+                    "system": COACH_PROMPT,
+                    "messages": [{"role": "user", "content": user_prompt}],
+                    "max_tokens": 1500,
+                },
+                timeout=300,
+            )
+            r.raise_for_status()
+            text = r.json()["content"][0]["text"]
+            break
+        except (requests.Timeout, requests.ConnectionError) as e:
+            last_err = e
+            wait_s = 5 * (2 ** attempt)  # 5s, 10s, 20s
+            log(f"coach proxy intento {attempt+1}/3 timeout/conn, esperando {wait_s}s: {e}")
+            time.sleep(wait_s)
+            continue
+        except Exception as e:
+            last_err = e
+            log(f"coach proxy fallo no-retryable: {e}")
+            break
+    if text is None:
+        log(f"coach proxy fallo definitivo: {last_err}")
+        return {"decision": "wait", "reasoning": f"proxy_error: {last_err}"}
 
     # Extract JSON robustly: try fenced block first, then balanced braces, then fallback
     def _extract_json(s: str) -> dict | None:
