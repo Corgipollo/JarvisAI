@@ -37,12 +37,12 @@ if errorlevel 1 (
     python -m pip install --quiet yt-dlp
 )
 
-REM ----- Matar procesos viejos targeted (NO mata autorelaunch_watchdog ni python no-jarvis) -----
-echo Limpiando procesos jarvis viejos (filtrado por cmdline)...
-powershell -NoProfile -Command "Get-WmiObject Win32_Process | Where-Object { $_.Name -eq 'python.exe' -and $_.CommandLine -match 'jarvis_(learners|swarm|bridge)' -and $_.CommandLine -notmatch 'autorelaunch_watchdog' } | ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }" 2>nul
+REM ----- Matar TODOS los procesos python viejos (en VM solo hay python de jarvis) -----
+echo Limpiando procesos viejos...
+taskkill /F /IM python.exe 2>nul
 
-REM ----- Wait 3 sec para que mueran -----
-timeout /t 3 /nobreak >nul
+REM ----- Wait 4 sec para que mueran completamente -----
+timeout /t 4 /nobreak >nul
 
 REM ----- Arrancar claude_proxy (CRITICO: cerebro gratis) -----
 echo.
