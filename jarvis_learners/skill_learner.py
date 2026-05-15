@@ -123,15 +123,36 @@ def search_and_download(query: str, max_videos: int = 3,
 # ============================================================================
 # Step 3-4: Transcribe + extract frames
 # ============================================================================
+WHISPER_GPU_URL = "http://10.0.2.2:8089"  # host gateway desde VM VirtualBox NAT
+
+
 def transcribe_video(video_path: str) -> str:
-    """faster-whisper transcribe audio con memory gating + auto-unload."""
+    """Transcribe via host GPU service (RTX 3050). Fallback CPU si host no responde."""
+    # First try: GPU service on host
+    try:
+        import requests
+        # Health probe with short timeout
+        r = requests.get(f"{WHISPER_GPU_URL}/health", timeout=3)
+        if r.status_code == 200:
+            log(f"  usando whisper GPU host service")
+            with open(video_path, "rb") as f:
+                files = {"file": (Path(video_path).name, f, "video/mp4")}
+                r = requests.post(f"{WHISPER_GPU_URL}/transcribe", files=files, timeout=900)
+                if r.status_code == 200:
+                    data = r.json()
+                    log(f"  GPU transcribe OK en {data.get('elapsed_s', 0):.1f}s, {data.get('chunks', 0)} chunks")
+                    return data.get("text", "")
+                log(f"  GPU service status {r.status_code}, fallback CPU")
+    except Exception as e:
+        log(f"  GPU service no disponible ({type(e).__name__}), fallback CPU")
+
+    # Fallback: local CPU whisper
     try:
         from faster_whisper import WhisperModel
     except ImportError:
         log("faster-whisper no instalado, skip transcript")
         return ""
 
-    # Memory gate: if <2GB avail, downgrade to tiny; if <1GB, skip
     model_size = "base"
     try:
         import psutil
