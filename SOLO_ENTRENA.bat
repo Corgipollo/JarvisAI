@@ -121,6 +121,11 @@ start "Unified Context" /MIN cmd /c "cd /d %JARVIS_DIR% && python jarvis_swarm\u
 echo Arrancando SHARED STATUS WRITER (expone estado a host via shared folder)...
 start "Shared Status Writer" /MIN cmd /c "cd /d %JARVIS_DIR% && python jarvis_swarm\shared_status_writer.py"
 
+echo Arrancando TRIO DE CEREBROS (Opus + Sonnet + Haiku conversando)...
+start "Brain Opus" /MIN cmd /c "cd /d %JARVIS_DIR% && python jarvis_swarm\brain_opus.py"
+start "Brain Sonnet" /MIN cmd /c "cd /d %JARVIS_DIR% && python jarvis_swarm\brain_sonnet.py"
+start "Brain Haiku" /MIN cmd /c "cd /d %JARVIS_DIR% && python jarvis_swarm\brain_haiku.py"
+
 echo.
 echo ============================================================================
 echo                   JARVIS ENTRENANDO. CIERRA ESTA VENTANA.
