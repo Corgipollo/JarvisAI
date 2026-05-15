@@ -118,6 +118,9 @@ start "System Brain" /MIN cmd /c "cd /d %JARVIS_DIR% && python jarvis_swarm\syst
 echo Arrancando UNIFIED CONTEXT (contexto global compartido cada 5s)...
 start "Unified Context" /MIN cmd /c "cd /d %JARVIS_DIR% && python jarvis_swarm\unified_context.py"
 
+echo Arrancando SHARED STATUS WRITER (expone estado a host via shared folder)...
+start "Shared Status Writer" /MIN cmd /c "cd /d %JARVIS_DIR% && python jarvis_swarm\shared_status_writer.py"
+
 echo.
 echo ============================================================================
 echo                   JARVIS ENTRENANDO. CIERRA ESTA VENTANA.
