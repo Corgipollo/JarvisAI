@@ -27,6 +27,23 @@ from jarvis_swarm.base_agent import BaseAgent
 SKILLS_DIR = ROOT / "data" / "skill_library"
 PRACTICE_LOG = ROOT / "data" / "practice_log.jsonl"
 
+# Skills "built-in" que practican flujos reales utiles
+BUILTIN_SKILLS = [
+    {
+        "name": "youtube_transcript_extraction_browser",
+        "module": "jarvis_swarm.youtube_transcript_skill",
+        "function": "practice_youtube_transcript_skill",
+        "args_pool": [
+            "windows file explorer tutorial",
+            "como abrir notepad windows",
+            "windows 11 settings tutorial",
+            "como usar calculadora windows",
+            "como hacer screenshot windows",
+        ],
+        "weight": 3,  # ejecuta con mas frecuencia (es valioso)
+    },
+]
+
 
 class AutoPracticeAgent(BaseAgent):
     name = "auto_practice"
@@ -128,7 +145,40 @@ class AutoPracticeAgent(BaseAgent):
         except Exception:
             pass
 
+    def maybe_run_builtin(self) -> dict | None:
+        """30% chance de correr un built-in (flujo real util como YT transcript)."""
+        if random.random() > 0.3:
+            return None
+        bs = random.choice(BUILTIN_SKILLS)
+        arg = random.choice(bs.get("args_pool", [""]))
+        self.log(f"=== BUILTIN: {bs['name']} arg='{arg}' ===")
+        try:
+            import importlib
+            mod = importlib.import_module(bs["module"])
+            fn = getattr(mod, bs["function"])
+            res = fn(arg) if arg else fn()
+            ok = bool(res.get("transcript_chars") or (not res.get("error")))
+            PRACTICE_LOG.parent.mkdir(parents=True, exist_ok=True)
+            with PRACTICE_LOG.open("a", encoding="utf-8") as f:
+                f.write(json.dumps({
+                    "ts": datetime.now().isoformat(),
+                    "skill": bs["name"],
+                    "builtin": True,
+                    "success": ok,
+                    "result_summary": {k: v for k, v in res.items()
+                                       if k not in ("transcript_preview", "transcript_file")},
+                }, ensure_ascii=False, default=str) + "\n")
+            return {"ok": True, "action": "builtin_practiced",
+                    "skill": bs["name"], "success": ok}
+        except Exception as e:
+            self.log(f"  builtin error: {e}")
+            return {"ok": False, "action": "builtin_error", "error": str(e)[:200]}
+
     def step(self):
+        builtin = self.maybe_run_builtin()
+        if builtin:
+            return builtin
+
         picked = self.pick_random_skill()
         if not picked:
             return {"ok": True, "action": "no_safe_skills"}
