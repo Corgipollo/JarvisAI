@@ -35,18 +35,36 @@ class AutoPracticeAgent(BaseAgent):
 
     def __init__(self):
         super().__init__()
-        # Practicas SAFE primero (skills sin riesgo)
+        # Skills permitidas (sin "close" porque rompe el setup completo)
         self.safe_categories = [
-            "mouse", "open", "close", "move", "click",
-            "calculator", "notepad", "screenshot", "snipping",
-            "telegram", "obsidian", "discord", "chrome", "edge",
-            "copy", "paste", "shortcut",
+            "mouse", "abrir", "open", "move", "click",
+            "calculator", "calculadora", "notepad", "bloc", "screenshot",
+            "snipping", "telegram", "obsidian", "discord", "chrome", "edge",
+            "copy", "paste", "copiar", "pegar", "shortcut",
+            "explorer", "explorador", "drag", "arrastrar", "scroll",
+            "search", "buscar", "type", "escribir",
+        ]
+        # BLACKLIST - jamas practicar (cierran apps, sesion, sistema)
+        self.dangerous_terms = [
+            "shutdown", "apagar", "restart", "reiniciar", "reboot",
+            "logoff", "sign out", "cerrar sesion", "log out", "logout",
+            "lock", "bloquear", "win+l",
+            "close all", "cerrar todo", "kill all", "matar todo",
+            "alt+f4", "alt-f4", "task kill", "taskkill",
+            "format", "formatear", "delete", "borrar", "rm ",
+            "uninstall", "desinstalar", "reset", "restablecer",
+            "factory", "fabrica",
         ]
 
     def is_safe_skill(self, skill: dict) -> bool:
-        """Solo practica skills 'seguras' (no formatear disco, no rm -rf)."""
-        name = (skill.get("name", "") + " " + skill.get("intent", "")).lower()
-        # Categorias permitidas
+        """Practica skills seguras. Blacklist override whitelist."""
+        name = (skill.get("name", "") + " " + skill.get("intent", "") + " " +
+                skill.get("query", "")).lower()
+        # Hard reject si contiene terminos peligrosos
+        for danger in self.dangerous_terms:
+            if danger in name:
+                return False
+        # Permite solo si esta en categorias seguras
         if any(cat in name for cat in self.safe_categories):
             return True
         return False

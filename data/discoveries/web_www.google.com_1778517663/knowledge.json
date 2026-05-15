@@ -1,0 +1,181 @@
+{
+  "url": "https://www.google.com",
+  "explored_at": "2026-05-11T10:41:11.892465",
+  "viewport": {
+    "w": 1280,
+    "h": 720
+  },
+  "clickable_elements_found": 20,
+  "interactions_done": 12,
+  "discoveries": [
+    {
+      "step": 1,
+      "action": "hover",
+      "element": {
+        "tag": "a",
+        "text": "Gmail",
+        "href": "https://mail.google.com/mail/&ogbl",
+        "x": 1012,
+        "y": 29,
+        "w": 34,
+        "h": 24
+      },
+      "tooltip": ""
+    },
+    {
+      "step": 2,
+      "action": "hover",
+      "element": {
+        "tag": "a",
+        "text": "Imágenes",
+        "href": "https://www.google.com/imghp?hl=es&ogbl",
+        "x": 1073,
+        "y": 29,
+        "w": 57,
+        "h": 24
+      },
+      "tooltip": ""
+    },
+    {
+      "step": 3,
+      "action": "hover",
+      "element": {
+        "tag": "a",
+        "text": "",
+        "href": "https://www.google.com.mx/intl/es/about/products",
+        "x": 1136,
+        "y": 29,
+        "w": 40,
+        "h": 40
+      },
+      "tooltip": ""
+    },
+    {
+      "step": 4,
+      "action": "hover",
+      "element": {
+        "tag": "a",
+        "text": "Iniciar sesión",
+        "href": "https://accounts.google.com/ServiceLogin?hl=es&passive=true&continue=https://www.google.com/&ec=futura_exp_og_so_72776762_e",
+        "x": 1217,
+        "y": 29,
+        "w": 106,
+        "h": 40
+      },
+      "tooltip": ""
+    },
+    {
+      "step": 5,
+      "action": "hover",
+      "element": {
+        "tag": "a",
+        "text": "Español (Latinoamérica)",
+        "href": "https://www.google.com/setprefs?sig=0_y9BwihGD8ZkkZgag6SZhxm1QdiY%3D&hl=es-419&source=homepage&sa=X&ved=0ahUKEwjzwojN1rGUAxVaiO4BHQ95NTMQ2ZgBCB8",
+        "x": 705,
+        "y": 420,
+        "w": 141,
+        "h": 15
+      },
+      "tooltip": ""
+    },
+    {
+      "step": 6,
+      "action": "hover",
+      "element": {
+        "tag": "a",
+        "text": "Sobre Google",
+        "href": "https://about.google/?utm_source=google-MX&utm_medium=referral&utm_campaign=hp-footer&fg=1",
+        "x": 78,
+        "y": 697,
+        "w": 116,
+        "h": 46
+      },
+      "tooltip": ""
+    },
+    {
+      "step": 7,
+      "action": "hover",
+      "element": {
+        "tag": "a",
+        "text": "Publicidad",
+        "href": "https://www.google.com/intl/es_mx/ads/?subid=ww-ww-et-g-awa-a-g_hpafoot1_1!o2&utm_source=google.com&utm_medium=referral&utm_campaign=google_hpafooter&fg=1",
+        "x": 184,
+        "y": 697,
+        "w": 95,
+        "h": 46
+      },
+      "tooltip": ""
+    },
+    {
+      "step": 8,
+      "action": "hover",
+      "element": {
+        "tag": "a",
+        "text": "Negocios",
+        "href": "https://www.google.com/services/?subid=ww-ww-et-g-awa-a-g_hpbfoot1_1!o2&utm_source=google.com&utm_medium=referral&utm_campaign=google_hpbfooter&fg=1",
+        "x": 275,
+        "y": 697,
+        "w": 88,
+        "h": 46
+      },
+      "tooltip": ""
+    },
+    {
+      "step": 9,
+      "action": "hover",
+      "element": {
+        "tag": "a",
+        "text": "Cómo funciona la Búsqueda",
+        "href": "https://google.com/search/howsearchworks/?fg=1",
+        "x": 422,
+        "y": 697,
+        "w": 206,
+        "h": 46
+      },
+      "tooltip": ""
+    },
+    {
+      "step": 10,
+      "action": "hover",
+      "element": {
+        "tag": "a",
+        "text": "Privacidad",
+        "href": "https://policies.google.com/privacy?hl=es-MX&fg=1",
+        "x": 989,
+        "y": 697,
+        "w": 95,
+        "h": 46
+      },
+      "tooltip": ""
+    },
+    {
+      "step": 11,
+      "action": "hover",
+      "element": {
+        "tag": "a",
+        "text": "Condiciones",
+        "href": "https://policies.google.com/terms?hl=es-MX&fg=1",
+        "x": 1090,
+        "y": 697,
+        "w": 107,
+        "h": 46
+      },
+      "tooltip": ""
+    },
+    {
+      "step": 12,
+      "action": "hover",
+      "element": {
+        "tag": "button",
+        "text": "",
+        "href": null,
+        "x": 320,
+        "y": 271,
+        "w": 36,
+        "h": 36
+      },
+      "tooltip": ""
+    }
+  ],
+  "out_dir": "C:\\Users\\Emmanuel\\Documents\\JarvisAI\\data\\discoveries\\web_www.google.com_1778517663"
+}

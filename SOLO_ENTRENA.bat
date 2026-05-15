@@ -126,6 +126,9 @@ start "Brain Opus" /MIN cmd /c "cd /d %JARVIS_DIR% && python jarvis_swarm\brain_
 start "Brain Sonnet" /MIN cmd /c "cd /d %JARVIS_DIR% && python jarvis_swarm\brain_sonnet.py"
 start "Brain Haiku" /MIN cmd /c "cd /d %JARVIS_DIR% && python jarvis_swarm\brain_haiku.py"
 
+echo Arrancando AUTORELAUNCH watchdog (relanza Jarvis si todo se cae)...
+start "Autorelaunch" /MIN cmd /c "cd /d %JARVIS_DIR% && python jarvis_swarm\autorelaunch_watchdog.py"
+
 echo.
 echo ============================================================================
 echo                   JARVIS ENTRENANDO. CIERRA ESTA VENTANA.

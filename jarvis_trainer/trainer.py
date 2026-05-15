@@ -38,6 +38,7 @@ except ImportError:
 
 async def _run_skill(target: str) -> dict:
     """Ejercita skills nuevas (mouse/vision/files/browser) sin efectos visibles."""
+    from pathlib import Path
     from backend.skills import mouse, vision, files
     if target == "screenshot":
         r = vision.screenshot(save=True)
@@ -69,6 +70,53 @@ async def _run_skill(target: str) -> dict:
     if target == "file_info_readme":
         r = files.file_info(r"C:\Users\Emmanuel\Documents\JarvisAI\README.md")
         return {"success": r["success"], "strategy": "files.file_info"}
+    if target == "file_create_temp":
+        import tempfile
+        path = files.write_file(
+            str(Path(tempfile.gettempdir()) / "jarvis_test.txt"),
+            "jarvis training file\nlinea 2\n",
+        )
+        return {"success": path["success"], "strategy": "files.write_file"}
+    if target == "file_move_temp":
+        import tempfile, shutil as _sh
+        src = Path(tempfile.gettempdir()) / "jarvis_test.txt"
+        dst = Path(tempfile.gettempdir()) / "jarvis_moved.txt"
+        try:
+            if src.exists():
+                _sh.move(str(src), str(dst))
+                return {"success": True, "strategy": "files.move"}
+            return {"success": False, "error": "src no existe", "strategy": "files.move"}
+        except Exception as e:
+            return {"success": False, "error": str(e), "strategy": "files.move"}
+    if target == "file_copy_temp":
+        import tempfile
+        src = str(Path(tempfile.gettempdir()) / "jarvis_moved.txt")
+        dst = str(Path(tempfile.gettempdir()) / "jarvis_copy.txt")
+        r = files.copy_file(src, dst)
+        return {"success": r["success"], "strategy": "files.copy_file"}
+    if target == "file_delete_temp":
+        import tempfile
+        deleted = 0
+        for name in ("jarvis_moved.txt", "jarvis_copy.txt", "jarvis_test.txt"):
+            p = Path(tempfile.gettempdir()) / name
+            try:
+                if p.exists():
+                    p.unlink()
+                    deleted += 1
+            except Exception:
+                pass
+        return {"success": deleted >= 1, "strategy": "files.delete", "deleted": deleted}
+    if target == "mouse_move_pattern":
+        # Mueve el mouse en cuadrado y vuelve. Sin clicks, solo precision.
+        try:
+            import pyautogui as _pg
+            start = _pg.position()
+            cx, cy = start.x, start.y
+            for dx, dy in [(50, 0), (50, 50), (0, 50), (0, 0)]:
+                _pg.moveTo(cx + dx, cy + dy, duration=0.15)
+            return {"success": True, "strategy": "mouse.move_pattern"}
+        except Exception as e:
+            return {"success": False, "error": str(e), "strategy": "mouse.move_pattern"}
     return {"success": False, "error": f"skill desconocida: {target}"}
 
 

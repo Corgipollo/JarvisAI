@@ -1,0 +1,366 @@
+{
+  "ts": "2026-05-15T13:15:08.552316",
+  "_doc": "Contexto unificado global - cualquier agente lee esto",
+  "screen": {
+    "active_window": "",
+    "context_desc": "```json\n{\n  \"screen_status\": \"SIN_IMAGEN\",\n  \"razon\": \"[IMAGE] tag vacío — no hay píxeles para analizar\",\n  \"accion_requerida\": \"Win+Shift+S → arrastra rect sobre la ventana Jarvis Self-Improvement → pega aquí\"\n}\n```\n\nSin captura, sin contexto visual. Toma screenshot **ahora** con **Win+Shift+S** y pégala.",
+    "last_update": "2026-05-15T01:15:38.854731",
+    "foreground_apps": [
+      "System Idle Process",
+      "System",
+      "conhost.exe",
+      "Registry",
+      "python.exe",
+      "svchost.exe",
+      "smss.exe",
+      "cmd.exe",
+      "fontdrvhost.exe",
+      "csrss.exe"
+    ]
+  },
+  "active_task": {},
+  "skills": {
+    "count": 91
+  },
+  "recent_events": [
+    {
+      "agent": "unified_context",
+      "ts": "2026-05-15T13:13:21.208518",
+      "ok": true,
+      "action": "consolidated",
+      "skills": 91,
+      "events": 20,
+      "swarm_procs": 31
+    },
+    {
+      "agent": "unified_context",
+      "ts": "2026-05-15T13:13:25.836541",
+      "ok": true,
+      "action": "consolidated",
+      "skills": 91,
+      "events": 20,
+      "swarm_procs": 31
+    },
+    {
+      "agent": "unified_context",
+      "ts": "2026-05-15T13:13:30.295043",
+      "ok": true,
+      "action": "consolidated",
+      "skills": 91,
+      "events": 20,
+      "swarm_procs": 31
+    },
+    {
+      "agent": "unified_context",
+      "ts": "2026-05-15T13:13:34.471103",
+      "ok": true,
+      "action": "consolidated",
+      "skills": 91,
+      "events": 20,
+      "swarm_procs": 31
+    },
+    {
+      "agent": "unified_context",
+      "ts": "2026-05-15T13:13:38.873214",
+      "ok": true,
+      "action": "consolidated",
+      "skills": 91,
+      "events": 20,
+      "swarm_procs": 31
+    },
+    {
+      "agent": "unified_context",
+      "ts": "2026-05-15T13:13:43.460963",
+      "ok": true,
+      "action": "consolidated",
+      "skills": 91,
+      "events": 20,
+      "swarm_procs": 31
+    },
+    {
+      "agent": "unified_context",
+      "ts": "2026-05-15T13:13:48.396012",
+      "ok": true,
+      "action": "consolidated",
+      "skills": 91,
+      "events": 20,
+      "swarm_procs": 31
+    },
+    {
+      "agent": "unified_context",
+      "ts": "2026-05-15T13:13:53.434269",
+      "ok": true,
+      "action": "consolidated",
+      "skills": 91,
+      "events": 20,
+      "swarm_procs": 31
+    },
+    {
+      "agent": "unified_context",
+      "ts": "2026-05-15T13:13:58.954063",
+      "ok": true,
+      "action": "consolidated",
+      "skills": 91,
+      "events": 20,
+      "swarm_procs": 31
+    },
+    {
+      "agent": "unified_context",
+      "ts": "2026-05-15T13:14:04.567581",
+      "ok": true,
+      "action": "consolidated",
+      "skills": 91,
+      "events": 20,
+      "swarm_procs": 31
+    },
+    {
+      "agent": "unified_context",
+      "ts": "2026-05-15T13:14:10.679866",
+      "ok": true,
+      "action": "consolidated",
+      "skills": 91,
+      "events": 20,
+      "swarm_procs": 31
+    },
+    {
+      "agent": "unified_context",
+      "ts": "2026-05-15T13:14:16.981027",
+      "ok": true,
+      "action": "consolidated",
+      "skills": 91,
+      "events": 20,
+      "swarm_procs": 31
+    },
+    {
+      "agent": "unified_context",
+      "ts": "2026-05-15T13:14:23.687354",
+      "ok": true,
+      "action": "consolidated",
+      "skills": 91,
+      "events": 20,
+      "swarm_procs": 31
+    },
+    {
+      "agent": "unified_context",
+      "ts": "2026-05-15T13:14:30.758925",
+      "ok": true,
+      "action": "consolidated",
+      "skills": 91,
+      "events": 20,
+      "swarm_procs": 31
+    },
+    {
+      "agent": "unified_context",
+      "ts": "2026-05-15T13:14:38.153002",
+      "ok": true,
+      "action": "consolidated",
+      "skills": 91,
+      "events": 20,
+      "swarm_procs": 31
+    },
+    {
+      "agent": "unified_context",
+      "ts": "2026-05-15T13:14:45.019480",
+      "ok": true,
+      "action": "consolidated",
+      "skills": 91,
+      "events": 20,
+      "swarm_procs": 31
+    },
+    {
+      "agent": "unified_context",
+      "ts": "2026-05-15T13:14:51.670662",
+      "ok": true,
+      "action": "consolidated",
+      "skills": 91,
+      "events": 20,
+      "swarm_procs": 31
+    },
+    {
+      "agent": "unified_context",
+      "ts": "2026-05-15T13:14:57.731636",
+      "ok": true,
+      "action": "consolidated",
+      "skills": 91,
+      "events": 20,
+      "swarm_procs": 31
+    },
+    {
+      "agent": "mouse_master",
+      "ts": "2026-05-15T13:15:02.277138",
+      "ok": true,
+      "action": "enqueued_mouse_skill",
+      "technique": "windows_mouse_double_click_file_open",
+      "query": "Windows File Explorer double click open file folder tutorial"
+    },
+    {
+      "agent": "unified_context",
+      "ts": "2026-05-15T13:15:03.675373",
+      "ok": true,
+      "action": "consolidated",
+      "skills": 91,
+      "events": 20,
+      "swarm_procs": 31
+    }
+  ],
+  "recent_errors": [],
+  "system_brain_summary": {
+    "has_brain": true,
+    "native_actions_count": 38,
+    "apps_installed": 23
+  },
+  "environment_summary": {
+    "has_map": true,
+    "apps_count": 121,
+    "running_count": 28,
+    "disks": [
+      {
+        "drive": "C:",
+        "total_gb": 77.1,
+        "used_gb": 62.8,
+        "free_gb": 14.3,
+        "pct_used": 81.4
+      },
+      {
+        "drive": "D:",
+        "total_gb": 0.1,
+        "used_gb": 0.1,
+        "free_gb": 0.0,
+        "pct_used": 100.0
+      }
+    ]
+  },
+  "swarm_processes": [
+    {
+      "pid": 4704,
+      "cmd": "python jarvis_swarm\\dialog_killer_native.py"
+    },
+    {
+      "pid": 8660,
+      "cmd": "python -m uvicorn jarvis_bridge.claude_proxy:app --host 127.0.0.1 --port 8088"
+    },
+    {
+      "pid": 11252,
+      "cmd": "python jarvis_learners\\self_improvement.py"
+    },
+    {
+      "pid": 11272,
+      "cmd": "C:\\Users\\emman\\AppData\\Local\\Programs\\Python\\Python312\\python.exe C:\\Jarvis\\jarvis_learners\\proactive_suggester.py"
+    },
+    {
+      "pid": 11308,
+      "cmd": "C:\\Users\\emman\\AppData\\Local\\Programs\\Python\\Python312\\python.exe C:\\Jarvis\\jarvis_learners\\self_improvement.py"
+    },
+    {
+      "pid": 11504,
+      "cmd": "python jarvis_learners\\self_optimizer.py"
+    },
+    {
+      "pid": 11532,
+      "cmd": "python jarvis_learners\\coach.py"
+    },
+    {
+      "pid": 11556,
+      "cmd": "python jarvis_learners\\watchdog.py"
+    },
+    {
+      "pid": 12208,
+      "cmd": "C:\\Users\\emman\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -m uvicorn jarvis_core.web_server:app --host 127.0.0.1 --port 7777"
+    },
+    {
+      "pid": 12220,
+      "cmd": "C:\\Users\\emman\\AppData\\Local\\Programs\\Python\\Python312\\python.exe C:\\Jarvis\\jarvis_learners\\self_improvement.py"
+    },
+    {
+      "pid": 12240,
+      "cmd": "C:\\Users\\emman\\AppData\\Local\\Programs\\Python\\Python312\\python.exe C:\\Jarvis\\jarvis_learners\\coach.py"
+    },
+    {
+      "pid": 12256,
+      "cmd": "C:\\Users\\emman\\AppData\\Local\\Programs\\Python\\Python312\\python.exe C:\\Jarvis\\jarvis_learners\\self_optimizer.py"
+    },
+    {
+      "pid": 12324,
+      "cmd": "python jarvis_learners\\dialog_guardian.py"
+    },
+    {
+      "pid": 12428,
+      "cmd": "python jarvis_swarm\\agents_core.py mouse_master"
+    },
+    {
+      "pid": 12460,
+      "cmd": "python jarvis_swarm\\agents_core.py app_explorer"
+    },
+    {
+      "pid": 12592,
+      "cmd": "python jarvis_swarm\\agents_core.py skill_reviewer"
+    },
+    {
+      "pid": 12696,
+      "cmd": "python jarvis_swarm\\agents_core.py curiosity"
+    },
+    {
+      "pid": 12704,
+      "cmd": "python jarvis_swarm\\agents_core.py error_resolver"
+    },
+    {
+      "pid": 12752,
+      "cmd": "python jarvis_swarm\\agents_core.py code_advisor"
+    },
+    {
+      "pid": 12880,
+      "cmd": "python jarvis_swarm\\screen_awareness.py"
+    },
+    {
+      "pid": 12992,
+      "cmd": "python jarvis_swarm\\app_inspector.py"
+    },
+    {
+      "pid": 13020,
+      "cmd": "python jarvis_swarm\\meta_agent.py"
+    },
+    {
+      "pid": 13032,
+      "cmd": "python jarvis_swarm\\environment_mapper.py"
+    },
+    {
+      "pid": 13040,
+      "cmd": "python jarvis_swarm\\auto_practice.py"
+    },
+    {
+      "pid": 13048,
+      "cmd": "python jarvis_swarm\\brain_opus.py"
+    },
+    {
+      "pid": 13056,
+      "cmd": "python jarvis_swarm\\learning_supervisor.py"
+    },
+    {
+      "pid": 13112,
+      "cmd": "python jarvis_swarm\\brain_sonnet.py"
+    },
+    {
+      "pid": 13120,
+      "cmd": "python jarvis_swarm\\system_brain.py"
+    },
+    {
+      "pid": 13128,
+      "cmd": "python jarvis_swarm\\shared_status_writer.py"
+    },
+    {
+      "pid": 13188,
+      "cmd": "python jarvis_swarm\\brain_haiku.py"
+    },
+    {
+      "pid": 13208,
+      "cmd": "python jarvis_swarm\\unified_context.py"
+    }
+  ],
+  "host_resources": {
+    "cpu_pct": 0.0,
+    "ram_pct": 40.6,
+    "ram_avail_gb": 5.9,
+    "disk_pct": 81.4,
+    "disk_free_gb": 14.4
+  }
+}

@@ -1,0 +1,177 @@
+{
+  "ts": "2026-05-15T13:15:12.587171",
+  "skills_count": 91,
+  "pending_gaps": 222,
+  "first_5_pending": [
+    "windows_mouse_left_click_single DRILL ATOMICO PREREQUISITO: Configuración → Bluetooth y dispositivos → Mouse → velocidad puntero 30% → cerrar. Win+E → Escritorio Vista Detalles → 5+ archivos visibles. CICLO: mover cursor LENTO a nombre de archivo → PAUSA completa 2s antes de click → left-click UNA VEZ → barra inferior '1 elemento seleccionado' = REP VÁLIDA. Si aparece 'Abrir' o nombre editable = doble-click accidental = REP INVÁLIDA. 20 reps. CRITERIO MÍNIMO: 18/20 válidas. Screenshot OBLIGATORIO por cada 5 reps: barra inferior con '1 elemento seleccionado'. CERO Ctrl, CERO Shift, CERO teclado, CERO double-click. Este drill existe EXCLUSIVAMENTE para dominar el click unitario antes de intentar multi-select.",
+    "windows_mouse_left_click_single DRILL ATOMICO MINIMO ABSOLUTO: Configuración → Mouse → velocidad puntero 30% → Win+E → Escritorio Vista Detalles → cursor sobre archivo → PAUSA 2s → left-click UNA VEZ → nombre resaltado azul + barra inferior '1 elemento seleccionado' = ÉXITO. 10 reps. CRITERIO: 9/10. Screenshot OBLIGATORIO: barra estado '1 elemento seleccionado'. CERO double-click, CERO right-click, CERO teclado. Átomo mínimo L1.",
+    "windows_keyboard_multi_select DRILL ATOMICO PROGRESIVO 3 FASES: FASE A — Win+E → Escritorio Vista Detalles (5+ archivos) → left-click archivo 1 → Ctrl+left-click archivo 3 → Ctrl+left-click archivo 5 → barra estado '3 elementos seleccionados' = CHECKPOINT 1. FASE B — left-click archivo 1 → Shift+left-click archivo 4 → barra dice '4 elementos seleccionados' = CHECKPOINT 2. FASE C — Ctrl+A → todos seleccionados → Escape → 0 seleccionados = CHECKPOINT 3. Ciclo: A+B+C = 1 rep. 15 reps. CRITERIO APROBADO: 12/15 con los 3 checkpoints. Screenshot OBLIGATORIO: barra de estado mostrando conteo correcto en CADA checkpoint. CERO arrastrar, CERO right-click. Solo Ctrl+click (no contiguo) y Shift+click (contiguo). mejor tutorial profundo",
+    "windows_keyboard_multi_select DRILL ATOMICO: Win+E → carpeta Escritorio Vista Detalles con 5+ archivos visibles → left-click en archivo 1 → Ctrl+left-click en archivo 3 → Ctrl+left-click en archivo 5 → barra estado dice '3 elementos seleccionados' = CHECKPOINT 1. Luego Shift+left-click en archivo 2 (desde archivo 1) → barra dice '2 elementos seleccionados' = CHECKPOINT 2. Luego Ctrl+A → todos seleccionados = CHECKPOINT 3. 15 reps ciclo completo (Ctrl-click multi + Shift-click rango + Ctrl+A). CRITERIO APROBADO: 13/15. Screenshot OBLIGATORIO: barra estado mostrando '3 elementos seleccionados' visible. SOLO teclado+click, sin menú contextual, sin arrastrar. mejor tutorial profundo",
+    "audacity_audio_editing_mixing PIPELINE MINIMO 3 PASOS TECLADO: (1) Audacity → File > Open → MP3 cualquiera de Descargas → onda azul en pista = CHECKPOINT 1. (2) Ctrl+A → Effect > Volume and Compression > Amplify > OK → onda más alta = CHECKPOINT 2. (3) File > Export Audio > Export as MP3 > nombre 'test_out.mp3' > Save → diálogo cierra = CHECKPOINT 3. 15 reps ciclo completo. CRITERIO APROBADO: 12/15. Screenshot: ventana Export con nombre test_out visible ANTES de guardar. SIN fade, SIN cortes, SIN noise reduction — solo Open→Amplify→Export como pipeline atómico. mejor tutorial profundo"
+  ],
+  "recent_coach": [
+    {
+      "ts": "2026-05-15T01:57:19.863680",
+      "decision": {
+        "decision": "wait",
+        "reasoning": "proxy_error: HTTPConnectionPool(host='127.0.0.1', port=8088): Max retries exceeded with url: /v1/messages (Caused by NewConnectionError(\"HTTPConnection(host='127.0.0.1', port=8088): Failed to establish a new connection: [WinError 10061] No se puede establecer una conexión ya que el equipo de destino denegó expresamente dicha conexión\"))"
+      },
+      "state_snapshot": {
+        "skill_count": 91,
+        "pending_count": 219
+      }
+    },
+    {
+      "ts": "2026-05-15T02:03:23.945444",
+      "decision": {
+        "decision": "wait",
+        "reasoning": "proxy_error: HTTPConnectionPool(host='127.0.0.1', port=8088): Max retries exceeded with url: /v1/messages (Caused by NewConnectionError(\"HTTPConnection(host='127.0.0.1', port=8088): Failed to establish a new connection: [WinError 10061] No se puede establecer una conexión ya que el equipo de destino denegó expresamente dicha conexión\"))"
+      },
+      "state_snapshot": {
+        "skill_count": 91,
+        "pending_count": 219
+      }
+    },
+    {
+      "ts": "2026-05-15T02:03:29.457341",
+      "decision": {
+        "decision": "wait",
+        "reasoning": "proxy_error: HTTPConnectionPool(host='127.0.0.1', port=8088): Max retries exceeded with url: /v1/messages (Caused by NewConnectionError(\"HTTPConnection(host='127.0.0.1', port=8088): Failed to establish a new connection: [WinError 10061] No se puede establecer una conexión ya que el equipo de destino denegó expresamente dicha conexión\"))"
+      },
+      "state_snapshot": {
+        "skill_count": 91,
+        "pending_count": 219
+      }
+    },
+    {
+      "ts": "2026-05-15T13:13:42.792108",
+      "decision": {
+        "decision": "new_skill",
+        "query": "windows_mouse_left_click_single DRILL ATOMICO MINIMO ABSOLUTO: Configuración → Mouse → velocidad puntero 30% → Win+E → Escritorio Vista Detalles → cursor sobre archivo → PAUSA 2s → left-click UNA VEZ → nombre resaltado azul + barra inferior '1 elemento seleccionado' = ÉXITO. 10 reps. CRITERIO: 9/10. Screenshot OBLIGATORIO: barra estado '1 elemento seleccionado'. CERO double-click, CERO right-click, CERO teclado. Átomo mínimo L1.",
+        "level": 1,
+        "reasoning": "windows_keyboard_multi_select lleva 10+ ciclos de relearn sin superar 54.5%. La causa raíz es clara: Ctrl+click REQUIERE un left-click preciso como átomo base, y ese átomo no está en skills_learned. Sin dominar el click simple, el Ctrl+click nunca será confiable. windows_mouse_left_click_single aparece 4 veces en pending_gaps con drills progresivamente más simples — señal de que el sistema ya detectó este gap. Es el desbloqueador directo de windows_keyboard_multi_select y de toda la familia de interacción mouse L1.",
+        "expected_outcome": "Jarvis logra seleccionar UN archivo con left-click (barra muestra '1 elemento seleccionado') en 9/10 repeticiones. Esto desbloquea inmediatamente el relearn de windows_keyboard_multi_select con Ctrl+click real."
+      },
+      "state_snapshot": {
+        "skill_count": 91,
+        "pending_count": 219
+      }
+    },
+    {
+      "ts": "2026-05-15T13:14:41.598687",
+      "decision": {
+        "decision": "new_skill",
+        "query": "windows_mouse_left_click_single DRILL ATOMICO PREREQUISITO: Configuración → Bluetooth y dispositivos → Mouse → velocidad puntero 30% → cerrar. Win+E → Escritorio Vista Detalles → 5+ archivos visibles. CICLO: mover cursor LENTO a nombre de archivo → PAUSA completa 2s antes de click → left-click UNA VEZ → barra inferior '1 elemento seleccionado' = REP VÁLIDA. Si aparece 'Abrir' o nombre editable = doble-click accidental = REP INVÁLIDA. 20 reps. CRITERIO MÍNIMO: 18/20 válidas. Screenshot OBLIGATORIO por cada 5 reps: barra inferior con '1 elemento seleccionado'. CERO Ctrl, CERO Shift, CERO teclado, CERO double-click. Este drill existe EXCLUSIVAMENTE para dominar el click unitario antes de intentar multi-select.",
+        "level": 1,
+        "reasoning": "windows_keyboard_multi_select lleva 10+ ciclos de relearn sin superar 54.5%. El análisis de los pending gaps revela que windows_mouse_left_click_single nunca fue aprendido formalmente — es el verdadero bloqueador. No puedes hacer Ctrl+click confiable si el click unitario no es preciso. Enseñar el átomo resuelve la raíz en lugar de seguir parcheando el síntoma. Una vez que single-click llegue a ≥90%, windows_keyboard_multi_select debería avanzar sin fricción porque Ctrl+click y Shift+click son extensiones directas.",
+        "expected_outcome": "Jarvis ejecuta left-click unitario con 18/20 precisión a velocidad puntero reducida. Esto desbloquea: (1) windows_keyboard_multi_select relearn efectivo, (2) windows_alt_tab (necesita click para cambiar ventanas si falla Alt), (3) toda la cadena L2 de apps que dependen de selección básica."
+      },
+      "state_snapshot": {
+        "skill_count": 91,
+        "pending_count": 219
+      }
+    }
+  ],
+  "recent_errors": [],
+  "recent_swarm_events": [
+    {
+      "agent": "unified_context",
+      "ts": "2026-05-15T13:14:16.981027",
+      "ok": true,
+      "action": "consolidated",
+      "skills": 91,
+      "events": 20,
+      "swarm_procs": 31
+    },
+    {
+      "agent": "unified_context",
+      "ts": "2026-05-15T13:14:23.687354",
+      "ok": true,
+      "action": "consolidated",
+      "skills": 91,
+      "events": 20,
+      "swarm_procs": 31
+    },
+    {
+      "agent": "unified_context",
+      "ts": "2026-05-15T13:14:30.758925",
+      "ok": true,
+      "action": "consolidated",
+      "skills": 91,
+      "events": 20,
+      "swarm_procs": 31
+    },
+    {
+      "agent": "unified_context",
+      "ts": "2026-05-15T13:14:38.153002",
+      "ok": true,
+      "action": "consolidated",
+      "skills": 91,
+      "events": 20,
+      "swarm_procs": 31
+    },
+    {
+      "agent": "unified_context",
+      "ts": "2026-05-15T13:14:45.019480",
+      "ok": true,
+      "action": "consolidated",
+      "skills": 91,
+      "events": 20,
+      "swarm_procs": 31
+    },
+    {
+      "agent": "unified_context",
+      "ts": "2026-05-15T13:14:51.670662",
+      "ok": true,
+      "action": "consolidated",
+      "skills": 91,
+      "events": 20,
+      "swarm_procs": 31
+    },
+    {
+      "agent": "unified_context",
+      "ts": "2026-05-15T13:14:57.731636",
+      "ok": true,
+      "action": "consolidated",
+      "skills": 91,
+      "events": 20,
+      "swarm_procs": 31
+    },
+    {
+      "agent": "mouse_master",
+      "ts": "2026-05-15T13:15:02.277138",
+      "ok": true,
+      "action": "enqueued_mouse_skill",
+      "technique": "windows_mouse_double_click_file_open",
+      "query": "Windows File Explorer double click open file folder tutorial"
+    },
+    {
+      "agent": "unified_context",
+      "ts": "2026-05-15T13:15:03.675373",
+      "ok": true,
+      "action": "consolidated",
+      "skills": 91,
+      "events": 20,
+      "swarm_procs": 31
+    },
+    {
+      "agent": "unified_context",
+      "ts": "2026-05-15T13:15:09.063136",
+      "ok": true,
+      "action": "consolidated",
+      "skills": 91,
+      "events": 20,
+      "swarm_procs": 31
+    }
+  ],
+  "active_task": {},
+  "screen": "",
+  "host_resources": {
+    "cpu_pct": 0.0,
+    "ram_pct": 40.6,
+    "ram_avail_gb": 5.9,
+    "disk_pct": 81.4,
+    "disk_free_gb": 14.4
+  },
+  "swarm_procs_count": 31
+}

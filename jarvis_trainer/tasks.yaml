@@ -111,3 +111,33 @@ tasks:
   - id: skill_file_info_readme
     action: skill
     target: file_info_readme
+
+  # === multi-step real (mover archivos, mouse fino) ===
+  - id: skill_file_create_temp
+    action: skill
+    target: file_create_temp
+
+  - id: skill_file_move_temp
+    action: skill
+    target: file_move_temp
+
+  - id: skill_file_copy_temp
+    action: skill
+    target: file_copy_temp
+
+  - id: skill_file_delete_temp
+    action: skill
+    target: file_delete_temp
+
+  - id: skill_mouse_move_pattern
+    action: skill
+    target: mouse_move_pattern
+
+  # === drag humano REAL (mouseDown + moveTo + mouseUp) ===
+  - id: skill_mouse_drag_human_safe
+    action: skill
+    target: mouse_drag_human_safe
+
+  - id: skill_mouse_drag_circle
+    action: skill
+    target: mouse_drag_circle
