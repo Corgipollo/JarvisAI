@@ -126,12 +126,69 @@ def search_and_download(query: str, max_videos: int = 3,
 WHISPER_GPU_URL = "http://10.0.2.2:8089"  # host gateway desde VM VirtualBox NAT
 
 
+def fetch_youtube_subs(video_id: str, cache_dir: Path) -> str | None:
+    """Bajar subs auto de YouTube (sin descargar video). Mas rapido y preciso que whisper."""
+    import subprocess
+    sub_tpl = cache_dir / f"{video_id}_subs"
+    cmd = [
+        sys.executable, "-m", "yt_dlp", "--no-warnings", "--quiet",
+        "--skip-download", "--write-auto-subs",
+        "--sub-langs", "en,es",
+        "--convert-subs", "vtt",
+        "-o", str(sub_tpl),
+        f"https://www.youtube.com/watch?v={video_id}",
+    ]
+    try:
+        subprocess.run(cmd, capture_output=True, text=True,
+                       timeout=60, encoding="utf-8", errors="replace")
+    except subprocess.TimeoutExpired:
+        return None
+    # Find produced vtt file
+    candidates = list(cache_dir.glob(f"{video_id}_subs*.vtt"))
+    if not candidates:
+        return None
+    vtt = candidates[0]
+    try:
+        raw = vtt.read_text(encoding="utf-8", errors="replace")
+    except Exception:
+        return None
+    # Clean VTT: drop WEBVTT header, timestamps, empty lines, duplicates
+    text_lines = []
+    last = ""
+    for line in raw.splitlines():
+        line = line.strip()
+        if not line or line.startswith(("WEBVTT", "Kind:", "Language:", "NOTE")):
+            continue
+        if "-->" in line:
+            continue
+        if line.isdigit():
+            continue
+        # Strip inline tags like <00:00:00.000><c>text</c>
+        import re
+        cleaned = re.sub(r"<[^>]+>", "", line).strip()
+        if cleaned and cleaned != last:
+            text_lines.append(cleaned)
+            last = cleaned
+    return " ".join(text_lines) if text_lines else None
+
+
 def transcribe_video(video_path: str) -> str:
-    """Transcribe via host GPU service (RTX 3050). Fallback CPU si host no responde."""
-    # First try: GPU service on host
+    """Pipeline: 1) YouTube auto-subs (rapido), 2) GPU host service, 3) CPU local."""
+    # Tier 1: YouTube auto-subs via yt-dlp (no descarga video, usa el ya cacheado)
+    video_id = Path(video_path).stem
+    cache_dir = Path(video_path).parent
+    if video_id and len(video_id) <= 30:  # YouTube ID is ~11 chars, sanity check
+        try:
+            subs = fetch_youtube_subs(video_id, cache_dir)
+            if subs and len(subs) > 50:
+                log(f"  YouTube auto-subs OK ({len(subs)} chars)")
+                return subs
+        except Exception as e:
+            log(f"  YT auto-subs fallo ({type(e).__name__}: {e}), siguiente tier")
+
+    # Tier 2: GPU service on host
     try:
         import requests
-        # Health probe with short timeout
         r = requests.get(f"{WHISPER_GPU_URL}/health", timeout=3)
         if r.status_code == 200:
             log(f"  usando whisper GPU host service")
@@ -140,9 +197,8 @@ def transcribe_video(video_path: str) -> str:
                 r = requests.post(f"{WHISPER_GPU_URL}/transcribe", files=files, timeout=900)
                 if r.status_code == 200:
                     data = r.json()
-                    log(f"  GPU transcribe OK en {data.get('elapsed_s', 0):.1f}s, {data.get('chunks', 0)} chunks")
+                    log(f"  GPU transcribe OK en {data.get('elapsed_s', 0):.1f}s")
                     return data.get("text", "")
-                log(f"  GPU service status {r.status_code}, fallback CPU")
     except Exception as e:
         log(f"  GPU service no disponible ({type(e).__name__}), fallback CPU")
 
