@@ -83,8 +83,8 @@ def focus_url_bar_and_search(query: str):
 
 
 def find_first_video_with_vision() -> tuple[int, int] | None:
-    """Usa Claude vision sobre screenshot para encontrar coordenadas del primer video."""
-    log("paso 3: localizando primer video con vision")
+    """Localiza primer video. Tier 1: UI-TARS (rapido+preciso). Tier 2: Claude vision."""
+    log("paso 3: localizando primer video")
     try:
         import pyautogui
         shot = DATA / "youtube_search_shot.png"
@@ -93,6 +93,19 @@ def find_first_video_with_vision() -> tuple[int, int] | None:
         log(f"  screenshot fallo: {e}")
         return None
 
+    # Tier 1: UI-TARS (host RTX 3050)
+    try:
+        from jarvis_swarm.ui_tars_client import predict_click_uitars, is_uitars_available
+        if is_uitars_available():
+            coords = predict_click_uitars(str(shot),
+                                          "click on the first video result thumbnail (not an ad)")
+            if coords:
+                log(f"  UI-TARS coords: {coords}")
+                return coords
+    except Exception as e:
+        log(f"  UI-TARS fail: {e}")
+
+    # Tier 2: Claude vision fallback
     try:
         from jarvis_bridge.jarvis_brain import ask_claude_with_image
         prompt = (
@@ -113,10 +126,10 @@ def find_first_video_with_vision() -> tuple[int, int] | None:
         screen_w, screen_h = pyautogui.size()
         x = int(screen_w * data["x_pct"] / 100)
         y = int(screen_h * data["y_pct"] / 100)
-        log(f"  primer video en ({x}, {y}) (vision)")
+        log(f"  Claude vision coords: ({x}, {y})")
         return (x, y)
     except Exception as e:
-        log(f"  vision fallo: {e}")
+        log(f"  Claude vision fallo: {e}")
         return None
 
 
