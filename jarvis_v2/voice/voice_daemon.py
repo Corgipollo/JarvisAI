@@ -35,6 +35,12 @@ PICOVOICE_KEY = os.environ.get("JARVIS_PICOVOICE_KEY", "")
 WHISPER_MODEL = os.environ.get("JARVIS_WHISPER_MODEL", "base")
 ENABLE_TTS = os.environ.get("JARVIS_TTS", "0") == "1"
 
+# Si JARVIS_API_URL esta seteado, dispatch via HTTP a la VM
+# Ej: http://127.0.0.1:5050  (con VBox port forward 5050->5000 en VM)
+# Si vacio: dispatch local (import graph) - modo dev / sin VM
+JARVIS_API_URL = os.environ.get("JARVIS_API_URL", "").rstrip("/")
+JARVIS_API_TOKEN = os.environ.get("JARVIS_API_TOKEN", "")
+
 # Interrupt phrases - parseadas ANTES de mandar al LLM
 INTERRUPT_PHRASES = [
     r"\b(stop|cancela|cancelar|cancel|para|parar|detente|aborta|abort)\b",
@@ -95,24 +101,42 @@ class JarvisVoiceDaemon:
             pass
 
     def _handle_status_report(self):
-        """Lee status_board.json y lo dicta via TTS (o print si TTS off)."""
+        """Lee status_board.json (local) o GET /status (VM remota)."""
         try:
             data = {}
-            if STATUS_BOARD.exists():
-                data = __import__("json").loads(
-                    STATUS_BOARD.read_text(encoding="utf-8"))
+            if JARVIS_API_URL:
+                # Remote: pregunta a la VM
+                import requests
+                headers = {}
+                if JARVIS_API_TOKEN:
+                    headers["X-Jarvis-Token"] = JARVIS_API_TOKEN
+                r = requests.get(f"{JARVIS_API_URL}/status",
+                                  headers=headers, timeout=5)
+                if r.status_code == 200:
+                    data = r.json()
+            else:
+                if STATUS_BOARD.exists():
+                    data = __import__("json").loads(
+                        STATUS_BOARD.read_text(encoding="utf-8"))
+
             latest = data.get("latest", {})
-            budget = data.get("budget_remaining_usd", 0)
-            history = data.get("history", [])[-5:]
+            departments = data.get("departments", {})
+            survival = data.get("survival", {})
+            budget = (survival.get("metrics", {}).get("balance_usd")
+                      if survival else data.get("budget_remaining_usd", 0))
+
             report = (
                 f"Estatus: {latest.get('status', 'idle')}. "
                 f"Presupuesto restante: {budget:.2f} dolares. "
             )
+            if survival:
+                report += (f"Recomendacion financiera: "
+                           f"{survival.get('recommendation', '?')}. "
+                           f"Dias de runway: {survival.get('burn_runway_days', 0):.0f}. ")
             if latest.get("objective"):
                 report += f"Objetivo activo: {latest['objective'][:100]}. "
-            if history:
-                exec_count = sum(1 for h in history if h.get("status") == "EXECUTED")
-                report += f"En las ultimas iteraciones: {exec_count} ejecutadas. "
+            if departments:
+                report += f"Departamentos activos: {len(departments)}. "
             print(f"[voice STATUS] {report}", flush=True)
             self._tts(report)
         except Exception as e:
@@ -178,21 +202,46 @@ class JarvisVoiceDaemon:
 
             def _run():
                 try:
-                    from jarvis_v2.core.graph import run_objective
                     # Inject rolling context
                     if len(self.context) > 1:
                         history = " | ".join(c["text"] for c in list(self.context)[:-1])
                         full_obj = f"{text}\n(Contexto reciente: {history})"
                     else:
                         full_obj = text
-                    result = run_objective(
-                        full_obj,
-                        thread_id=f"voice_{int(time.time())}",
-                    )
-                    print(f"[voice] task done: {list(result.keys())[:5]}", flush=True)
-                    self._tts("Listo")
+
+                    if JARVIS_API_URL:
+                        # REMOTE: dispatch via HTTP a la VM
+                        import requests
+                        headers = {}
+                        if JARVIS_API_TOKEN:
+                            headers["X-Jarvis-Token"] = JARVIS_API_TOKEN
+                        r = requests.post(
+                            f"{JARVIS_API_URL}/execute",
+                            json={"objective": full_obj},
+                            headers=headers, timeout=30,
+                        )
+                        if r.status_code == 200:
+                            data = r.json()
+                            print(f"[voice] dispatched to VM, task_id={data.get('task_id')}",
+                                  flush=True)
+                            self._tts("Listo, en camino")
+                        else:
+                            print(f"[voice] API {r.status_code}: {r.text[:200]}",
+                                  flush=True)
+                            self._tts("Error remoto")
+                    else:
+                        # LOCAL: import graph in-process (modo dev/sin VM)
+                        from jarvis_v2.core.graph import run_objective
+                        result = run_objective(
+                            full_obj,
+                            thread_id=f"voice_{int(time.time())}",
+                        )
+                        print(f"[voice] task done: {list(result.keys())[:5]}",
+                              flush=True)
+                        self._tts("Listo")
                 except Exception as e:
-                    print(f"[voice] task error: {type(e).__name__}: {e}", flush=True)
+                    print(f"[voice] task error: {type(e).__name__}: {e}",
+                          flush=True)
                     self._tts("Error")
 
             self.current_task = threading.Thread(target=_run, daemon=True)
