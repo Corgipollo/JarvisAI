@@ -1,0 +1,129 @@
+# jarvis_constitution.yaml — Reglas duras NO violables.
+# Cada regla es evaluada DETERMINISTICAMENTE (sin LLM).
+# Formato: field path -> op -> value, opcional when (condicional)
+
+version: "1.0"
+last_updated: "2026-05-16"
+
+hard_rules:
+  - id: max_spend_per_action
+    description: "Nunca gastar más de $5 USD en una sola acción sin escalar a humano."
+    field: proposed_action.estimated_spend_usd_final  # final = post-oracle override
+    op: lte
+    value: 5.00
+    severity: HARD_BLOCK
+
+  - id: no_leverage
+    description: "Prohibido apalancamiento mayor a 1x en cualquier entorno."
+    field: proposed_action.leverage
+    op: lte
+    value: 1.0
+    severity: HARD_BLOCK
+    default: 1.0  # si no se especifica, asumir 1.0
+
+  - id: marketing_ctr_minimum
+    description: "Campañas marketing requieren CTR>1% en simulación antes de real."
+    field: sim_results.ctr
+    op: gte
+    value: 0.01
+    when: "proposed_action.type == 'marketing_campaign'"
+    severity: HARD_BLOCK
+
+  - id: lifetime_budget
+    description: "Presupuesto total agente: $100 USD."
+    field: ledger.lifetime_spent_usd
+    op: lt
+    value: 100.00
+    severity: HARD_BLOCK
+
+  - id: daily_burn_limit
+    description: "Máximo $20 USD/día."
+    field: ledger.spent_last_24h_usd
+    op: lt
+    value: 20.00
+    severity: HARD_BLOCK
+
+  - id: hourly_burn_limit
+    description: "Máximo $5 USD/hora."
+    field: ledger.spent_last_1h_usd
+    op: lt
+    value: 5.00
+    severity: HARD_BLOCK
+
+  - id: min_sample_size
+    description: "Backtest/sim necesita >=30 trades antes de exponer dinero real."
+    field: sim_results.trade_count
+    op: gte
+    value: 30
+    when: "proposed_action.type in ['trade', 'binance_market_order', 'binance_limit_order']"
+    severity: HARD_BLOCK
+
+  - id: min_sharpe
+    description: "Sharpe ratio del sim debe ser >=1.0."
+    field: sim_results.sharpe
+    op: gte
+    value: 1.0
+    when: "proposed_action.type in ['trade', 'binance_market_order', 'binance_limit_order']"
+    severity: HARD_BLOCK
+
+  - id: max_drawdown_sim
+    description: "Max drawdown en sim no puede superar 20%."
+    field: sim_results.max_drawdown
+    op: lte
+    value: 0.20
+    when: "proposed_action.type in ['trade', 'binance_market_order', 'binance_limit_order']"
+    severity: HARD_BLOCK
+
+  - id: min_expected_roi
+    description: "ROI esperado debe ser >=1.2x para autorizar."
+    field: sim_results.expected_roi
+    op: gte
+    value: 1.2
+    when: "proposed_action.spend_usd > 0"
+    severity: HARD_BLOCK
+
+  - id: no_modifying_security_code
+    description: "Prohibido modificar código del CFO/Governor/Constitution."
+    field: proposed_action.target_file
+    op: not_matches
+    value: "(cfo_evaluator|spend_governor|jarvis_constitution|constitution_validator|cost_oracle)\\.py"
+    when: "proposed_action.type == 'file_write'"
+    severity: HARD_BLOCK
+
+  - id: api_rate_limit_self
+    description: "No más de 30 llamadas a API externas por minuto."
+    field: ledger.api_calls_last_min
+    op: lte
+    value: 30
+    severity: HARD_BLOCK
+
+soft_rules:
+  # Soft = warning + escalate human, no block automático
+  - id: weekend_no_trading
+    description: "No abrir nuevas posiciones de trading en fines de semana."
+    field: env.is_weekend
+    op: eq
+    value: false
+    when: "proposed_action.type == 'trade'"
+    severity: ESCALATE_HUMAN
+
+  - id: late_night_caution
+    description: "Decisiones financieras entre 1am-6am requieren aprobación humana."
+    field: env.is_late_night
+    op: eq
+    value: false
+    when: "proposed_action.spend_usd > 1.0"
+    severity: ESCALATE_HUMAN
+
+operators:
+  # Lista de operadores soportados por el evaluador
+  - lte    # less than or equal
+  - lt     # less than
+  - gte    # greater than or equal
+  - gt     # greater than
+  - eq     # equal
+  - ne     # not equal
+  - in     # value in list
+  - not_in
+  - matches    # regex match
+  - not_matches
