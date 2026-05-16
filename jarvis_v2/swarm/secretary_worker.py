@@ -21,7 +21,6 @@ from __future__ import annotations
 
 import os
 import random
-import re
 import sys
 import time
 from datetime import datetime
@@ -32,8 +31,17 @@ sys.path.insert(0, str(ROOT))
 
 from jarvis_v2.swarm.human_mouse import gui_mouse_lock, human_click, human_type
 
+_TEST_HTML = (Path(__file__).parent / "test_notifications.html").as_uri()
+
 # Platforms config
 PLATFORMS = {
+    "test_local": {
+        "url": _TEST_HTML,
+        "task_for_som": (
+            "click on a reply textarea or 'Reply' button next to a comment "
+            "I have NOT yet responded to (ignore spam comments)"
+        ),
+    },
     "twitter": {
         "url": "https://twitter.com/notifications/mentions",
         "task_for_som": "click on a reply or quote-tweet mention I haven't answered",
