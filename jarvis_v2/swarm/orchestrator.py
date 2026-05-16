@@ -126,15 +126,47 @@ async def creative_loop(stop_event: asyncio.Event):
 
 
 async def sentinel_loop(stop_event: asyncio.Event, interval_s: int = 30):
-    """Monitoreo pasivo: status_board, ledger, heartbeat - sin GUI."""
+    """Monitoreo pasivo: status_board, ledger, supervivencia financiera."""
     from jarvis_v2.cfo.cost_oracle import ledger_snapshot
+    from jarvis_v2.cfo.algorithmic_death import (
+        check_death_triggers, execute_death, survival_signals, is_dead,
+    )
+
+    # Check if already dead at startup
+    if is_dead():
+        write_status("sentinel", {"status": "DEAD_AT_STARTUP",
+                                   "msg": "death_marker exists. Set JARVIS_REVIVE=1 to override."})
+        return
+
     while not stop_event.is_set():
         snap = ledger_snapshot()
+
+        # Death check primero (mas critico)
+        verdict = check_death_triggers()
+        if verdict["should_die"]:
+            write_status("sentinel", {
+                "status": "EXECUTING_DEATH",
+                "triggers": [t["id"] for t in verdict["triggers"]],
+            })
+            print(f"[sentinel] DEATH TRIGGERS HIT: "
+                  f"{verdict['triggers']}", flush=True)
+            execute_death()  # this calls sys.exit
+            return  # unreachable
+
+        # Survival signals para que el Planner los lea
+        signals = survival_signals()
         write_status("sentinel", {
             "status": "monitoring",
             "budget_remaining_usd": max(0, 100 - snap.get("lifetime_spent_usd", 0)),
             "spent_24h": snap.get("spent_last_24h_usd", 0),
             "spent_1h": snap.get("spent_last_1h_usd", 0),
+            "survival": {
+                "is_dying": signals["is_dying"],
+                "runway_days": signals["burn_runway_days"],
+                "roi_health": signals["roi_health"],
+                "recommendation": signals["recommendation"],
+                "max_safe_spend": signals["max_safe_spend_per_action"],
+            },
         })
         await asyncio.sleep(interval_s)
 
