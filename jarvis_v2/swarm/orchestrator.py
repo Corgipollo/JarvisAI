@@ -174,9 +174,20 @@ async def sentinel_loop(stop_event: asyncio.Event, interval_s: int = 30):
 class SwarmOrchestrator:
     def __init__(self, enable: dict | None = None):
         self.stop_event = asyncio.Event()
-        # Default: enable all departments
-        self.enable = enable or {"secretary": True, "creative": True,
-                                  "sentinel": True}
+        # Default: SAFE. Secretary DISABLED por seguridad (mueve mouse + abre browser).
+        # Para activar todo: SwarmOrchestrator(enable={"all": True}) o pasar dict explicito.
+        # Override via env JARVIS_SWARM_ENABLE=secretary,creative,sentinel
+        if enable is None:
+            import os
+            env = os.environ.get("JARVIS_SWARM_ENABLE", "sentinel").lower()
+            if env == "all":
+                enable = {"secretary": True, "creative": True, "sentinel": True}
+            else:
+                items = [s.strip() for s in env.split(",") if s.strip()]
+                enable = {"secretary": "secretary" in items,
+                          "creative": "creative" in items,
+                          "sentinel": "sentinel" in items}
+        self.enable = enable
 
     def request_stop(self):
         print("[swarm] stop requested", flush=True)
