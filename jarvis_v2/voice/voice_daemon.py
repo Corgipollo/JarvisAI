@@ -37,10 +37,26 @@ ENABLE_TTS = os.environ.get("JARVIS_TTS", "0") == "1"
 
 # Interrupt phrases - parseadas ANTES de mandar al LLM
 INTERRUPT_PHRASES = [
-    r"\b(stop|cancela|cancelar|cancel|para|parar|detente|aborta)\b",
+    r"\b(stop|cancela|cancelar|cancel|para|parar|detente|aborta|abort)\b",
     r"\b(silencio|callate|cierra)\b",
 ]
 INTERRUPT_REGEX = re.compile("|".join(INTERRUPT_PHRASES), re.IGNORECASE)
+
+# Status report phrases - leer status_board.json
+STATUS_PHRASES = [
+    r"\b(dime|dame|cuenta).*como (vas|estas|esta)",
+    r"\b(reporte|status|estatus|resumen).*(actual|status|now|ahora)?",
+    r"como (va|vas|esta) (jarvis|todo|el plan)",
+    r"que (estas haciendo|hiciste)",
+]
+STATUS_REGEX = re.compile("|".join(STATUS_PHRASES), re.IGNORECASE)
+
+VOICE_ACTIVITY_LOG = (
+    Path(__file__).resolve().parents[2] / "data" / "voice_activity.log"
+)
+STATUS_BOARD = (
+    Path(__file__).resolve().parents[2] / "data" / "status_board.json"
+)
 
 
 class JarvisVoiceDaemon:
@@ -69,6 +85,40 @@ class JarvisVoiceDaemon:
     def _on_wakeword_detected(self):
         print(f"[voice {datetime.now():%H:%M:%S}] WAKE WORD detected", flush=True)
 
+    def _log_voice_activity(self, text: str):
+        """Append ISO timestamp + text al log que el heartbeat lee."""
+        try:
+            VOICE_ACTIVITY_LOG.parent.mkdir(parents=True, exist_ok=True)
+            with VOICE_ACTIVITY_LOG.open("a", encoding="utf-8") as f:
+                f.write(f"{datetime.utcnow().isoformat()} {text[:200]}\n")
+        except Exception:
+            pass
+
+    def _handle_status_report(self):
+        """Lee status_board.json y lo dicta via TTS (o print si TTS off)."""
+        try:
+            data = {}
+            if STATUS_BOARD.exists():
+                data = __import__("json").loads(
+                    STATUS_BOARD.read_text(encoding="utf-8"))
+            latest = data.get("latest", {})
+            budget = data.get("budget_remaining_usd", 0)
+            history = data.get("history", [])[-5:]
+            report = (
+                f"Estatus: {latest.get('status', 'idle')}. "
+                f"Presupuesto restante: {budget:.2f} dolares. "
+            )
+            if latest.get("objective"):
+                report += f"Objetivo activo: {latest['objective'][:100]}. "
+            if history:
+                exec_count = sum(1 for h in history if h.get("status") == "EXECUTED")
+                report += f"En las ultimas iteraciones: {exec_count} ejecutadas. "
+            print(f"[voice STATUS] {report}", flush=True)
+            self._tts(report)
+        except Exception as e:
+            print(f"[voice] status report error: {e}", flush=True)
+            self._tts("Error al leer reporte")
+
     def _handle_transcript(self, text: str):
         text = (text or "").strip()
         if not text or len(text) < 3:
@@ -76,6 +126,12 @@ class JarvisVoiceDaemon:
             return
         print(f"[voice] transcribed: '{text}'", flush=True)
         self.context.append({"ts": datetime.now().isoformat(), "text": text})
+        self._log_voice_activity(text)
+
+        # Status report check (read-only, no LLM dispatch)
+        if STATUS_REGEX.search(text):
+            self._handle_status_report()
+            return
 
         # Detect interrupt phrases ANTES de LLM
         if INTERRUPT_REGEX.search(text):
