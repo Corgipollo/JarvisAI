@@ -83,16 +83,35 @@ def node_rag(state: JarvisState) -> JarvisState:
 
 
 def node_planner(state: JarvisState) -> JarvisState:
-    """Genera plan validado por Pydantic. Si LLM falla schema -> raise (LangGraph retry)."""
+    """Genera plan validado por Pydantic + inyecta lecciones pasadas de Mem."""
     from jarvis_v2.core.llm_structured import llm_structured
     from jarvis_v2.core.schemas import Plan
+    from jarvis_v2.memory.memory_manager import recall_lessons, mark_lesson_helpful
 
     obj = state.get("objective", "")
     ctx = state.get("cerebro_context", "")
 
+    # MEM RECALL: lecciones pasadas relevantes al objetivo
+    lessons = recall_lessons(obj, top_k=5, min_confidence=0.3)
+    lessons_text = ""
+    if lessons:
+        lessons_text = "\n\nLECCIONES APRENDIDAS PREVIAMENTE (NO REPITAS ESTOS ERRORES):\n"
+        for i, l in enumerate(lessons, 1):
+            lessons_text += (
+                f"  {i}. [{l['severity']}] {l['insight']} "
+                f"(tags: {', '.join(l['tags'][:3])})\n"
+            )
+        # Marcar como hit las que se inyectaron
+        for l in lessons:
+            try:
+                mark_lesson_helpful(l["id"])
+            except Exception:
+                pass
+
     prompt = (
         f"OBJETIVO USUARIO: {obj}\n\n"
-        f"CONTEXTO RELEVANTE (CerebroEmmanuel):\n{ctx[:2000]}\n\n"
+        f"CONTEXTO RELEVANTE (CerebroEmmanuel):\n{ctx[:2000]}\n"
+        f"{lessons_text}\n"
         "Divide en pasos atomicos. PRIORIZA CLI/API sobre GUI.\n"
         "Cada step DEBE tener estimated_spend_usd (0.0 si es gratis).\n"
         "Si una accion implica $ real (trade/ads), marca is_financial=true.\n"
@@ -101,7 +120,10 @@ def node_planner(state: JarvisState) -> JarvisState:
     plan_obj = llm_structured(
         prompt,
         Plan,
-        system="Eres planificador atomico. Pasos minimos y precisos.",
+        system=(
+            "Eres planificador atomico. Pasos minimos y precisos. "
+            "SIEMPRE aplica las lecciones aprendidas previamente si las hay."
+        ),
         model="claude-sonnet-4-6",
         max_tokens=3000,
         max_retries=2,
@@ -114,7 +136,7 @@ def node_planner(state: JarvisState) -> JarvisState:
         "retries_for_step": 0,
         "max_retries": 3,
         "messages": [{"role": "planner",
-                      "content": f"plan_with_{len(plan_obj.steps)}_steps"}],
+                      "content": f"plan_{len(plan_obj.steps)}_steps_with_{len(lessons)}_lessons"}],
     }
 
 
@@ -265,7 +287,8 @@ def node_verifier(state: JarvisState) -> JarvisState:
 
 
 def node_reflector(state: JarvisState) -> JarvisState:
-    """Reflexion: si fallo TECNICO (no CFO deny), genera insight y reintenta."""
+    """Reflexion: si fallo TECNICO (no CFO deny), genera insight, lo GUARDA
+    en Mem long-term (memory_manager) y reintenta el step."""
     err = state.get("last_error")
     if not err:
         return {}
@@ -276,19 +299,50 @@ def node_reflector(state: JarvisState) -> JarvisState:
     plan = state.get("plan", [])
     idx = state.get("current_step", 0)
     step = plan[idx] if idx < len(plan) else {}
+    action_type = step.get("action", "unknown")
+    objective = state.get("objective", "")
+
+    # 1) Generar insight via Claude
     try:
         from jarvis_bridge.jarvis_brain import ask_claude
         insight = ask_claude(
+            f"OBJETIVO USUARIO: {objective[:200]}\n"
             f"Step que fallo: {json.dumps(step, ensure_ascii=False)}\n"
-            f"Error: {err}\n"
-            "Insight breve (1-2 lineas) que se inyectara al proximo intento.",
-            model="claude-sonnet-4-6", max_tokens=200,
+            f"Error: {err}\n\n"
+            "Genera un INSIGHT BREVE (1-2 lineas), generalizable a futuras "
+            "tareas similares. Formato: 'Al hacer X, hay que Y porque Z'. "
+            "NO sea especifico a este intento - sirve para no repetir el "
+            "patron de error.",
+            model="claude-sonnet-4-6", max_tokens=300,
         ) or ""
     except Exception as e:
         insight = f"(reflexion fallo: {e})"
+
+    # 2) PERSISTIR en memoria long-term (memory_manager)
+    saved = None
+    if insight and not insight.startswith("(reflexion fallo"):
+        try:
+            from jarvis_v2.memory.memory_manager import save_lesson
+            # Tag con action_type + error class para recall futuro
+            err_class = err.split(":")[0][:30] if ":" in err else err[:30]
+            tags = [action_type, err_class, "auto_learned"]
+            severity = "high" if retries >= 2 else "medium"
+            saved = save_lesson(
+                insight=insight.strip(),
+                tags=tags,
+                context=f"objetivo='{objective[:100]}' step={idx} retry={retries}",
+                severity=severity,
+            )
+        except Exception as e:
+            saved = {"error": str(e)}
+
     return {
-        "insights": [{"step": idx, "insight": insight,
-                      "ts": datetime.utcnow().isoformat()}],
+        "insights": [{
+            "step": idx,
+            "insight": insight,
+            "ts": datetime.utcnow().isoformat(),
+            "mem_saved": saved,
+        }],
         "retries_for_step": retries + 1,
         "last_error": None,
     }
