@@ -30,16 +30,20 @@ DEFAULT_TIMEOUT = 300  # subido de 120 -> 300 (proxy Max plan a veces tarda)
 #   anthropic_proxy   (default) - via claude_proxy v1 :8088 OAuth Max
 #   gemini_api        - Google Gemini API free tier (60 req/min flash)
 #   gemini_browser    - browser bridge gemini_pro_server :5555 (needs NAT)
+#   ollama            - 100% local en :11434 (sin internet, infinito)
 LLM_PROVIDER = os.environ.get("JARVIS_LLM_PROVIDER", "anthropic_proxy").lower()
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
 GEMINI_BROWSER_URL = os.environ.get("GEMINI_BROWSER_URL",
                                       "http://10.0.2.2:5555")
 GEMINI_MODEL_DEFAULT = "gemini-2.5-flash"
+OLLAMA_URL = os.environ.get("OLLAMA_URL", "http://localhost:11434")
+OLLAMA_MODEL_DEFAULT = os.environ.get("OLLAMA_MODEL", "llama3.2:latest")
 
 # Fallback chain: si provider principal falla, prueba estos en orden.
-# Default: si Anthropic down -> Gemini API -> Gemini browser.
-# Ej env: JARVIS_LLM_FALLBACK="gemini_api,gemini_browser"
-_default_fallback = "gemini_api,gemini_browser" if LLM_PROVIDER == "anthropic_proxy" else ""
+# Default: anthropic_proxy → gemini_api → gemini_browser → ollama (local infinito)
+# Ej env: JARVIS_LLM_FALLBACK="gemini_api,ollama"
+_default_fallback = ("gemini_api,gemini_browser,ollama"
+                      if LLM_PROVIDER == "anthropic_proxy" else "")
 LLM_FALLBACK = [p.strip() for p in
                 os.environ.get("JARVIS_LLM_FALLBACK", _default_fallback).split(",")
                 if p.strip()]
@@ -72,6 +76,21 @@ def _ask_gemini_api(prompt: str, system: str, max_tokens: int,
     r.raise_for_status()
     data = r.json()
     return data["candidates"][0]["content"]["parts"][0]["text"]
+
+
+def _ask_ollama(prompt: str, system: str, max_tokens: int,
+                 timeout: int) -> str | None:
+    """Ollama 100% local. Sin API key, sin internet. Modelo en OLLAMA_MODEL."""
+    body = {
+        "model": OLLAMA_MODEL_DEFAULT,
+        "prompt": prompt,
+        "system": system,
+        "stream": False,
+        "options": {"num_predict": max_tokens, "temperature": 0.7},
+    }
+    r = requests.post(f"{OLLAMA_URL}/api/generate", json=body, timeout=timeout)
+    r.raise_for_status()
+    return r.json().get("response", "").strip() or None
 
 
 def _ask_gemini_browser(prompt: str, system: str, timeout: int) -> str | None:
@@ -113,6 +132,19 @@ def _try_provider(provider: str, prompt: str, system: str, model: str,
                     time.sleep(min(30, 5 * (2 ** attempt)))
                     continue
                 print(f"[brain] gemini_browser fallo: {e}", file=sys.stderr)
+        return None
+
+    if provider == "ollama":
+        for attempt in range(retries + 1):
+            try:
+                r = _ask_ollama(prompt, system, max_tokens, timeout)
+                if r:
+                    return r
+            except Exception as e:
+                if attempt < retries:
+                    time.sleep(min(30, 5 * (2 ** attempt)))
+                    continue
+                print(f"[brain] ollama fallo: {e}", file=sys.stderr)
         return None
 
     if provider != "anthropic_proxy":
