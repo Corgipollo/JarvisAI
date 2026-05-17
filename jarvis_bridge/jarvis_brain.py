@@ -36,6 +36,14 @@ GEMINI_BROWSER_URL = os.environ.get("GEMINI_BROWSER_URL",
                                       "http://10.0.2.2:5555")
 GEMINI_MODEL_DEFAULT = "gemini-2.5-flash"
 
+# Fallback chain: si provider principal falla, prueba estos en orden.
+# Default: si Anthropic down -> Gemini API -> Gemini browser.
+# Ej env: JARVIS_LLM_FALLBACK="gemini_api,gemini_browser"
+_default_fallback = "gemini_api,gemini_browser" if LLM_PROVIDER == "anthropic_proxy" else ""
+LLM_FALLBACK = [p.strip() for p in
+                os.environ.get("JARVIS_LLM_FALLBACK", _default_fallback).split(",")
+                if p.strip()]
+
 
 def _proxy_healthy(timeout: float = 3.0) -> bool:
     """Quick health check ANTES de gastar tiempo en intentos largos."""
@@ -80,6 +88,57 @@ def _ask_gemini_browser(prompt: str, system: str, timeout: int) -> str | None:
         return None
 
 
+def _try_provider(provider: str, prompt: str, system: str, model: str,
+                   max_tokens: int, timeout: int, retries: int) -> str | None:
+    """Llama un provider especifico. Devuelve texto o None si falla."""
+    if provider == "gemini_api":
+        for attempt in range(retries + 1):
+            try:
+                return _ask_gemini_api(prompt, system, max_tokens, timeout)
+            except Exception as e:
+                if attempt < retries:
+                    time.sleep(min(30, 5 * (2 ** attempt)))
+                    continue
+                print(f"[brain] gemini_api fallo: {e}", file=sys.stderr)
+        return None
+
+    if provider == "gemini_browser":
+        for attempt in range(retries + 1):
+            try:
+                r = _ask_gemini_browser(prompt, system, timeout)
+                if r:
+                    return r
+            except Exception as e:
+                if attempt < retries:
+                    time.sleep(min(30, 5 * (2 ** attempt)))
+                    continue
+                print(f"[brain] gemini_browser fallo: {e}", file=sys.stderr)
+        return None
+
+    # anthropic_proxy
+    if not _proxy_healthy(timeout=3.0):
+        print(f"[brain] proxy DOWN", file=sys.stderr)
+        return None
+    payload = {"model": model, "system": system,
+                "messages": [{"role": "user", "content": prompt}],
+                "max_tokens": max_tokens}
+    for attempt in range(retries + 1):
+        try:
+            r = requests.post(f"{PROXY}/v1/messages", json=payload,
+                               timeout=timeout)
+            r.raise_for_status()
+            return r.json()["content"][0]["text"]
+        except (requests.Timeout, requests.ConnectionError) as e:
+            if attempt < retries:
+                time.sleep(min(30, 5 * (2 ** attempt)))
+                continue
+            print(f"[brain] proxy timeout: {e}", file=sys.stderr)
+        except Exception as e:
+            print(f"[brain] proxy error: {e}", file=sys.stderr)
+            break
+    return None
+
+
 def ask_claude(
     prompt: str,
     system: str = "Eres Jarvis, asistente autonomo de Emmanuel. Respondes directo, sin preamble, en espanol.",
@@ -88,74 +147,26 @@ def ask_claude(
     timeout: int = DEFAULT_TIMEOUT,
     retries: int = 3,
 ) -> str | None:
-    """Pregunta al LLM. Provider segun env JARVIS_LLM_PROVIDER.
+    """Pregunta al LLM con FALLBACK CHAIN automatico.
 
-    Providers (todos FREE tier, no API paga):
-      anthropic_proxy (default) - via proxy local :8088 (Claude Max OAuth)
-      gemini_api      - Google AI Studio free tier (60 req/min Flash)
-      gemini_browser  - browser bridge :5555 (Gemini Pro subscription)
+    Flow:
+      1. Intenta provider primario (JARVIS_LLM_PROVIDER)
+      2. Si None, prueba cada provider en LLM_FALLBACK
+      3. Returns first successful
+
+    Todos los providers free tier - NO API paga.
     """
-    # Gemini API path
-    if LLM_PROVIDER == "gemini_api":
-        for attempt in range(retries + 1):
-            try:
-                return _ask_gemini_api(prompt, system, max_tokens, timeout)
-            except Exception as e:
-                if attempt < retries:
-                    time.sleep(min(30, 5 * (2 ** attempt)))
-                    continue
-                print(f"[jarvis_brain] gemini_api fallo: {e}", file=sys.stderr)
-                return None
-        return None
-
-    # Gemini Browser bridge path
-    if LLM_PROVIDER == "gemini_browser":
-        for attempt in range(retries + 1):
-            try:
-                resp = _ask_gemini_browser(prompt, system, timeout)
-                if resp:
-                    return resp
-            except Exception as e:
-                if attempt < retries:
-                    time.sleep(min(30, 5 * (2 ** attempt)))
-                    continue
-                print(f"[jarvis_brain] gemini_browser fallo: {e}",
-                      file=sys.stderr)
-        return None
-
-    # Default: anthropic_proxy
-    # Health gate: si proxy DOWN, fail fast
-    if not _proxy_healthy(timeout=3.0):
-        print(f"[jarvis_brain] proxy DOWN, intento 1 directo", file=sys.stderr)
-        retries = 0
-        timeout = 30
-
-    payload = {
-        "model": model,
-        "system": system,
-        "messages": [{"role": "user", "content": prompt}],
-        "max_tokens": max_tokens,
-    }
-    last_err: Exception | None = None
-    for attempt in range(retries + 1):
-        try:
-            r = requests.post(f"{PROXY}/v1/messages", json=payload,
-                               timeout=timeout)
-            r.raise_for_status()
-            return r.json()["content"][0]["text"]
-        except (requests.Timeout, requests.ConnectionError) as e:
-            last_err = e
-            if attempt < retries:
-                wait_s = min(30, 5 * (2 ** attempt))
-                print(f"[jarvis_brain] intento {attempt+1}/{retries+1} "
-                      f"timeout/conn, esperando {wait_s}s", file=sys.stderr)
-                time.sleep(wait_s)
-                continue
-        except Exception as e:
-            last_err = e
-            break
-    print(f"[jarvis_brain] fallo tras {retries+1} intentos: {last_err}",
-          file=sys.stderr)
+    chain = [LLM_PROVIDER] + [p for p in LLM_FALLBACK if p != LLM_PROVIDER]
+    for provider in chain:
+        result = _try_provider(provider, prompt, system, model,
+                                max_tokens, timeout, retries)
+        if result:
+            if provider != LLM_PROVIDER:
+                print(f"[brain] OK via fallback '{provider}'", file=sys.stderr)
+            return result
+        print(f"[brain] provider '{provider}' fallo, probando siguiente",
+              file=sys.stderr)
+    print(f"[brain] ALL PROVIDERS FAILED ({chain})", file=sys.stderr)
     return None
 
 
