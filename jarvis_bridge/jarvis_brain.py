@@ -115,6 +115,11 @@ def _try_provider(provider: str, prompt: str, system: str, model: str,
                 print(f"[brain] gemini_browser fallo: {e}", file=sys.stderr)
         return None
 
+    if provider != "anthropic_proxy":
+        print(f"[brain] unknown provider '{provider}' — skipping",
+              file=sys.stderr)
+        return None
+
     # anthropic_proxy
     if not _proxy_healthy(timeout=3.0):
         print(f"[brain] proxy DOWN", file=sys.stderr)
