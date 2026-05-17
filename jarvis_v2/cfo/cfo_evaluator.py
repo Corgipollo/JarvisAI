@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import sqlite3
 import sys
 from datetime import datetime, timedelta
@@ -25,6 +26,10 @@ from jarvis_v2.cfo.constitution_validator import evaluate as constitution_eval
 from jarvis_v2.cfo.cost_oracle import oracle_estimate, ledger_snapshot, LEDGER
 
 KILL_MARKER = ROOT / "data" / ".governor_killed_at"
+
+# Thresholds tunables via env (en pruebas locales bajar a 0.4)
+CFO_JUDGE_DENY_BELOW = float(os.environ.get("CFO_JUDGE_DENY_BELOW", "0.3"))
+CFO_JUDGE_APPROVE_AT = float(os.environ.get("CFO_JUDGE_APPROVE_AT", "0.7"))
 
 
 class CFOState(TypedDict, total=False):
@@ -173,14 +178,14 @@ def node_cfo_evaluator(state: CFOState) -> CFOState:
 
     # GATE 5 — Adversarial debate (judge score)
     judge = float(state.get("judge_score", 0.5))
-    if judge < 0.3:
+    if judge < CFO_JUDGE_DENY_BELOW:
         return {
             **state,
             "cfo_decision": "deny",
             "cfo_reason": f"skeptic_blocked (judge={judge:.2f})",
             "cfo_oracle": oracle,
         }
-    if judge < 0.7:
+    if judge < CFO_JUDGE_APPROVE_AT:
         return {
             **state,
             "cfo_decision": "escalate_human",
