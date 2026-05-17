@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import base64
 import json
+import os
 import sys
 import time
 from pathlib import Path
@@ -24,6 +25,16 @@ import requests
 PROXY = "http://127.0.0.1:8088"
 DEFAULT_MODEL = "claude-haiku-4-5-20251001"
 DEFAULT_TIMEOUT = 300  # subido de 120 -> 300 (proxy Max plan a veces tarda)
+
+# Provider routing (FREE tier solamente, sin Anthropic paid API):
+#   anthropic_proxy   (default) - via claude_proxy v1 :8088 OAuth Max
+#   gemini_api        - Google Gemini API free tier (60 req/min flash)
+#   gemini_browser    - browser bridge gemini_pro_server :5555 (needs NAT)
+LLM_PROVIDER = os.environ.get("JARVIS_LLM_PROVIDER", "anthropic_proxy").lower()
+GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
+GEMINI_BROWSER_URL = os.environ.get("GEMINI_BROWSER_URL",
+                                      "http://10.0.2.2:5555")
+GEMINI_MODEL_DEFAULT = "gemini-2.5-flash"
 
 
 def _proxy_healthy(timeout: float = 3.0) -> bool:
@@ -35,6 +46,40 @@ def _proxy_healthy(timeout: float = 3.0) -> bool:
         return False
 
 
+def _ask_gemini_api(prompt: str, system: str, max_tokens: int,
+                     timeout: int) -> str | None:
+    """Llama Gemini via Google AI Studio free tier. Free 60 req/min Flash."""
+    if not GEMINI_API_KEY:
+        print("[jarvis_brain] GEMINI_API_KEY no seteado", file=sys.stderr)
+        return None
+    url = (f"https://generativelanguage.googleapis.com/v1beta/models/"
+           f"{GEMINI_MODEL_DEFAULT}:generateContent?key={GEMINI_API_KEY}")
+    body = {
+        "contents": [{"role": "user", "parts": [{"text": prompt}]}],
+        "systemInstruction": {"parts": [{"text": system}]},
+        "generationConfig": {"maxOutputTokens": max_tokens,
+                              "temperature": 0.7},
+    }
+    r = requests.post(url, json=body, timeout=timeout)
+    r.raise_for_status()
+    data = r.json()
+    return data["candidates"][0]["content"]["parts"][0]["text"]
+
+
+def _ask_gemini_browser(prompt: str, system: str, timeout: int) -> str | None:
+    """Llama gemini_pro_server (browser bridge) en :5555 - free Pro plan."""
+    full_prompt = f"{system}\n\n{prompt}" if system else prompt
+    try:
+        r = requests.post(f"{GEMINI_BROWSER_URL}/ask",
+                          json={"prompt": full_prompt},
+                          timeout=timeout)
+        r.raise_for_status()
+        return r.json().get("response", "")
+    except Exception as e:
+        print(f"[jarvis_brain] gemini browser fail: {e}", file=sys.stderr)
+        return None
+
+
 def ask_claude(
     prompt: str,
     system: str = "Eres Jarvis, asistente autonomo de Emmanuel. Respondes directo, sin preamble, en espanol.",
@@ -43,12 +88,45 @@ def ask_claude(
     timeout: int = DEFAULT_TIMEOUT,
     retries: int = 3,
 ) -> str | None:
-    """Pregunta a Claude via proxy v1 local. Timeout/retry agresivo."""
-    # Health gate: si proxy esta DOWN, no perder tiempo intentando 4 veces
+    """Pregunta al LLM. Provider segun env JARVIS_LLM_PROVIDER.
+
+    Providers (todos FREE tier, no API paga):
+      anthropic_proxy (default) - via proxy local :8088 (Claude Max OAuth)
+      gemini_api      - Google AI Studio free tier (60 req/min Flash)
+      gemini_browser  - browser bridge :5555 (Gemini Pro subscription)
+    """
+    # Gemini API path
+    if LLM_PROVIDER == "gemini_api":
+        for attempt in range(retries + 1):
+            try:
+                return _ask_gemini_api(prompt, system, max_tokens, timeout)
+            except Exception as e:
+                if attempt < retries:
+                    time.sleep(min(30, 5 * (2 ** attempt)))
+                    continue
+                print(f"[jarvis_brain] gemini_api fallo: {e}", file=sys.stderr)
+                return None
+        return None
+
+    # Gemini Browser bridge path
+    if LLM_PROVIDER == "gemini_browser":
+        for attempt in range(retries + 1):
+            try:
+                resp = _ask_gemini_browser(prompt, system, timeout)
+                if resp:
+                    return resp
+            except Exception as e:
+                if attempt < retries:
+                    time.sleep(min(30, 5 * (2 ** attempt)))
+                    continue
+                print(f"[jarvis_brain] gemini_browser fallo: {e}",
+                      file=sys.stderr)
+        return None
+
+    # Default: anthropic_proxy
+    # Health gate: si proxy DOWN, fail fast
     if not _proxy_healthy(timeout=3.0):
         print(f"[jarvis_brain] proxy DOWN, intento 1 directo", file=sys.stderr)
-        # No bypass: que el caller decida que hacer si proxy esta dead
-        # Pero damos UN solo intento corto para no quedarnos colgados
         retries = 0
         timeout = 30
 
@@ -68,14 +146,14 @@ def ask_claude(
         except (requests.Timeout, requests.ConnectionError) as e:
             last_err = e
             if attempt < retries:
-                wait_s = min(30, 5 * (2 ** attempt))  # 5s, 10s, 20s, cap 30s
+                wait_s = min(30, 5 * (2 ** attempt))
                 print(f"[jarvis_brain] intento {attempt+1}/{retries+1} "
                       f"timeout/conn, esperando {wait_s}s", file=sys.stderr)
                 time.sleep(wait_s)
                 continue
         except Exception as e:
             last_err = e
-            break  # error no-retryable
+            break
     print(f"[jarvis_brain] fallo tras {retries+1} intentos: {last_err}",
           file=sys.stderr)
     return None
