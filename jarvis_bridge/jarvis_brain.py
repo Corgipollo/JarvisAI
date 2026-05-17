@@ -23,7 +23,16 @@ import requests
 
 PROXY = "http://127.0.0.1:8088"
 DEFAULT_MODEL = "claude-haiku-4-5-20251001"
-DEFAULT_TIMEOUT = 120
+DEFAULT_TIMEOUT = 300  # subido de 120 -> 300 (proxy Max plan a veces tarda)
+
+
+def _proxy_healthy(timeout: float = 3.0) -> bool:
+    """Quick health check ANTES de gastar tiempo en intentos largos."""
+    try:
+        r = requests.get(f"{PROXY}/health", timeout=timeout)
+        return r.status_code == 200
+    except Exception:
+        return False
 
 
 def ask_claude(
@@ -32,29 +41,44 @@ def ask_claude(
     model: str = DEFAULT_MODEL,
     max_tokens: int = 2000,
     timeout: int = DEFAULT_TIMEOUT,
-    retries: int = 2,
+    retries: int = 3,
 ) -> str | None:
-    """Pregunta a Claude via proxy local. Retorna texto o None si falla."""
+    """Pregunta a Claude via proxy v1 local. Timeout/retry agresivo."""
+    # Health gate: si proxy esta DOWN, no perder tiempo intentando 4 veces
+    if not _proxy_healthy(timeout=3.0):
+        print(f"[jarvis_brain] proxy DOWN, intento 1 directo", file=sys.stderr)
+        # No bypass: que el caller decida que hacer si proxy esta dead
+        # Pero damos UN solo intento corto para no quedarnos colgados
+        retries = 0
+        timeout = 30
+
+    payload = {
+        "model": model,
+        "system": system,
+        "messages": [{"role": "user", "content": prompt}],
+        "max_tokens": max_tokens,
+    }
+    last_err: Exception | None = None
     for attempt in range(retries + 1):
         try:
-            r = requests.post(
-                f"{PROXY}/v1/messages",
-                json={
-                    "model": model,
-                    "system": system,
-                    "messages": [{"role": "user", "content": prompt}],
-                    "max_tokens": max_tokens,
-                },
-                timeout=timeout,
-            )
+            r = requests.post(f"{PROXY}/v1/messages", json=payload,
+                               timeout=timeout)
             r.raise_for_status()
             return r.json()["content"][0]["text"]
-        except Exception as e:
+        except (requests.Timeout, requests.ConnectionError) as e:
+            last_err = e
             if attempt < retries:
-                time.sleep(2 ** attempt)
+                wait_s = min(30, 5 * (2 ** attempt))  # 5s, 10s, 20s, cap 30s
+                print(f"[jarvis_brain] intento {attempt+1}/{retries+1} "
+                      f"timeout/conn, esperando {wait_s}s", file=sys.stderr)
+                time.sleep(wait_s)
                 continue
-            print(f"[jarvis_brain] fallo tras {retries+1} intentos: {e}", file=sys.stderr)
-            return None
+        except Exception as e:
+            last_err = e
+            break  # error no-retryable
+    print(f"[jarvis_brain] fallo tras {retries+1} intentos: {last_err}",
+          file=sys.stderr)
+    return None
 
 
 def ask_claude_with_image(
