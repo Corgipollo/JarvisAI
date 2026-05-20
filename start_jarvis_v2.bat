@@ -27,17 +27,20 @@ echo ============================================================
 echo           JARVIS v2 - LANZANDO DAEMONS
 echo ============================================================
 
-echo [1/4] Spend Governor (circuit breaker)...
+REM Modo LITE host: solo api + governor (RAM 16 GB con bots forex activos)
+REM Para activar heartbeat/voice: setear env JARVIS_FULL_STACK=1 antes de arrancar
+echo [1/2] Spend Governor (circuit breaker)...
 start "JarvisGovernor" /MIN %PY% -m jarvis_v2.cfo.spend_governor 1>data\governor.log 2>&1
 
-echo [2/4] API FastAPI :5000 (recibe /execute)...
+echo [2/2] API FastAPI :5000 (recibe /execute)...
 start "JarvisAPI" /MIN %PY% -m jarvis_v2.api.jarvis_api 1>data\api.log 2>&1
 
-echo [3/4] Heartbeat (boredom + autonomous ideation)...
-start "JarvisHeartbeat" /MIN %PY% -m jarvis_v2.heartbeat_daemon 1>data\heartbeat.log 2>&1
-
-echo [4/4] Voice Daemon (wake word + dispatch)...
-start "JarvisVoice" /MIN %PY% -m jarvis_v2.voice.voice_daemon 1>data\voice.log 2>&1
+if "%JARVIS_FULL_STACK%"=="1" (
+    echo [extra] Heartbeat (boredom loop)...
+    start "JarvisHeartbeat" /MIN %PY% -m jarvis_v2.heartbeat_daemon 1>data\heartbeat.log 2>&1
+    echo [extra] Voice Daemon (wake word + dispatch)...
+    start "JarvisVoice" /MIN %PY% -m jarvis_v2.voice.voice_daemon 1>data\voice.log 2>&1
+)
 
 echo.
 echo Jarvis v2 daemons lanzados en background.
