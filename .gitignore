@@ -29,3 +29,7 @@ data/*.jsonl
 *.mp3
 *.wav
 *.webm
+
+# OAuth secrets
+jarvis_v2/skills/client_secret.json
+jarvis_v2/skills/youtube_token.json

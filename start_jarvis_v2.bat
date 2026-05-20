@@ -8,9 +8,12 @@ set JARVIS_DIR=C:\Users\Emmanuel\Documents\JarvisAI
 set PY=C:\CPython310\python.exe
 
 REM Env vars v2 (cerebro + thresholds)
-set JARVIS_LLM_PROVIDER=gemini_api
-set GEMINI_API_KEY=AIzaSyB6yNdHWk_w2ht0YIGy1D7Q1uhpz3t34hQ
-set JARVIS_LLM_FALLBACK=gemini_browser,ollama
+REM Ollama local primary (sin internet, sin keys, sin leaks)
+set JARVIS_LLM_PROVIDER=ollama
+set JARVIS_LLM_FALLBACK=gemini_api,gemini_browser
+REM GEMINI_API_KEY se lee de un .env local (no committed). Si quieres usar Gemini,
+REM crea %JARVIS_DIR%\.env con: GEMINI_API_KEY=tu_key
+if exist .env (for /f "usebackq tokens=*" %%i in (".env") do set %%i)
 set CFO_JUDGE_APPROVE_AT=0.4
 set CFO_JUDGE_DENY_BELOW=0.3
 set JARVIS_API_HOST=127.0.0.1
