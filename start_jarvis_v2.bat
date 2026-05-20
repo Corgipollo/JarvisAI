@@ -10,6 +10,7 @@ set PY=C:\CPython310\python.exe
 REM Env vars v2 (cerebro + thresholds)
 REM Ollama local primary (sin internet, sin keys, sin leaks)
 set JARVIS_LLM_PROVIDER=ollama
+set OLLAMA_MODEL=gemma3:12b
 set JARVIS_LLM_FALLBACK=gemini_api,gemini_browser
 REM GEMINI_API_KEY se lee de un .env local (no committed). Si quieres usar Gemini,
 REM crea %JARVIS_DIR%\.env con: GEMINI_API_KEY=tu_key
