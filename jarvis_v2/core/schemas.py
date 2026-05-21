@@ -6,7 +6,7 @@ ValidationError -> reintentar Planner (NO CFO).
 from __future__ import annotations
 
 from typing import Literal
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
 
 class PlanStep(BaseModel):
@@ -61,6 +61,33 @@ class PlanStep(BaseModel):
         default=True,
         description="Si la accion puede revertirse despues. False = sin marcha atras.",
     )
+
+    @model_validator(mode="after")
+    def shell_must_be_executable(self):
+        """Si action=shell, command_or_task DEBE ser un comando Windows literal
+        ejecutable (cmd /c ..., powershell -Command ..., o un binario directo).
+        NO descripciones tipo 'crea un archivo' o 'instala paquete'."""
+        if self.action == "shell":
+            cmd = (self.command_or_task or "").strip().lower()
+            if not cmd:
+                raise ValueError("shell action requires non-empty command_or_task")
+            ok_prefixes = (
+                "cmd ", "cmd.exe", "cmd/c", "cmd /c",
+                "powershell", "pwsh",
+                "python ", "python.exe", "python3",
+                "node ", "npm ", "npx ", "git ",
+                "mkdir ", "echo ", "del ", "copy ", "move ", "type ",
+                "ren ", "rd ", "rmdir ", "dir ", "robocopy ",
+                "ffmpeg", "yt-dlp", "curl",
+                ".\\", "c:\\", "d:\\", "e:\\", "/", "\"",
+            )
+            if not any(cmd.startswith(p) for p in ok_prefixes):
+                raise ValueError(
+                    f"shell command_or_task no parece comando ejecutable Windows: "
+                    f"'{self.command_or_task[:80]}'. Debe empezar con 'cmd /c', "
+                    f"'powershell -Command', o ser un binario/path directo."
+                )
+        return self
 
 
 class Plan(BaseModel):
