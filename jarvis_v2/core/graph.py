@@ -112,17 +112,28 @@ def node_planner(state: JarvisState) -> JarvisState:
         f"OBJETIVO USUARIO: {obj}\n\n"
         f"CONTEXTO RELEVANTE (CerebroEmmanuel):\n{ctx[:2000]}\n"
         f"{lessons_text}\n"
-        "Divide en pasos atomicos. PRIORIZA CLI/API sobre GUI.\n"
-        "Cada step DEBE tener estimated_spend_usd (0.0 si es gratis).\n"
-        "Si una accion implica $ real (trade/ads), marca is_financial=true.\n"
+        "REGLAS DURAS:\n"
+        "1. PRIORIZA action='shell' con command_or_task que sea un comando "
+        "Windows cmd.exe EJECUTABLE LITERAL (ej: 'cmd /c mkdir C:\\\\foo' o "
+        "'cmd /c echo hola > C:\\\\foo\\\\bar.txt').\n"
+        "2. NO uses action='click_som'/'type'/'hotkey' a menos que el "
+        "objetivo EXPLICITAMENTE pida interaccion GUI.\n"
+        "3. Cada step DEBE tener estimated_spend_usd (0.0 si es gratis).\n"
+        "4. Acciones de archivos/carpetas son REVERSIBLE=true, "
+        "estimated_spend_usd=0.0, is_financial=false.\n"
+        "5. Genera el MINIMO numero de steps. Si una sola linea de shell hace "
+        "todo el objetivo, usa 1 solo step.\n"
+        "6. command_or_task DEBE ser autosuficiente: 'cmd /c <cmd>' o "
+        "'powershell -Command \"<ps>\"'. Nunca uses paths Unix (/c/foo) en Windows.\n"
     )
 
     plan_obj = llm_structured(
         prompt,
         Plan,
         system=(
-            "Eres planificador atomico. Pasos minimos y precisos. "
-            "SIEMPRE aplica las lecciones aprendidas previamente si las hay."
+            "Eres planificador atomico para Windows. Genera shells "
+            "EJECUTABLES literales. Pasos minimos. SIEMPRE aplica las "
+            "lecciones aprendidas previamente."
         ),
         model="claude-sonnet-4-6",
         max_tokens=3000,

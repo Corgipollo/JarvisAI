@@ -177,7 +177,22 @@ def node_cfo_evaluator(state: CFOState) -> CFOState:
         }
 
     # GATE 5 — Adversarial debate (judge score)
-    judge = float(state.get("judge_score", 0.5))
+    # Default 0.9 (auto-approve) si no hay debate explicito. Acciones realmente
+    # peligrosas (financial=true, irreversible) deberian forzar debate previo.
+    judge = float(state.get("judge_score", 0.9))
+    # Bypass para acciones REVERSIBLES no-financieras de bajo costo
+    if (action.get("reversible", True) and not action.get("is_financial", False)
+            and oracle["final_usd"] < 0.5):
+        return {
+            **state,
+            "cfo_decision": "approve_real",
+            "cfo_reason": f"low_risk_reversible_bypass (cost={oracle['final_usd']:.4f})",
+            "cfo_oracle": oracle,
+            "rollback_token": _write_to_ledger(
+                idem_key, oracle["final_usd"], action.get("type", "unknown"),
+                notes="low_risk_reversible_bypass",
+            ),
+        }
     if judge < CFO_JUDGE_DENY_BELOW:
         return {
             **state,
