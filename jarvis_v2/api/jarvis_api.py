@@ -198,6 +198,25 @@ def list_tasks(limit: int = 20,
     return {"tasks": items, "total": len(_TASKS)}
 
 
+@app.post("/queue/add")
+def queue_add(req: ExecuteRequest,
+              x_jarvis_token: str | None = Header(default=None)):
+    """Encola una tarea para que el task_worker la procese asincrono."""
+    _auth(x_jarvis_token)
+    from jarvis_v2 import task_queue as Q
+    qid = Q.add(req.objective, priority=req.priority, source="api")
+    return {"qid": qid, "queued": True,
+            "objective_preview": req.objective[:120]}
+
+
+@app.get("/queue/status")
+def queue_status(x_jarvis_token: str | None = Header(default=None)):
+    """Resumen de la queue (pending/done/failed counts + next_3)."""
+    _auth(x_jarvis_token)
+    from jarvis_v2 import task_queue as Q
+    return Q.status()
+
+
 @app.post("/interrupt")
 def interrupt(x_jarvis_token: str | None = Header(default=None)):
     """Cancela la task running mas reciente (best-effort)."""
