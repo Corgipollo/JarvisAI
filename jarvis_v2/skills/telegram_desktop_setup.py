@@ -67,6 +67,50 @@ def _ocr_find(needle: str, retries: int = 3) -> tuple[int, int] | None:
     return None
 
 
+def _vision_find_botfather_real() -> tuple[int, int] | None:
+    """Usa LLM vision para distinguir el BotFather REAL (check verificado azul)
+    de los clones fake. Devuelve coords absolutas del avatar/nombre del real.
+
+    Mucho mas preciso que OCR ciego que solo lee texto.
+    """
+    import re
+    try:
+        from jarvis_v2.skills.vision_analyze import analyze_screenshot
+    except ImportError as e:
+        print(f"[tg] vision_analyze no disponible: {e}", file=sys.stderr)
+        return None
+
+    prompt = (
+        "Estas viendo la lista de resultados de busqueda 'BotFather' en "
+        "Telegram Desktop. EL BotFather REAL tiene un check de verificacion "
+        "AZUL al lado del nombre (icono palomita azul oficial de Telegram). "
+        "Los demas (@BotFtherbot_bot, @ecobiznesshop_bot, @OrangeCandyShopBot, "
+        "etc.) son CLONES fake sin check azul.\n\n"
+        "Localiza el BotFather REAL VERIFICADO. Responde EXACTAMENTE en formato "
+        "JSON sin texto adicional:\n"
+        '{\"x\": <numero entero>, \"y\": <numero entero>, \"verified\": true|false}\n'
+        "Donde x,y son las coordenadas del CENTRO del item del BotFather "
+        "verificado en la pantalla. Si no ves el check azul en ninguno, "
+        "responde {\"x\": 0, \"y\": 0, \"verified\": false}."
+    )
+    r = analyze_screenshot(prompt, prefer="gemini")
+    if not r.get("ok"):
+        print(f"[tg] vision fail: {r.get('error')}", file=sys.stderr)
+        return None
+    text = r.get("text", "")
+    m = re.search(r'\{[^{}]*"x"\s*:\s*(\d+)[^{}]*"y"\s*:\s*(\d+)[^{}]*\}', text)
+    if not m:
+        print(f"[tg] vision sin JSON valido. raw: {text[:200]!r}", file=sys.stderr)
+        return None
+    x, y = int(m.group(1)), int(m.group(2))
+    if x == 0 and y == 0:
+        print(f"[tg] vision dice no hay BotFather verified visible",
+              file=sys.stderr)
+        return None
+    print(f"[tg] vision found BotFather REAL @ ({x},{y})", file=sys.stderr)
+    return (x, y)
+
+
 def _click_humano(x: int, y: int):
     from jarvis_v2.swarm.human_mouse import human_click
     human_click(x, y)
@@ -101,11 +145,15 @@ def setup_telegram_bot(bot_name: str = "Jarvis V2",
     _typewrite_humano("BotFather")
     time.sleep(2)
 
-    # 3. Click resultado: buscamos "BotFather" en la lista de results via OCR
-    coords = _ocr_find("BotFather", retries=4)
+    # 3. Click resultado: usar VISION (no OCR ciego) para distinguir BotFather
+    # REAL verificado (check azul ✓) de los clones fake.
+    coords = _vision_find_botfather_real()
     if not coords:
-        return {"ok": False, "error": "botfather_not_found_via_ocr",
-                "hint": "Asegurate de que Telegram Desktop este visible y maximizado"}
+        # Fallback OCR si vision no responde
+        coords = _ocr_find("BotFather", retries=4)
+    if not coords:
+        return {"ok": False, "error": "botfather_not_found",
+                "hint": "Vision+OCR fallaron. Manual: abre chat con @BotFather"}
     _click_humano(*coords)
     time.sleep(2.5)
 
