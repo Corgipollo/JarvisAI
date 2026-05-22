@@ -35,47 +35,24 @@ TG_DESKTOP_PATHS = [
 
 
 def _open_telegram_app() -> bool:
-    """Abre + maximize + foreground Telegram Desktop (clave para OCR)."""
-    import pygetwindow as gw
-    wins = gw.getWindowsWithTitle("Telegram")
-    if wins:
-        w = wins[0]
-        try:
-            if w.isMinimized:
-                w.restore()
-            try:
-                w.maximize()
-            except Exception:
-                pass
-            w.activate()
-            time.sleep(1)
-            # Force foreground via Win32 API por si activate falla
-            try:
-                import ctypes
-                hwnd = w._hWnd
-                ctypes.windll.user32.ShowWindow(hwnd, 9)  # SW_RESTORE
-                ctypes.windll.user32.SetForegroundWindow(hwnd)
-                time.sleep(0.5)
-            except Exception as e:
-                print(f"[tg] win32 force fail: {e}", file=sys.stderr)
-            return True
-        except Exception as e:
-            print(f"[tg] activate fail: {e}", file=sys.stderr)
-
+    """Abre + force_maximize_window cascade (4 tecnicas Win32 anti-foreground-lock)."""
+    from jarvis_v2.skills.window_control import (
+        force_maximize_window, find_window_by_title,
+    )
+    # 1. Si ya existe ventana, force maximize cascade
+    hwnd = find_window_by_title("Telegram")
+    if hwnd:
+        r = force_maximize_window("Telegram", retries=3)
+        print(f"[tg] force_maximize: {r}", file=sys.stderr)
+        return r.get("ok", False)
+    # 2. Sino, lanzar binario + esperar + force max
     for p in TG_DESKTOP_PATHS:
         if Path(p).exists():
             subprocess.Popen([p])
             time.sleep(10)
-            # Recursive call para maximize
-            wins2 = gw.getWindowsWithTitle("Telegram")
-            if wins2:
-                try:
-                    wins2[0].maximize()
-                    wins2[0].activate()
-                    time.sleep(1)
-                except Exception:
-                    pass
-            return True
+            r = force_maximize_window("Telegram", retries=3)
+            print(f"[tg] launched + force_maximize: {r}", file=sys.stderr)
+            return r.get("ok", False)
     return False
 
 
@@ -135,19 +112,42 @@ def setup_telegram_bot(bot_name: str = "Jarvis V2",
     # 4. Tipea /newbot en input
     _typewrite_humano("/newbot")
     _press("enter")
-    time.sleep(3)
+    time.sleep(4)
 
-    # Wait for "what to call" response
-    if not _ocr_find("what to call", retries=10):
+    # Wait for BotFather respuesta (varias palabras-clave posibles)
+    found_response = False
+    from jarvis_v2.skills.desktop_hybrid import scan_desktop
+    for attempt in range(15):
+        scan = scan_desktop()
+        all_text = " ".join(t["texto"] for t in scan["texto_detectado"]).lower()
+        keywords = ["alright", "new bot", "going to call", "name for your bot",
+                    "please choose", "what to call"]
+        if any(k in all_text for k in keywords):
+            found_response = True
+            break
+        time.sleep(2)
+    if not found_response:
         return {"ok": False, "error": "no_response_to_newbot",
-                "hint": "Tal vez ya respondiste antes o BotFather no respondio"}
+                "hint": "BotFather no respondio en 30s. Verifica que el chat "
+                          "este activo y que /newbot se haya enviado."}
 
     # 5. Tipea nombre
     _typewrite_humano(bot_name)
     _press("enter")
-    time.sleep(3)
+    time.sleep(4)
 
-    if not _ocr_find("username", retries=10):
+    # Wait for username prompt (palabras-clave permisivas)
+    found_username = False
+    for attempt in range(15):
+        scan = scan_desktop()
+        all_text = " ".join(t["texto"] for t in scan["texto_detectado"]).lower()
+        keywords = ["username", "user name", "must end in", "5-32 characters",
+                    "must be unique"]
+        if any(k in all_text for k in keywords):
+            found_username = True
+            break
+        time.sleep(2)
+    if not found_username:
         return {"ok": False, "error": "no_response_to_name"}
 
     # 6. Username con variantes
