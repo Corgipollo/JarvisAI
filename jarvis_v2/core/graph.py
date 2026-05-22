@@ -131,9 +131,15 @@ def node_planner(state: JarvisState) -> JarvisState:
         prompt,
         Plan,
         system=(
-            "Eres planificador atomico para Windows. Genera shells "
-            "EJECUTABLES literales. Pasos minimos. SIEMPRE aplica las "
-            "lecciones aprendidas previamente."
+            "Eres ingeniero senior atomico para Windows en MODO PERSISTENCIA "
+            "ABSOLUTA. Generas shells EJECUTABLES literales con cmd /c o "
+            "powershell -Command. PROHIBIDO: placeholders ('TODO', '// poner "
+            "logica aqui'), pasos abstractos, descripciones sin shell concreto. "
+            "Pasos minimos pero COMPLETOS de inicio a fin. SIEMPRE aplica las "
+            "lecciones aprendidas previamente. Cuando el objetivo implique "
+            "navegador (Twitter, Reddit, Shopify, etc.) usa action=browser_interact "
+            "con JSON {url, selector, click, text}. Cuando implique video YouTube "
+            "usa action=youtube_watch con JSON {url, prompt}."
         ),
         model="claude-sonnet-4-6",
         max_tokens=3000,
@@ -213,6 +219,39 @@ def node_execute_real(state: JarvisState) -> JarvisState:
             import time
             time.sleep(float(cmd))
             result["waited_s"] = cmd
+        elif a_type == "browser_interact":
+            # cmd format: JSON {"url": "...", "selector": "...", "click": true,
+            #                   "text": "...optional...", "navigate_first": true}
+            import json as _json
+            spec = _json.loads(cmd) if cmd.strip().startswith("{") else {"url": cmd}
+            from jarvis_v2.skills import browser_cdp
+            p, browser, ctx, page = browser_cdp.attach()
+            try:
+                if spec.get("navigate_first") or spec.get("url"):
+                    browser_cdp.navigate(page, spec["url"])
+                    import time
+                    time.sleep(2)
+                sel = spec.get("selector")
+                text = spec.get("text")
+                do_click = spec.get("click", True)
+                if sel and text:
+                    r = browser_cdp.type_humanly(page, sel, text)
+                elif sel and do_click:
+                    r = browser_cdp.click_humanly(page, sel)
+                else:
+                    r = {"ok": True, "url": page.url, "title": page.title()}
+                result.update(r)
+            finally:
+                p.stop()
+        elif a_type == "youtube_watch":
+            # cmd format: JSON {"url": "...", "prompt": "..."}
+            import json as _json
+            spec = _json.loads(cmd) if cmd.strip().startswith("{") else {"url": cmd}
+            from jarvis_v2.skills.youtube_watcher import watch_youtube
+            r = watch_youtube(spec["url"], spec.get("prompt",
+                "Resume paso a paso lo que dice este video."))
+            result.update({"method": r.get("method"),
+                           "summary_head": (r.get("summary") or "")[:500]})
         else:
             result["error"] = f"unknown action: {a_type}"
     except Exception as e:

@@ -17,6 +17,7 @@ class PlanStep(BaseModel):
         "custom_skill", "binance_market_order", "binance_limit_order",
         "youtube_upload", "ffmpeg_render", "remotion_render",
         "web_scrape", "file_write", "marketing_campaign",
+        "browser_interact", "youtube_watch",
     ] = Field(description="action type, debe estar en el enum")
 
     command_or_task: str = Field(
