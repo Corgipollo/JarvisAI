@@ -22,7 +22,7 @@ from pathlib import Path
 
 import requests
 
-PROXY = "http://127.0.0.1:8088"
+PROXY = os.environ.get("JARVIS_CLAUDE_PROXY", "http://127.0.0.1:8088")
 DEFAULT_MODEL = "claude-haiku-4-5-20251001"
 DEFAULT_TIMEOUT = 300  # subido de 120 -> 300 (proxy Max plan a veces tarda)
 
