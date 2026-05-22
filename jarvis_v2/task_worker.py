@@ -131,9 +131,26 @@ def main_loop():
                             result={"status": result.get("status"),
                                     "error": result.get("error", "")})
                 log(f"  done qid={item['qid']} status={result.get('status')}")
+                # Notify Telegram si configurado y task de fuente user (no auto-refill)
+                if item.get("source") == "user":
+                    try:
+                        from jarvis_v2.bridges.telegram_notify import notify, configured
+                        if configured():
+                            notify(f"Done {item['qid']}: "
+                                    f"{item['objective'][:120]}\n"
+                                    f"status={result.get('status')}")
+                    except Exception:
+                        pass
             else:
                 Q.mark_failed(item["qid"], result.get("error", "?"))
                 log(f"  FAIL qid={item['qid']} {result.get('error', '?')[:120]}")
+                if item.get("source") == "user":
+                    try:
+                        from jarvis_v2.bridges.telegram_notify import notify, configured
+                        if configured():
+                            notify(f"FAIL {item['qid']}: {result.get('error','?')[:200]}")
+                    except Exception:
+                        pass
             last_action = time.time()
         except KeyboardInterrupt:
             log("ciao")
