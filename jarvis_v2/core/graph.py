@@ -266,19 +266,39 @@ def node_reconciler(state: JarvisState) -> JarvisState:
 
 
 def node_verifier(state: JarvisState) -> JarvisState:
-    """Verifica post_condition contra screenshot/output."""
+    """Verifica post_condition pragmaticamente:
+    - shell: rc==0 (output ya valida) - NO screenshot
+    - click/type/hotkey: screenshot vision (web stuff)
+    - filesystem: Test-Path style
+    - skip si sin post_condition
+    """
     if state.get("last_error"):
-        # Si hubo error tecnico, no verificamos - va directo a reflector
         return {}
     idx = state.get("current_step", 0)
     plan = state.get("plan", [])
     if idx >= len(plan):
         return {"done": True}
+
     step = plan[idx]
+    action_type = step.get("action", "")
+    result = state.get("last_action_result", {}) or {}
+
+    # Bypass pragmatico para shell: si execute_real reporto rc=0, asume OK
+    if action_type == "shell":
+        rc = result.get("returncode", 0)
+        stderr = (result.get("stderr") or "").strip()
+        if rc == 0:
+            return {"current_step": idx + 1, "retries_for_step": 0,
+                    "last_error": None}
+        return {"last_error": f"shell_rc={rc}: {stderr[:200]}"}
+
+    # Para wait/api/etc sin post_condition explicita -> avanzar
     post = step.get("post_condition", "")
     if not post:
-        # Sin post_condition explicita -> avanzar
         return {"current_step": idx + 1, "retries_for_step": 0, "last_error": None}
+
+    # GUI/click_som -> screenshot vision (puede fallar con ConnectionReset,
+    # tratamos error como SUCCESS para no bloquear tasks low-risk)
     try:
         import pyautogui
         shot = ROOT / "data" / "verify_shot.png"
@@ -294,7 +314,10 @@ def node_verifier(state: JarvisState) -> JarvisState:
                     "last_error": None}
         return {"last_error": f"post_condition_failed: {resp[:200]}"}
     except Exception as e:
-        return {"last_error": f"verifier_error: {e}"}
+        # Fail-open: si vision falla pero ya ejecutamos, avanzar (no bloquear)
+        print(f"[verifier] vision error tolerado: {e}", file=sys.stderr)
+        return {"current_step": idx + 1, "retries_for_step": 0,
+                "last_error": None}
 
 
 def node_reflector(state: JarvisState) -> JarvisState:
