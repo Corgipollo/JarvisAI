@@ -130,18 +130,19 @@ def node_planner(state: JarvisState) -> JarvisState:
     plan_obj = llm_structured(
         prompt,
         Plan,
+        # OJO: system NO debe tener triggers HEAVY (MODO INGENIERO/ARQUITECTO/
+        # PERSISTENCIA/etc.) o cada plan dispara Sonnet -> rate limit OAuth Max
+        # explota en pocos minutos. Default Haiku que es suficiente para
+        # generar shells literales.
         system=(
-            "Eres ingeniero senior atomico para Windows en MODO PERSISTENCIA "
-            "ABSOLUTA. Generas shells EJECUTABLES literales con cmd /c o "
-            "powershell -Command. PROHIBIDO: placeholders ('TODO', '// poner "
-            "logica aqui'), pasos abstractos, descripciones sin shell concreto. "
-            "Pasos minimos pero COMPLETOS de inicio a fin. SIEMPRE aplica las "
-            "lecciones aprendidas previamente. Cuando el objetivo implique "
-            "navegador (Twitter, Reddit, Shopify, etc.) usa action=browser_interact "
-            "con JSON {url, selector, click, text}. Cuando implique video YouTube "
-            "usa action=youtube_watch con JSON {url, prompt}."
+            "Eres planner atomico Windows. Generas action=shell con "
+            "command_or_task='cmd /c ...' o 'powershell -Command ...' literal. "
+            "Sin placeholders, sin TODOs, sin pasos abstractos. Steps minimos. "
+            "Si objetivo implica navegador (Twitter, Shopify, etc.) usa "
+            "action=browser_interact con JSON {url, selector, click, text}. "
+            "Si implica video YouTube usa action=youtube_watch con {url, prompt}."
         ),
-        model="claude-sonnet-4-6",
+        model="claude-haiku-4-5-20251001",
         max_tokens=3000,
         max_retries=2,
     )
@@ -414,7 +415,7 @@ def node_reflector(state: JarvisState) -> JarvisState:
             "tareas similares. Formato: 'Al hacer X, hay que Y porque Z'. "
             "NO sea especifico a este intento - sirve para no repetir el "
             "patron de error.",
-            model="claude-sonnet-4-6", max_tokens=300,
+            model="claude-haiku-4-5-20251001", max_tokens=300,
         ) or ""
     except Exception as e:
         insight = f"(reflexion fallo: {e})"

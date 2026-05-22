@@ -29,7 +29,7 @@ import time
 from pathlib import Path
 
 import httpx
-from fastapi import FastAPI, HTTPException, Header
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
@@ -133,9 +133,10 @@ class MessagesRequest(BaseModel):
 
 
 def _call_anthropic_with_retry(payload: dict) -> dict:
-    """Call al endpoint Anthropic. Auto-refresca token si 401."""
-    for attempt in range(2):
-        token = _get_access_token(force_refresh=(attempt > 0))
+    """Call al endpoint Anthropic. Auto-refresca token si 401, backoff si 429."""
+    last_error = None
+    for attempt in range(4):  # 4 intentos para 429 backoff: 0, 5s, 15s, 45s
+        token = _get_access_token(force_refresh=(attempt > 0 and "401" in str(last_error or "")))
         headers = {
             "Authorization": f"Bearer {token}",
             "anthropic-version": ANTHROPIC_VERSION,
@@ -148,17 +149,37 @@ def _call_anthropic_with_retry(payload: dict) -> dict:
                                 timeout=180.0)
             if r.status_code == 401 and attempt == 0:
                 print(f"[proxy] 401, forcing refresh", file=sys.stderr)
+                last_error = "401"
+                continue
+            if r.status_code == 429:
+                # Exponential backoff: 5s, 15s, 45s
+                wait_s = 5 * (3 ** attempt)
+                retry_after = r.headers.get("retry-after")
+                if retry_after:
+                    try:
+                        wait_s = min(int(retry_after), 60)
+                    except Exception:
+                        pass
+                print(f"[proxy] 429 rate-limited, backoff {wait_s}s (try {attempt+1}/4)",
+                      file=sys.stderr)
+                last_error = "429"
+                time.sleep(wait_s)
                 continue
             r.raise_for_status()
             return r.json()
         except httpx.HTTPStatusError as e:
-            if e.response.status_code == 401 and attempt == 0:
+            last_error = str(e)
+            if e.response.status_code in (401, 429) and attempt < 3:
                 continue
             raise HTTPException(e.response.status_code,
                                   f"anthropic: {e.response.text[:500]}")
         except Exception as e:
+            last_error = str(e)
+            if attempt < 3:
+                time.sleep(2 ** attempt)
+                continue
             raise HTTPException(502, f"upstream: {e}")
-    raise HTTPException(500, "max retries refresh")
+    raise HTTPException(429, f"rate_limit_exhausted_after_4_retries: {last_error}")
 
 
 @app.get("/health")
