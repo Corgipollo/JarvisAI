@@ -17,7 +17,8 @@ from pathlib import Path
 WORKSPACE = Path(__file__).resolve().parents[2] / "workspace" / "yt"
 WORKSPACE.mkdir(parents=True, exist_ok=True)
 
-GEMINI_MODEL_DEFAULT = "models/gemini-2.5-flash"
+GEMINI_MODEL_DEFAULT = os.environ.get("GEMINI_VIDEO_MODEL",
+                                       "models/gemini-2.0-flash")
 
 
 def _extract_video_id(url: str) -> str | None:

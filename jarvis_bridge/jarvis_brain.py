@@ -35,7 +35,7 @@ LLM_PROVIDER = os.environ.get("JARVIS_LLM_PROVIDER", "anthropic_proxy").lower()
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
 GEMINI_BROWSER_URL = os.environ.get("GEMINI_BROWSER_URL",
                                       "http://10.0.2.2:5555")
-GEMINI_MODEL_DEFAULT = "gemini-2.5-flash"
+GEMINI_MODEL_DEFAULT = os.environ.get("GEMINI_MODEL", "gemini-2.0-flash")
 OLLAMA_URL = os.environ.get("OLLAMA_URL", "http://localhost:11434")
 OLLAMA_MODEL_DEFAULT = os.environ.get("OLLAMA_MODEL", "llama3.2:latest")
 
