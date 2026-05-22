@@ -101,13 +101,19 @@ def refill_queue_via_ideation() -> int:
     return n
 
 
+CONSECUTIVE_FAIL_PAUSE = int(os.environ.get("WORKER_FAIL_PAUSE_MIN", "30"))
+MAX_CONSECUTIVE_FAILS = int(os.environ.get("WORKER_MAX_FAILS", "3"))
+
+
 def main_loop():
     log(f"=== task_worker started ===")
     log(f"  API: {API_URL}")
     log(f"  poll: {POLL_INTERVAL}s timeout: {TASK_TIMEOUT}s")
     log(f"  refill if idle {IDLE_REFILL_AFTER}min, target queue >= {MIN_QUEUE_TARGET}")
+    log(f"  circuit breaker: pausa {CONSECUTIVE_FAIL_PAUSE}min tras {MAX_CONSECUTIVE_FAILS} fails consecutivos")
 
     last_action = time.time()
+    consecutive_fails = 0
     while True:
         try:
             item = Q.pop_next()
@@ -131,6 +137,14 @@ def main_loop():
                             result={"status": result.get("status"),
                                     "error": result.get("error", "")})
                 log(f"  done qid={item['qid']} status={result.get('status')}")
+                # Reset circuit breaker en done
+                if result.get("status") == "done":
+                    consecutive_fails = 0
+                else:
+                    # status=error pero dispatch OK -> cuenta como fail para CB
+                    err = (result.get("error") or "").lower()
+                    if "402" in err or "429" in err or "payment" in err or "quota" in err:
+                        consecutive_fails += 1
                 # Notify Telegram si configurado y task de fuente user (no auto-refill)
                 if item.get("source") == "user":
                     try:
@@ -144,6 +158,21 @@ def main_loop():
             else:
                 Q.mark_failed(item["qid"], result.get("error", "?"))
                 log(f"  FAIL qid={item['qid']} {result.get('error', '?')[:120]}")
+                consecutive_fails += 1
+                # Circuit breaker: si demasiados fails seguidos, pausa larga
+                if consecutive_fails >= MAX_CONSECUTIVE_FAILS:
+                    log(f"  CIRCUIT BREAKER: {consecutive_fails} fails consecutivos -> "
+                        f"pausa {CONSECUTIVE_FAIL_PAUSE}min para no quemar saldo")
+                    try:
+                        from jarvis_v2.bridges.telegram_notify import notify, configured
+                        if configured():
+                            notify(f"⚠️ Jarvis CIRCUIT BREAKER: {consecutive_fails} "
+                                    f"fails consecutivos. Pausa {CONSECUTIVE_FAIL_PAUSE}min. "
+                                    f"Revisar saldo OpenRouter y quotas.")
+                    except Exception:
+                        pass
+                    time.sleep(CONSECUTIVE_FAIL_PAUSE * 60)
+                    consecutive_fails = 0
                 if item.get("source") == "user":
                     try:
                         from jarvis_v2.bridges.telegram_notify import notify, configured

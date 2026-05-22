@@ -13,7 +13,6 @@ from __future__ import annotations
 import hashlib
 import json
 import os
-import sqlite3
 import sys
 from datetime import datetime, timedelta
 from pathlib import Path
@@ -106,7 +105,7 @@ def _write_to_ledger(idem_key: str, amount: float, action_type: str,
         rollback_token TEXT,
         notes TEXT)""")
     con.execute(
-        "INSERT INTO spend (ts, idempotency_key, amount_usd, action_type, "
+        "INSERT OR IGNORE INTO spend (ts, idempotency_key, amount_usd, action_type, "
         "rollback_token, notes) VALUES (?,?,?,?,?,?)",
         (datetime.utcnow().isoformat(), idem_key, amount, action_type,
          rollback_token, notes),

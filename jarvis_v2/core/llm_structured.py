@@ -20,7 +20,7 @@ def llm_structured(
     system: str = "",
     model: str = "claude-sonnet-4-6",
     max_tokens: int = 2000,
-    max_retries: int = 2,
+    max_retries: int = 1,  # antes 2 -> baja gasto en tasks que fallan schema
 ) -> T:
     """Llama Claude, valida con Pydantic, reintenta si schema falla.
 
