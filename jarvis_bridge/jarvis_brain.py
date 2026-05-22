@@ -60,13 +60,14 @@ def is_heavy_prompt(prompt: str, system: str = "") -> bool:
     text = (prompt + " " + system).upper()
     return any(t in text for t in HEAVY_TRIGGERS)
 
-# Fallback chain: si provider principal falla, prueba estos en orden.
+# Fallback chain (Cascading Fallback): primary -> paid alternative -> proxy gratis -> local
+# Si 402/429 en paid providers, salta a anthropic_proxy (OAuth Max plan, gratis pero lento).
 _default_fallback_map = {
-    "openrouter": "gemini_api,anthropic_proxy,ollama",
+    "openrouter": "anthropic_proxy,gemini_api,ollama",
     "anthropic_proxy": "openrouter,gemini_api,ollama",
-    "gemini_api": "openrouter,anthropic_proxy,ollama",
+    "gemini_api": "anthropic_proxy,openrouter,ollama",
 }
-_default_fallback = _default_fallback_map.get(LLM_PROVIDER, "")
+_default_fallback = _default_fallback_map.get(LLM_PROVIDER, "anthropic_proxy,ollama")
 LLM_FALLBACK = [p.strip() for p in
                 os.environ.get("JARVIS_LLM_FALLBACK", _default_fallback).split(",")
                 if p.strip()]
@@ -201,6 +202,15 @@ def _ask_gemini_browser(prompt: str, system: str, timeout: int) -> str | None:
         return None
 
 
+def _is_fatal_provider_error(exc: Exception) -> bool:
+    """402 Payment Required o 429 Rate Limited = no reintentar este provider,
+    saltar al siguiente en la cascada. Retornar inmediatamente para no quemar
+    tiempo + permitir cascading fallback rapido."""
+    s = str(exc)
+    return ("402" in s or "429" in s or "Payment Required" in s
+            or "Too Many Requests" in s or "quota" in s.lower())
+
+
 def _try_provider(provider: str, prompt: str, system: str, model: str,
                    max_tokens: int, timeout: int, retries: int) -> str | None:
     """Llama un provider especifico. Devuelve texto o None si falla."""
@@ -211,6 +221,11 @@ def _try_provider(provider: str, prompt: str, system: str, model: str,
                 if r:
                     return r
             except Exception as e:
+                # Cascading fallback: 402/429 -> skip retries, saltar a next provider
+                if _is_fatal_provider_error(e):
+                    print(f"[brain] openrouter FATAL ({e}); switch a fallback",
+                          file=sys.stderr)
+                    return None
                 if attempt < retries:
                     time.sleep(min(30, 5 * (2 ** attempt)))
                     continue
@@ -222,6 +237,10 @@ def _try_provider(provider: str, prompt: str, system: str, model: str,
             try:
                 return _ask_gemini_api(prompt, system, max_tokens, timeout)
             except Exception as e:
+                if _is_fatal_provider_error(e):
+                    print(f"[brain] gemini_api FATAL ({e}); switch a fallback",
+                          file=sys.stderr)
+                    return None
                 if attempt < retries:
                     time.sleep(min(30, 5 * (2 ** attempt)))
                     continue
