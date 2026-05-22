@@ -252,6 +252,34 @@ def node_execute_real(state: JarvisState) -> JarvisState:
                 "Resume paso a paso lo que dice este video."))
             result.update({"method": r.get("method"),
                            "summary_head": (r.get("summary") or "")[:500]})
+        elif a_type == "desktop_scan":
+            # Scan completo de pantalla: OCR + icons. Devuelve JSON light al state.
+            from jarvis_v2.skills.desktop_hybrid import scan_desktop
+            scan = scan_desktop()
+            result.update({
+                "screen_size": scan["screen_size"],
+                "ocr_count": len(scan["texto_detectado"]),
+                "icons_count": len(scan["iconos_detectados"]),
+                "texts_sample": [t["texto"] for t in scan["texto_detectado"][:30]],
+            })
+        elif a_type == "desktop_interact":
+            # cmd format: JSON {"text":"BotFather"} o {"icon":"path.png"} o {"coords":[x,y]}
+            import json as _json
+            spec = _json.loads(cmd) if cmd.strip().startswith("{") else {"text": cmd}
+            from jarvis_v2.skills import desktop_hybrid
+            if spec.get("text"):
+                r = desktop_hybrid.click_text(spec["text"])
+            elif spec.get("icon"):
+                r = desktop_hybrid.click_icon(spec["icon"],
+                                               spec.get("threshold", 0.85))
+            elif spec.get("coords"):
+                x, y = spec["coords"]
+                from jarvis_v2.swarm.human_mouse import human_click
+                human_click(x, y)
+                r = {"ok": True, "coords": [x, y]}
+            else:
+                r = {"ok": False, "error": "spec needs text/icon/coords"}
+            result.update(r)
         else:
             result["error"] = f"unknown action: {a_type}"
     except Exception as e:
