@@ -1,9 +1,8 @@
-"""youtube_watcher.py - Skill para que Jarvis 'vea' tutoriales de YouTube.
+"""youtube_watcher.py - Modo VISION TOTAL (default) + transcript fast-path opcional.
 
-Estrategia 2-fases (rapido -> profundo):
-  1. transcript-api: extrae subtitulos en 0.2s sin descargar nada (90% de los casos).
-  2. fallback: descarga video baja-res + Gemini Files API (audio+video) si transcript
-     no existe o si el usuario pide analisis visual explicito.
+Por orden de Emmanuel 2026-05-21: por default usa Gemini Files API con video
+nativo (analiza UI, clicks, audio completo). El transcript-api solo se usa si
+el caller pasa fast=True explicitamente.
 
 Dependencias: pip install yt-dlp google-generativeai youtube-transcript-api
 """
@@ -18,9 +17,10 @@ from pathlib import Path
 WORKSPACE = Path(__file__).resolve().parents[2] / "workspace" / "yt"
 WORKSPACE.mkdir(parents=True, exist_ok=True)
 
+GEMINI_MODEL_DEFAULT = "models/gemini-2.5-flash"
+
 
 def _extract_video_id(url: str) -> str | None:
-    """Saca el video_id de cualquier formato de URL YouTube."""
     patterns = [
         r"(?:v=|/v/|youtu\.be/|/embed/|/shorts/)([0-9A-Za-z_-]{11})",
         r"^([0-9A-Za-z_-]{11})$",
@@ -32,26 +32,24 @@ def _extract_video_id(url: str) -> str | None:
     return None
 
 
-def get_transcript(url: str, lang_preference: tuple[str, ...] = ("es", "en")) -> str | None:
-    """Saca el transcript del video sin descargar. Devuelve None si no hay subs."""
+def get_transcript(url: str,
+                    lang_preference: tuple[str, ...] = ("es", "en")) -> str | None:
+    """Fast-path: solo se invoca si caller pasa fast=True a watch_youtube."""
     try:
         from youtube_transcript_api import YouTubeTranscriptApi
     except ImportError:
-        print("[yt] youtube_transcript_api no instalado")
         return None
     vid = _extract_video_id(url)
     if not vid:
         return None
     api = YouTubeTranscriptApi()
     try:
-        # Intenta idiomas preferidos primero
         for lang in lang_preference:
             try:
                 snippets = api.fetch(vid, languages=[lang])
                 return " ".join(s.text for s in snippets)
             except Exception:
                 continue
-        # Default: cualquier idioma disponible
         snippets = api.fetch(vid)
         return " ".join(s.text for s in snippets)
     except Exception as e:
@@ -60,37 +58,71 @@ def get_transcript(url: str, lang_preference: tuple[str, ...] = ("es", "en")) ->
 
 
 def analyze_via_gemini_video(url: str, prompt: str,
-                              model_name: str = "models/gemini-2.5-flash") -> str:
-    """Fallback: descarga baja-res + Gemini Files API.
-    Requiere GEMINI_API_KEY en env."""
+                              model_name: str = GEMINI_MODEL_DEFAULT) -> dict:
+    """MODO VISION TOTAL: yt-dlp -> Gemini Files API -> analisis frame+audio.
+
+    Returns: {ok, method, summary, video_size_mb, gemini_state}
+    """
     import google.generativeai as genai
     api_key = os.environ.get("GEMINI_API_KEY", "")
     if not api_key:
-        return "ERROR: GEMINI_API_KEY no seteado"
+        return {"ok": False, "method": "gemini_video",
+                "summary": "ERROR: GEMINI_API_KEY no seteado"}
     genai.configure(api_key=api_key)
 
-    vid = _extract_video_id(url) or "video"
+    vid = _extract_video_id(url) or f"video_{int(time.time())}"
     video_path = WORKSPACE / f"{vid}.mp4"
     if video_path.exists():
         video_path.unlink()
 
-    print(f"[yt] descargando {url} -> {video_path}")
-    cmd = (f'yt-dlp -f "worstvideo[ext=mp4]+worstaudio[ext=m4a]/worst[ext=mp4]" '
-           f'-o "{video_path}" {url}')
-    r = subprocess.run(cmd, shell=True, capture_output=True, text=True, timeout=300)
+    print(f"[yt] descargando worst quality {url} -> {video_path}")
+    cmd = (f'yt-dlp -f "worstvideo[ext=mp4]+worstaudio[ext=m4a]/worst[ext=mp4]/worst" '
+           f'--merge-output-format mp4 -o "{video_path}" {url}')
+    r = subprocess.run(cmd, shell=True, capture_output=True, text=True,
+                       timeout=600)
     if r.returncode != 0:
-        return f"ERROR yt-dlp: {r.stderr[-300:]}"
+        return {"ok": False, "method": "gemini_video",
+                "summary": f"ERROR yt-dlp rc={r.returncode}: {r.stderr[-400:]}"}
 
-    print("[yt] subiendo a Gemini Files API")
-    video_file = genai.upload_file(path=str(video_path))
-    while video_file.state.name == "PROCESSING":
-        time.sleep(2)
-        video_file = genai.get_file(video_file.name)
-    if video_file.state.name == "FAILED":
-        return "ERROR: Gemini Files API fallo"
+    if not video_path.exists():
+        return {"ok": False, "method": "gemini_video",
+                "summary": "ERROR: video no se descargo"}
 
-    model = genai.GenerativeModel(model_name=model_name)
-    response = model.generate_content([video_file, prompt])
+    size_mb = video_path.stat().st_size / (1024 * 1024)
+    print(f"[yt] video={size_mb:.1f} MB - subiendo a Gemini Files API")
+
+    try:
+        video_file = genai.upload_file(path=str(video_path))
+        while video_file.state.name == "PROCESSING":
+            print(".", end="", flush=True)
+            time.sleep(3)
+            video_file = genai.get_file(video_file.name)
+        if video_file.state.name == "FAILED":
+            return {"ok": False, "method": "gemini_video",
+                    "summary": "ERROR: Gemini Files API procesamiento FAILED",
+                    "video_size_mb": size_mb,
+                    "gemini_state": video_file.state.name}
+
+        print(f"\n[yt] analizando con {model_name}")
+        model = genai.GenerativeModel(model_name=model_name)
+        response = model.generate_content(
+            [video_file,
+             f"{prompt}\n\nIMPORTANTE: analiza TODO - cada frame visual, "
+             f"cada UI, cada click visible, y el audio completo. "
+             f"Devuelve pasos concretos con timestamps si los hay."],
+            generation_config={"max_output_tokens": 4000, "temperature": 0.3},
+        )
+        summary = response.text if hasattr(response, "text") else str(response)
+    except Exception as e:
+        try:
+            video_path.unlink()
+        except Exception:
+            pass
+        return {"ok": False, "method": "gemini_video",
+                "summary": f"ERROR Gemini analisis: {e}",
+                "video_size_mb": size_mb}
+
+    # Limpieza
     try:
         genai.delete_file(video_file.name)
     except Exception:
@@ -99,58 +131,40 @@ def analyze_via_gemini_video(url: str, prompt: str,
         video_path.unlink()
     except Exception:
         pass
-    return response.text
+
+    return {"ok": True, "method": "gemini_video", "summary": summary,
+            "video_size_mb": round(size_mb, 1)}
 
 
 def watch_youtube(url: str,
-                   prompt: str = "Resume paso a paso lo que hace este video. Si menciona botones, comandos o pasos especificos, listalos.",
-                   force_visual: bool = False) -> dict:
-    """Entry point. Devuelve dict con:
-        - method: 'transcript' | 'gemini_video' | 'error'
-        - text: transcript o analisis LLM
-        - summary: si transcript, LLM summary del transcript
+                   prompt: str = "Analiza este tutorial. Lista TODO lo que ocurre: que pantalla/app aparece, que botones se clickean, y que dice el audio. Devuelve pasos numerados con timestamps si los hay.",
+                   fast: bool = False) -> dict:
+    """Entry point.
+
+    Args:
+        fast: si True, intenta transcript-api primero (rapido, sin descarga).
+              si False (DEFAULT), va directo a vision total via Gemini Files.
+
+    Returns: dict con method, summary, text (si fast=True).
     """
-    if not force_visual:
+    if fast:
         transcript = get_transcript(url)
         if transcript and len(transcript) > 100:
-            # Resumir DIRECTO con Gemini API (evita loop si el proxy claude
-            # esta invocando esta misma sesion del CLI claude)
-            try:
-                api_key = os.environ.get("GEMINI_API_KEY", "")
-                if not api_key:
-                    raise RuntimeError("GEMINI_API_KEY no seteado")
-                import google.generativeai as genai
-                genai.configure(api_key=api_key)
-                model = genai.GenerativeModel("models/gemini-2.5-flash")
-                resp = model.generate_content(
-                    f"TRANSCRIPT TUTORIAL YOUTUBE:\n{transcript[:8000]}\n\n"
-                    f"INSTRUCCION: {prompt}\n\n"
-                    "Responde directo, en espanol, sin preamble.",
-                    generation_config={"max_output_tokens": 1500,
-                                        "temperature": 0.3},
-                )
-                summary = resp.text if hasattr(resp, "text") else str(resp)
-                return {"method": "transcript", "text": transcript[:500] + "...",
-                        "summary": summary}
-            except Exception as e:
-                # Fail gracioso: si LLM agotado, devolver transcript bruto
-                short_err = str(e)[:120]
-                preview = transcript[:1500]
-                return {"method": "transcript_raw", "text": transcript,
-                        "summary": (f"[LLM no disponible: {short_err}]\n\n"
-                                     f"--- TRANSCRIPT (primeros 1500 chars) ---\n"
-                                     f"{preview}")}
+            return {"ok": True, "method": "transcript",
+                    "text": transcript,
+                    "summary": transcript[:2000]}
 
-    # Fallback: video visual
-    result = analyze_via_gemini_video(url, prompt)
-    return {"method": "gemini_video", "text": result, "summary": result}
+    # DEFAULT: vision total
+    return analyze_via_gemini_video(url, prompt)
 
 
 if __name__ == "__main__":
-    # Smoke test - usa un video real corto con subs
-    import sys
+    import sys, json
     url = sys.argv[1] if len(sys.argv) > 1 else "https://www.youtube.com/watch?v=jNQXAC9IVRw"
-    prompt = sys.argv[2] if len(sys.argv) > 2 else "Resume este video en 3 puntos."
+    prompt = sys.argv[2] if len(sys.argv) > 2 else "Resume en 1 oracion."
     r = watch_youtube(url, prompt)
-    print(f"\n=== METHOD: {r['method']} ===")
-    print(f"\n=== SUMMARY ===\n{r['summary']}\n")
+    out = Path(__file__).resolve().parents[2] / "data" / "yt_last_result.json"
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_text(json.dumps(r, ensure_ascii=False, indent=2), encoding="utf-8")
+    print(f"=== {r.get('method')} ===")
+    print(f"saved to {out}")
