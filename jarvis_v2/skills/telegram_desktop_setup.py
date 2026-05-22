@@ -35,25 +35,46 @@ TG_DESKTOP_PATHS = [
 
 
 def _open_telegram_app() -> bool:
-    """Abre o trae al frente la app Telegram Desktop."""
+    """Abre + maximize + foreground Telegram Desktop (clave para OCR)."""
     import pygetwindow as gw
-    # Si ya esta abierta -> bring to front
     wins = gw.getWindowsWithTitle("Telegram")
     if wins:
+        w = wins[0]
         try:
-            w = wins[0]
             if w.isMinimized:
                 w.restore()
+            try:
+                w.maximize()
+            except Exception:
+                pass
             w.activate()
             time.sleep(1)
+            # Force foreground via Win32 API por si activate falla
+            try:
+                import ctypes
+                hwnd = w._hWnd
+                ctypes.windll.user32.ShowWindow(hwnd, 9)  # SW_RESTORE
+                ctypes.windll.user32.SetForegroundWindow(hwnd)
+                time.sleep(0.5)
+            except Exception as e:
+                print(f"[tg] win32 force fail: {e}", file=sys.stderr)
             return True
-        except Exception:
-            pass
-    # Sino, abrir desde path
+        except Exception as e:
+            print(f"[tg] activate fail: {e}", file=sys.stderr)
+
     for p in TG_DESKTOP_PATHS:
         if Path(p).exists():
             subprocess.Popen([p])
-            time.sleep(8)  # esperar carga
+            time.sleep(10)
+            # Recursive call para maximize
+            wins2 = gw.getWindowsWithTitle("Telegram")
+            if wins2:
+                try:
+                    wins2[0].maximize()
+                    wins2[0].activate()
+                    time.sleep(1)
+                except Exception:
+                    pass
             return True
     return False
 
