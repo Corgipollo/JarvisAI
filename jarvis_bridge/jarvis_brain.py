@@ -45,12 +45,20 @@ GEMINI_MODEL_DEFAULT = os.environ.get("GEMINI_MODEL", "gemini-2.0-flash")
 OLLAMA_URL = os.environ.get("OLLAMA_URL", "http://localhost:11434")
 OLLAMA_MODEL_DEFAULT = os.environ.get("OLLAMA_MODEL", "llama3.2:latest")
 
-# Triggers que detonan modelo PESADO (Sonnet) vs ligero (Haiku) en openrouter
+# Triggers que detonan modelo PESADO (Sonnet) vs ligero (Haiku) en openrouter.
+# Match por substring case-insensitive sobre (prompt + " " + system).upper().
 HEAVY_TRIGGERS = [
-    "MODO INGENIERO", "MODO ARQUITECTO", "OPUS", "SONNET",
+    "MODO INGENIERO", "MODO ARQUITECTO", "MODO ARQUITECTO GOD-MODE",
+    "GOD-MODE", "GOD MODE", "OPUS", "SONNET",
     "REFACTOR", "MODO GOD-MODE", "MODO PERSISTENCIA",
-    "CRITICAL", "PRODUCTION CODE",
+    "CRITICAL", "PRODUCTION CODE", "ARCHITECT MODE",
 ]
+
+
+def is_heavy_prompt(prompt: str, system: str = "") -> bool:
+    """Public helper: decide si un prompt necesita Sonnet (heavy) vs Haiku."""
+    text = (prompt + " " + system).upper()
+    return any(t in text for t in HEAVY_TRIGGERS)
 
 # Fallback chain: si provider principal falla, prueba estos en orden.
 _default_fallback_map = {
@@ -73,20 +81,52 @@ def _proxy_healthy(timeout: float = 3.0) -> bool:
         return False
 
 
+def _route_model(prompt: str, system: str) -> tuple[str, str]:
+    """Decide modelo HEAVY o LIGHT segun:
+      1. Keyword triggers explicitos (MODO INGENIERO, etc.)
+      2. Tamano del prompt (>4000 chars sugiere tarea compleja)
+      3. Patrones de codigo (def , class , import , triple backticks)
+      4. Multiples lineas (>30 newlines)
+    Devuelve (model_name, reason).
+    """
+    combined = prompt + "\n" + system
+    text_upper = combined.upper()
+
+    # 1. Keyword explicit
+    for trigger in HEAVY_TRIGGERS:
+        if trigger in text_upper:
+            return OPENROUTER_MODEL_HEAVY, f"trigger:{trigger}"
+
+    # 2. Tamano del prompt
+    if len(prompt) > 4000:
+        return OPENROUTER_MODEL_HEAVY, f"large_prompt:{len(prompt)}c"
+
+    # 3. Codigo presente (suggests refactor/review)
+    code_markers = ["def ", "class ", "import ", "```python", "```py"]
+    code_hits = sum(combined.count(m) for m in code_markers)
+    if code_hits >= 5:
+        return OPENROUTER_MODEL_HEAVY, f"code_dense:{code_hits}_markers"
+
+    # 4. Many lines
+    nlines = combined.count("\n")
+    if nlines > 30:
+        return OPENROUTER_MODEL_HEAVY, f"multiline:{nlines}_lines"
+
+    return OPENROUTER_MODEL_LIGHT, "default_light"
+
+
 def _ask_openrouter(prompt: str, system: str, max_tokens: int,
                      timeout: int) -> str | None:
     """OpenRouter HTTP API con router dinamico Haiku<->Sonnet.
 
-    Detecta keywords HEAVY_TRIGGERS en prompt+system -> Sonnet 4.5 (potente,
-    caro ~$3/M input). Sino -> Haiku 4.5 (rapido, barato ~$0.80/M input).
-    Cero RAM extra. Sin CLI ni proxy.
+    Router inteligente _route_model() decide por keywords, longitud,
+    densidad de codigo y multilinea. Cero RAM extra, sin CLI.
     """
     if not OPENROUTER_API_KEY:
         print("[brain] OPENROUTER_API_KEY no seteado", file=sys.stderr)
         return None
-    text = (prompt + " " + system).upper()
-    is_heavy = any(t in text for t in HEAVY_TRIGGERS)
-    model = OPENROUTER_MODEL_HEAVY if is_heavy else OPENROUTER_MODEL_LIGHT
+    model, route_reason = _route_model(prompt, system)
+    print(f"[brain] openrouter -> {model} ({route_reason})", file=sys.stderr)
     headers = {
         "Authorization": f"Bearer {OPENROUTER_API_KEY}",
         "Content-Type": "application/json",
