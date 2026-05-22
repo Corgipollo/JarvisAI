@@ -175,10 +175,19 @@ def call_claude_cli(messages: list[dict], system: str, model: str, timeout: int)
         sys_file.close()
         args += ["--system-prompt-file", sys_file.name]
 
+    # Sandbox cwd: aisla el state local del CLI (~/.claude/projects/<cwd-hash>)
+    # asi el proxy NO colisiona con sesiones Claude Code abiertas en otros cwd
+    # (fix recomendado por Gemini 2026-05-21).
+    sandbox_cwd = os.environ.get("CLAUDE_PROXY_SANDBOX_CWD", r"C:\Jarvis_Sandbox")
+    try:
+        os.makedirs(sandbox_cwd, exist_ok=True)
+    except Exception:
+        sandbox_cwd = None
     try:
         proc = subprocess.run(
             args, capture_output=True, text=True, timeout=timeout,
             encoding="utf-8", errors="replace", shell=False,
+            cwd=sandbox_cwd,
         )
     finally:
         if sys_file:
