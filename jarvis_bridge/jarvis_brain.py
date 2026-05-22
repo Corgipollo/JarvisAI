@@ -26,12 +26,18 @@ PROXY = os.environ.get("JARVIS_CLAUDE_PROXY", "http://127.0.0.1:8088")
 DEFAULT_MODEL = "claude-haiku-4-5-20251001"
 DEFAULT_TIMEOUT = 300  # subido de 120 -> 300 (proxy Max plan a veces tarda)
 
-# Provider routing (FREE tier solamente, sin Anthropic paid API):
-#   anthropic_proxy   (default) - via claude_proxy v1 :8088 OAuth Max
-#   gemini_api        - Google Gemini API free tier (60 req/min flash)
-#   gemini_browser    - browser bridge gemini_pro_server :5555 (needs NAT)
-#   ollama            - 100% local en :11434 (sin internet, infinito)
-LLM_PROVIDER = os.environ.get("JARVIS_LLM_PROVIDER", "anthropic_proxy").lower()
+# Provider routing:
+#   openrouter        - HTTP API, dynamic router Haiku<->Sonnet (paid, indispensable)
+#   anthropic_proxy   - claude_proxy v1 :8088 OAuth Max (FREE pero lento via CLI)
+#   gemini_api        - Google Gemini API (free 1500/dia gemini-2.0-flash)
+#   gemini_browser    - browser bridge gemini_pro_server :5555
+#   ollama            - 100% local en :11434
+LLM_PROVIDER = os.environ.get("JARVIS_LLM_PROVIDER", "openrouter").lower()
+OPENROUTER_API_KEY = os.environ.get("OPENROUTER_API_KEY", "")
+OPENROUTER_MODEL_LIGHT = os.environ.get("OPENROUTER_MODEL_LIGHT",
+                                          "anthropic/claude-haiku-4.5")
+OPENROUTER_MODEL_HEAVY = os.environ.get("OPENROUTER_MODEL_HEAVY",
+                                          "anthropic/claude-sonnet-4.5")
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
 GEMINI_BROWSER_URL = os.environ.get("GEMINI_BROWSER_URL",
                                       "http://10.0.2.2:5555")
@@ -39,11 +45,20 @@ GEMINI_MODEL_DEFAULT = os.environ.get("GEMINI_MODEL", "gemini-2.0-flash")
 OLLAMA_URL = os.environ.get("OLLAMA_URL", "http://localhost:11434")
 OLLAMA_MODEL_DEFAULT = os.environ.get("OLLAMA_MODEL", "llama3.2:latest")
 
+# Triggers que detonan modelo PESADO (Sonnet) vs ligero (Haiku) en openrouter
+HEAVY_TRIGGERS = [
+    "MODO INGENIERO", "MODO ARQUITECTO", "OPUS", "SONNET",
+    "REFACTOR", "MODO GOD-MODE", "MODO PERSISTENCIA",
+    "CRITICAL", "PRODUCTION CODE",
+]
+
 # Fallback chain: si provider principal falla, prueba estos en orden.
-# Default: anthropic_proxy → gemini_api → gemini_browser → ollama (local infinito)
-# Ej env: JARVIS_LLM_FALLBACK="gemini_api,ollama"
-_default_fallback = ("gemini_api,gemini_browser,ollama"
-                      if LLM_PROVIDER == "anthropic_proxy" else "")
+_default_fallback_map = {
+    "openrouter": "gemini_api,anthropic_proxy,ollama",
+    "anthropic_proxy": "openrouter,gemini_api,ollama",
+    "gemini_api": "openrouter,anthropic_proxy,ollama",
+}
+_default_fallback = _default_fallback_map.get(LLM_PROVIDER, "")
 LLM_FALLBACK = [p.strip() for p in
                 os.environ.get("JARVIS_LLM_FALLBACK", _default_fallback).split(",")
                 if p.strip()]
@@ -56,6 +71,45 @@ def _proxy_healthy(timeout: float = 3.0) -> bool:
         return r.status_code == 200
     except Exception:
         return False
+
+
+def _ask_openrouter(prompt: str, system: str, max_tokens: int,
+                     timeout: int) -> str | None:
+    """OpenRouter HTTP API con router dinamico Haiku<->Sonnet.
+
+    Detecta keywords HEAVY_TRIGGERS en prompt+system -> Sonnet 4.5 (potente,
+    caro ~$3/M input). Sino -> Haiku 4.5 (rapido, barato ~$0.80/M input).
+    Cero RAM extra. Sin CLI ni proxy.
+    """
+    if not OPENROUTER_API_KEY:
+        print("[brain] OPENROUTER_API_KEY no seteado", file=sys.stderr)
+        return None
+    text = (prompt + " " + system).upper()
+    is_heavy = any(t in text for t in HEAVY_TRIGGERS)
+    model = OPENROUTER_MODEL_HEAVY if is_heavy else OPENROUTER_MODEL_LIGHT
+    headers = {
+        "Authorization": f"Bearer {OPENROUTER_API_KEY}",
+        "Content-Type": "application/json",
+        "HTTP-Referer": "https://github.com/Corgipollo/JarvisAI",
+        "X-Title": "Jarvis V2",
+    }
+    messages = []
+    if system:
+        messages.append({"role": "system", "content": system})
+    messages.append({"role": "user", "content": prompt})
+    payload = {
+        "model": model,
+        "messages": messages,
+        "temperature": 0.2,
+        "max_tokens": max_tokens,
+    }
+    r = requests.post("https://openrouter.ai/api/v1/chat/completions",
+                       headers=headers, json=payload, timeout=timeout)
+    r.raise_for_status()
+    data = r.json()
+    if "error" in data:
+        raise RuntimeError(f"openrouter: {data['error'].get('message', data['error'])}")
+    return data["choices"][0]["message"]["content"]
 
 
 def _ask_gemini_api(prompt: str, system: str, max_tokens: int,
@@ -110,6 +164,19 @@ def _ask_gemini_browser(prompt: str, system: str, timeout: int) -> str | None:
 def _try_provider(provider: str, prompt: str, system: str, model: str,
                    max_tokens: int, timeout: int, retries: int) -> str | None:
     """Llama un provider especifico. Devuelve texto o None si falla."""
+    if provider == "openrouter":
+        for attempt in range(retries + 1):
+            try:
+                r = _ask_openrouter(prompt, system, max_tokens, timeout)
+                if r:
+                    return r
+            except Exception as e:
+                if attempt < retries:
+                    time.sleep(min(30, 5 * (2 ** attempt)))
+                    continue
+                print(f"[brain] openrouter fallo: {e}", file=sys.stderr)
+        return None
+
     if provider == "gemini_api":
         for attempt in range(retries + 1):
             try:
