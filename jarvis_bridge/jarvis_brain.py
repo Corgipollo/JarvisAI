@@ -366,16 +366,28 @@ def ask_claude_json(
     )
     text = ask_claude(prompt, system=sys_prompt, **kwargs)
     if not text:
+        print("[brain.ask_claude_json] text vacio del LLM "
+              f"(provider={LLM_PROVIDER}, prompt_head={prompt[:80]!r})",
+              file=sys.stderr)
         return None
     # Extraer JSON si viene envuelto en ```json o texto
     import re
     m = re.search(r"\{.*\}", text, re.DOTALL)
-    if m:
+    if not m:
+        print(f"[brain.ask_claude_json] no JSON en respuesta. head: {text[:200]!r}",
+              file=sys.stderr)
+        return None
+    try:
+        return json.loads(m.group(0))
+    except json.JSONDecodeError as e:
+        print(f"[brain.ask_claude_json] JSON inválido: {e}. raw head: {text[:200]!r}",
+              file=sys.stderr)
+        # Intento de cleanup comun: trailing comma, comillas mal
+        cleaned = re.sub(r",\s*([\]}])", r"\1", m.group(0))
         try:
-            return json.loads(m.group(0))
+            return json.loads(cleaned)
         except json.JSONDecodeError:
             return None
-    return None
 
 
 def ping_proxy() -> bool:

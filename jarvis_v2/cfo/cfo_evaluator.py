@@ -77,7 +77,8 @@ def _env_snapshot() -> dict:
 def _has_duplicate(idem_key: str, within_hours: float = 1) -> bool:
     if not LEDGER.exists():
         return False
-    con = sqlite3.connect(LEDGER, timeout=5)
+    from jarvis_v2.cfo.cost_oracle import _connect
+    con = _connect()
     cutoff = (datetime.utcnow() - timedelta(hours=within_hours)).isoformat()
     row = con.execute(
         "SELECT 1 FROM spend WHERE idempotency_key=? AND ts>=?",
@@ -93,8 +94,8 @@ def _write_to_ledger(idem_key: str, amount: float, action_type: str,
         f"{idem_key}{datetime.utcnow()}".encode()
     ).hexdigest()[:16]
     LEDGER.parent.mkdir(parents=True, exist_ok=True)
-    con = sqlite3.connect(LEDGER, timeout=5)
-    con.execute("PRAGMA journal_mode=WAL")
+    from jarvis_v2.cfo.cost_oracle import _connect
+    con = _connect()
     con.execute("""CREATE TABLE IF NOT EXISTS spend (
         id INTEGER PRIMARY KEY,
         ts TEXT NOT NULL,

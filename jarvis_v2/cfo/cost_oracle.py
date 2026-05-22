@@ -41,9 +41,14 @@ STATIC_COSTS = {
 
 
 def _connect():
+    """Connection helper compartida: WAL + busy_timeout largo.
+    Multi-thread safe: worker+heartbeat+api+governor pueden escribir simultaneo.
+    """
     LEDGER.parent.mkdir(parents=True, exist_ok=True)
-    con = sqlite3.connect(LEDGER, timeout=5)
+    con = sqlite3.connect(LEDGER, timeout=30, isolation_level=None)
     con.execute("PRAGMA journal_mode=WAL")
+    con.execute("PRAGMA busy_timeout=30000")  # 30s busy retry
+    con.execute("PRAGMA synchronous=NORMAL")  # mas rapido en WAL
     con.execute("""CREATE TABLE IF NOT EXISTS spend (
         id INTEGER PRIMARY KEY,
         ts TEXT NOT NULL,

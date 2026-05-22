@@ -66,8 +66,8 @@ def get_metrics() -> dict:
             "loss_streak_days": 0,
             "burn_rate_daily": 0,
         }
-    import sqlite3
-    con = sqlite3.connect(LEDGER, timeout=5)
+    from jarvis_v2.cfo.cost_oracle import _connect
+    con = _connect()
     try:
         # Spend lifetime
         spent = float(con.execute(

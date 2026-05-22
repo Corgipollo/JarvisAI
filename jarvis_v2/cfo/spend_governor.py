@@ -113,8 +113,8 @@ def check_ledger():
     if not LEDGER.exists():
         return
     try:
-        con = sqlite3.connect(LEDGER, timeout=2)
-        con.execute("PRAGMA journal_mode=WAL")
+        from jarvis_v2.cfo.cost_oracle import _connect
+        con = _connect()
         now = datetime.utcnow()
 
         # Hourly

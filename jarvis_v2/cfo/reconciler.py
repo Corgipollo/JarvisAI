@@ -20,7 +20,8 @@ def reconcile(idem_key: str, actual_cost_usd: float, result_roi: float | None = 
     """Actualiza el ledger con costo real post-execution."""
     if not LEDGER.exists():
         return {"ok": False, "error": "no_ledger"}
-    con = sqlite3.connect(LEDGER, timeout=5)
+    from jarvis_v2.cfo.cost_oracle import _connect
+    con = _connect()
     row = con.execute(
         "SELECT id, amount_usd, action_type FROM spend WHERE idempotency_key=?",
         (idem_key,),
