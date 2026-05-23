@@ -79,8 +79,11 @@ def _lazy_load() -> None:
     dev = _device_pref()
     print(f"[omniparser] loading YOLO + Florence on {dev}...", flush=True)
     _yolo = YOLO(str(YOLO_WEIGHTS))
+    # OmniParser fine-tunea Florence-2-base-ft. El processor vive en el base
+    # de HF (microsoft/Florence-2-base-ft) - lo bajamos al primer load (~150MB),
+    # los WEIGHTS los cargamos desde local (los 1.08GB que ya tenemos).
     _florence_proc = AutoProcessor.from_pretrained(
-        str(FLORENCE_DIR), trust_remote_code=True
+        "microsoft/Florence-2-base-ft", trust_remote_code=True
     )
     dtype = torch.float16 if dev == "cuda" else torch.float32
     _florence_model = AutoModelForCausalLM.from_pretrained(
