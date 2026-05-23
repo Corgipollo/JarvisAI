@@ -43,6 +43,81 @@ IDEATION_LOG = ROOT / "data" / "ideation_log.jsonl"
 STATUS_BOARD = ROOT / "data" / "status_board.json"
 
 
+def propose_topics(limit: int = 3) -> list[str]:
+    """Genera N objectives concretos basados en el estado real del sistema.
+
+    Fuentes (en orden de prioridad):
+      1. data/reports/*_status.md -> proximos pasos pendientes
+      2. data/reports/vault_top_projects.json -> proyectos con backlog
+      3. Verificacion liviana del sistema (no quema saldo LLM)
+
+    Retorna list[str] de objectives ATOMICOS para el planner.
+    """
+    import json as _json
+    import time as _time
+    reports = ROOT / "data" / "reports"
+    proposals: list[str] = []
+
+    # 1. Status MDs recientes con "Proximo paso" pendiente
+    for status_md in reports.glob("*_status.md"):
+        try:
+            if _time.time() - status_md.stat().st_mtime > 86400 * 7:
+                continue  # > 7 dias, stale
+            txt = status_md.read_text(encoding="utf-8", errors="replace")
+            slug = status_md.stem.replace("_status", "").replace("_repair", "")
+            head = txt[:200].replace("\n", " ")
+            proposals.append(
+                f"Verifica el estado del proyecto '{slug}'. Lee el reporte en "
+                f"{status_md.as_posix()} y ejecuta UN comando shell concreto "
+                f"que avance el proyecto (ej. correr un test, validar un build, "
+                f"contar archivos generados). Guarda el resultado en "
+                f"data/reports/{slug}_check_$(date +%s).txt."
+            )
+        except Exception:
+            continue
+
+    # 2. Vault top projects -> sample
+    vtp = reports / "vault_top_projects.json"
+    if vtp.exists():
+        try:
+            data = _json.loads(vtp.read_text(encoding="utf-8"))
+            for entry in data.get("top", [])[:3]:
+                proj = entry["proyecto"]
+                if proj == "Bot-Forex-V8":
+                    continue  # vive en VPS, no se toca local
+                proposals.append(
+                    f"Cuenta los archivos .md modificados en los ultimos 7 "
+                    f"dias en C:/Users/Emmanuel/Documents/CerebroEmmanuel/"
+                    f"01-Proyectos/{proj}/ y escribe el resultado a "
+                    f"data/reports/{proj.lower()}_activity.txt."
+                )
+        except Exception:
+            pass
+
+    # 3. Self-check baratos siempre disponibles
+    proposals.append(
+        "Lista los procesos python.exe corriendo con tasklist y guarda a "
+        "data/reports/python_processes.txt."
+    )
+    proposals.append(
+        "Lee data/task_worker.log ultimas 50 lineas y guarda errores 'fail' o "
+        "'error' a data/reports/worker_errors_recent.txt."
+    )
+
+    # Dedupe ligero por primeros 60 chars
+    seen = set()
+    out = []
+    for p in proposals:
+        key = p[:60]
+        if key in seen:
+            continue
+        seen.add(key)
+        out.append(p)
+        if len(out) >= limit:
+            break
+    return out
+
+
 def log_ideation(entry: dict):
     IDEATION_LOG.parent.mkdir(parents=True, exist_ok=True)
     with IDEATION_LOG.open("a", encoding="utf-8") as f:

@@ -554,17 +554,40 @@ def node_halt(state: JarvisState) -> JarvisState:
     }
 
 
+def node_skip_step(state: JarvisState) -> JarvisState:
+    """Salta el step actual (idempotency hit u otra causa benigna) y avanza.
+
+    Bugfix 2026-05-23: antes cfo_decision='deny' + cfo_reason='duplicate_recent'
+    iba a halt total -> el plan entero moria si el step 1 ya estaba en idem
+    cache. Ahora: skipear y avanzar al siguiente step.
+    """
+    idx = state.get("current_step", 0)
+    reason = state.get("cfo_reason", "skip")
+    return {
+        "current_step": idx + 1,
+        "retries_for_step": 0,
+        "cfo_decision": None,
+        "cfo_reason": None,
+        "messages": [{"role": "skip_step",
+                      "content": f"skipped_step_{idx}_reason_{reason}"}],
+    }
+
+
 # ============================================================================
 # FAIL-CLOSED ROUTING
 # ============================================================================
 def route_after_cfo(state: JarvisState) -> str:
     """Enrutador fail-closed. SIN lambda. Si decision ausente/corrupta -> halt."""
     decision = state.get("cfo_decision")
+    reason = state.get("cfo_reason", "")
     if decision == "approve_real":
         return "execute_real"
     if decision == "approve_sim_only":
         return "execute_sim"
-    # Cualquier otro valor (deny, escalate_human, None, valor corrupto) -> HALT
+    # Skip benigno: idempotency hit no debe matar el plan, solo el step
+    if decision == "deny" and reason == "duplicate_recent":
+        return "skip_step"
+    # Cualquier otro valor (deny por otra razon, escalate_human, None, corrupto) -> HALT
     return "halt"
 
 
@@ -602,22 +625,27 @@ def build_graph(use_checkpoint: bool = True):
     sg.add_node("verifier", node_verifier)
     sg.add_node("reflector", node_reflector)
     sg.add_node("halt", node_halt)
+    sg.add_node("skip_step", node_skip_step)
 
     sg.set_entry_point("rag")
     sg.add_edge("rag", "planner")
     sg.add_edge("planner", "load_step")
     sg.add_edge("load_step", "cfo")
 
-    # CFO -> fail-closed routing
+    # CFO -> fail-closed routing (skip_step para idempotency, halt para resto)
     sg.add_conditional_edges(
         "cfo",
         route_after_cfo,
         {
             "execute_real": "execute_real",
             "execute_sim": "execute_sim",
+            "skip_step": "skip_step",
             "halt": "halt",
         },
     )
+
+    # skip_step -> load_step (siguiente step del plan)
+    sg.add_edge("skip_step", "load_step")
 
     # Execute real -> SIEMPRE reconciler antes de verifier (asentar costo)
     sg.add_edge("execute_real", "reconciler")
