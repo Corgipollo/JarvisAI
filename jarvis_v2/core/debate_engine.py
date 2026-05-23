@@ -126,9 +126,13 @@ def debate(content: str, focus_areas: str = "",
     for r in range(1, max_rounds + 1):
         rounds_done = r
         # CRITIC review
+        # Cap subido 2026-05-23 de 6000 -> 18000 tras dogfooding:
+        # Haiku/Sonnet 200k tokens window aguanta bien. 6000 chars truncaba
+        # archivos grandes y causaba 30-40% falsos positivos por contexto
+        # incompleto.
         critic_prompt = (
             f"FOCO: {focus_areas or 'general security + correctness'}\n\n"
-            f"CODIGO/DISENO:\n```\n{current_code[:6000]}\n```\n\n"
+            f"CODIGO/DISENO:\n```\n{current_code[:18000]}\n```\n\n"
             "Audita rigurosamente. Si hay issues, listalos. Sino, verdict=approve."
         )
         critic_resp = _ask_json(critic_prompt, CRITIC_SYSTEM, model=model)
@@ -164,13 +168,15 @@ def debate(content: str, focus_areas: str = "",
         )
         proposer_prompt = (
             f"FOCO: {focus_areas}\n\n"
-            f"CODIGO ACTUAL:\n```\n{current_code[:6000]}\n```\n\n"
+            f"CODIGO ACTUAL:\n```\n{current_code[:18000]}\n```\n\n"
             f"ISSUES REPORTADOS POR CRITIC:\n{issues_summary}\n\n"
             "Refactoriza el codigo solucionando cada issue. Devuelve JSON con "
             "refactored_code (codigo completo)."
         )
+        # max_tokens subido 3000 -> 8000: refactor de archivos grandes
+        # se truncaba a mitad del JSON output (audit 2 reportaba JSON invalid).
         prop_resp = _ask_json(proposer_prompt, PROPOSER_SYSTEM,
-                                model=model, max_tokens=3000)
+                                model=model, max_tokens=8000)
         if not prop_resp:
             return {"approved": False, "rounds": rounds_done,
                     "error": "proposer_call_failed",
