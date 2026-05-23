@@ -192,6 +192,32 @@ def bootstrap(req: BootstrapRequest,
     return {"ok": True, "tenant_id": req.tenant_id, "db": str(db)}
 
 
+class DebateRequest(BaseModel):
+    content: str
+    focus: str = "general security + correctness"
+    max_rounds: int = 2
+    auto: bool = True  # solo dispara debate si hay keywords de riesgo
+
+
+@router.post("/debate")
+def debate_endpoint(req: DebateRequest,
+                     x_jarvis_token: str | None = Header(default=None)):
+    """Somete codigo o diseno al tribunal interno (proposer-critic).
+
+    Si auto=True (default), solo debate si detect keywords de riesgo
+    (sql, webhook, stripe, auth, etc). Sino approved instantaneo.
+    """
+    _auth(x_jarvis_token)
+    from jarvis_v2.core.debate_engine import (
+        debate, debate_if_risky, should_trigger_debate,
+    )
+    if req.auto:
+        return debate_if_risky(req.content, focus_hint=req.focus,
+                                max_rounds=req.max_rounds)
+    return debate(req.content, focus_areas=req.focus,
+                   max_rounds=req.max_rounds)
+
+
 # Admin HTML (static)
 ADMIN_HTML = ROOT / "jarvis_v2" / "api" / "static" / "admin.html"
 
