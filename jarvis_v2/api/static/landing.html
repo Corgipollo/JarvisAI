@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="es" class="bg-zinc-950 text-zinc-100">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jarvis V2 — Empleado virtual para tu empresa</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  body { font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; }
+  .gradient-text {
+    background: linear-gradient(135deg, #fff 0%, #a1a1aa 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .glow { box-shadow: 0 0 80px rgba(74,222,128,0.15); }
+  .pill { padding: 0.25rem 0.75rem; border-radius: 9999px; }
+</style>
+</head>
+<body class="min-h-screen">
+
+<!-- NAV -->
+<nav class="border-b border-zinc-800 px-6 py-4 flex items-center justify-between sticky top-0 bg-zinc-950/80 backdrop-blur z-10">
+  <div class="text-lg font-semibold">Jarvis <span class="text-emerald-400">V2</span></div>
+  <div class="flex items-center gap-3 text-sm">
+    <a href="#pricing" class="text-zinc-400 hover:text-white">Precios</a>
+    <a href="#how" class="text-zinc-400 hover:text-white">¿Cómo funciona?</a>
+    <a href="/admin" class="text-zinc-400 hover:text-white">Acceder</a>
+    <a href="/signup" class="bg-emerald-500 hover:bg-emerald-400 text-zinc-950 px-4 py-1.5 rounded-md font-medium">Empezar gratis</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="px-6 py-24 max-w-5xl mx-auto text-center">
+  <span class="pill bg-emerald-500/10 text-emerald-400 text-xs">Plataforma agéntica multi-vertical — México</span>
+  <h1 class="mt-6 text-5xl sm:text-6xl font-semibold tracking-tight gradient-text">
+    Un empleado virtual<br>que ve, decide y ejecuta.
+  </h1>
+  <p class="mt-6 text-lg text-zinc-400 max-w-2xl mx-auto">
+    Jarvis V2 opera la computadora de tu negocio como un asistente humano:
+    abre programas, llena formularios, exporta reportes, atiende clientes —
+    24/7, sin descanso, en pesos mexicanos.
+  </p>
+  <div class="mt-10 flex items-center justify-center gap-4">
+    <a href="/signup" class="bg-emerald-500 hover:bg-emerald-400 text-zinc-950 px-6 py-3 rounded-md font-medium glow">
+      Empezar ahora →
+    </a>
+    <a href="#demo" class="text-zinc-300 hover:text-white px-4 py-3">Ver demo</a>
+  </div>
+  <p class="mt-6 text-xs text-zinc-500">Sin tarjeta hasta el final · 14 días de prueba · Cancela cuando quieras</p>
+</section>
+
+<!-- LOGOS / SOCIAL PROOF (placeholder) -->
+<section class="px-6 py-12 border-y border-zinc-900">
+  <p class="text-center text-xs text-zinc-500 uppercase tracking-widest mb-6">Construido sobre tecnología de</p>
+  <div class="flex items-center justify-center gap-12 opacity-60 text-zinc-400 text-sm flex-wrap">
+    <span>Anthropic Claude</span>
+    <span>Microsoft OmniParser</span>
+    <span>NVIDIA CUDA</span>
+    <span>FastAPI</span>
+    <span>Stripe</span>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section id="how" class="px-6 py-24 max-w-5xl mx-auto">
+  <h2 class="text-3xl font-semibold tracking-tight text-center">3 capas, 1 plataforma</h2>
+  <p class="text-zinc-400 text-center mt-3">El mismo motor sirve a 7 industrias sin tocar código.</p>
+
+  <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 mt-12">
+    <div class="border border-zinc-800 rounded-lg p-6">
+      <div class="text-emerald-400 text-3xl">👁️</div>
+      <h3 class="mt-3 font-medium">Ojos</h3>
+      <p class="mt-2 text-sm text-zinc-400">Detecta 76 elementos visuales de cualquier interfaz en menos de 1 segundo, gratis, en tu GPU local. No depende de OCR ciego.</p>
+    </div>
+    <div class="border border-zinc-800 rounded-lg p-6">
+      <div class="text-emerald-400 text-3xl">✋</div>
+      <h3 class="mt-3 font-medium">Manos</h3>
+      <p class="mt-2 text-sm text-zinc-400">Mueve el ratón con precisión de 0 píxeles, verifica cada acción antes de la siguiente con SSIM. Cero clicks ciegos.</p>
+    </div>
+    <div class="border border-zinc-800 rounded-lg p-6">
+      <div class="text-emerald-400 text-3xl">🧠</div>
+      <h3 class="mt-3 font-medium">Cerebro</h3>
+      <p class="mt-2 text-sm text-zinc-400">Claude Sonnet 4.6 toma decisiones contextuales. Multi-tenant: cada cliente ve solo su data, sus contraseñas, sus reportes.</p>
+    </div>
+  </div>
+</section>
+
+<!-- VERTICALS -->
+<section class="px-6 py-24 max-w-5xl mx-auto">
+  <h2 class="text-3xl font-semibold tracking-tight text-center">¿Para quién?</h2>
+  <p class="text-zinc-400 text-center mt-3">7 verticales soportadas. Si te identificas con alguna, hay una "personalidad" pre-cargada para tu industria.</p>
+
+  <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 mt-12">
+    <div class="border border-zinc-800 rounded-lg p-4">
+      <h4 class="font-medium">🛒 E-commerce</h4>
+      <p class="text-xs text-zinc-500 mt-1">Shopify, AutoDS, Amazon</p>
+    </div>
+    <div class="border border-zinc-800 rounded-lg p-4">
+      <h4 class="font-medium">🌾 Agri-logística</h4>
+      <p class="text-xs text-zinc-500 mt-1">Granos, fletes, SAP</p>
+    </div>
+    <div class="border border-zinc-800 rounded-lg p-4">
+      <h4 class="font-medium">📣 Marketing</h4>
+      <p class="text-xs text-zinc-500 mt-1">Meta, Google Ads, TikTok</p>
+    </div>
+    <div class="border border-zinc-800 rounded-lg p-4">
+      <h4 class="font-medium">💻 Desarrollo</h4>
+      <p class="text-xs text-zinc-500 mt-1">Code review, CI/CD</p>
+    </div>
+    <div class="border border-zinc-800 rounded-lg p-4">
+      <h4 class="font-medium">🎬 Video</h4>
+      <p class="text-xs text-zinc-500 mt-1">ffmpeg, voice clone</p>
+    </div>
+    <div class="border border-zinc-800 rounded-lg p-4">
+      <h4 class="font-medium">📈 Trading</h4>
+      <p class="text-xs text-zinc-500 mt-1">MT5, Binance, backtest</p>
+    </div>
+    <div class="border border-zinc-800 rounded-lg p-4">
+      <h4 class="font-medium">🏢 PyME genérica</h4>
+      <p class="text-xs text-zinc-500 mt-1">Tareas cross-industria</p>
+    </div>
+    <div class="border border-zinc-800 rounded-lg p-4 border-dashed text-zinc-500">
+      <h4 class="font-medium">+ Tu industria</h4>
+      <p class="text-xs mt-1">¿No la ves? Contáctanos.</p>
+    </div>
+  </div>
+</section>
+
+<!-- PRICING -->
+<section id="pricing" class="px-6 py-24 max-w-5xl mx-auto">
+  <h2 class="text-3xl font-semibold tracking-tight text-center">Precios honestos</h2>
+  <p class="text-zinc-400 text-center mt-3">14 días de prueba sin tarjeta. Cancela cuando quieras.</p>
+
+  <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 mt-12">
+    <!-- Standard -->
+    <div class="border border-zinc-800 rounded-lg p-6">
+      <h3 class="text-lg font-medium">Standard</h3>
+      <div class="mt-3 text-3xl font-semibold">$1,499<span class="text-sm font-normal text-zinc-500"> MXN/mes</span></div>
+      <p class="text-xs text-zinc-500 mt-1">≈ $80 USD</p>
+      <ul class="mt-6 space-y-2 text-sm text-zinc-300">
+        <li>✓ 1 vertical activa</li>
+        <li>✓ 50 acciones/día</li>
+        <li>✓ 2 integraciones</li>
+        <li>✓ Memoria 30 días</li>
+        <li>✓ Dashboard incluido</li>
+      </ul>
+      <a href="/signup?plan=standard" class="mt-6 block text-center border border-zinc-700 hover:border-zinc-500 py-2 rounded-md text-sm">Empezar</a>
+    </div>
+
+    <!-- Pro -->
+    <div class="border-2 border-emerald-500 rounded-lg p-6 relative">
+      <span class="absolute top-0 right-6 -translate-y-1/2 bg-emerald-500 text-zinc-950 text-xs pill font-medium">Recomendado</span>
+      <h3 class="text-lg font-medium">Pro</h3>
+      <div class="mt-3 text-3xl font-semibold">$4,999<span class="text-sm font-normal text-zinc-500"> MXN/mes</span></div>
+      <p class="text-xs text-zinc-500 mt-1">≈ $270 USD</p>
+      <ul class="mt-6 space-y-2 text-sm text-zinc-300">
+        <li>✓ Multi-vertical</li>
+        <li>✓ 300 acciones/día</li>
+        <li>✓ 10 integraciones</li>
+        <li>✓ Memoria 1 año</li>
+        <li>✓ Soporte 24h</li>
+        <li>✓ Telegram bot</li>
+      </ul>
+      <a href="/signup?plan=pro" class="mt-6 block text-center bg-emerald-500 hover:bg-emerald-400 text-zinc-950 py-2 rounded-md text-sm font-medium">Empezar</a>
+    </div>
+
+    <!-- Enterprise -->
+    <div class="border border-zinc-800 rounded-lg p-6">
+      <h3 class="text-lg font-medium">Enterprise</h3>
+      <div class="mt-3 text-3xl font-semibold">$14,999<span class="text-sm font-normal text-zinc-500"> MXN/mes</span></div>
+      <p class="text-xs text-zinc-500 mt-1">≈ $810 USD</p>
+      <ul class="mt-6 space-y-2 text-sm text-zinc-300">
+        <li>✓ Tenants ilimitados</li>
+        <li>✓ Acciones ilimitadas</li>
+        <li>✓ Integraciones ilimitadas</li>
+        <li>✓ SLA 99.9%</li>
+        <li>✓ On-prem opcional</li>
+        <li>✓ SOC 2 readiness</li>
+      </ul>
+      <a href="/signup?plan=enterprise" class="mt-6 block text-center border border-zinc-700 hover:border-zinc-500 py-2 rounded-md text-sm">Empezar</a>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section class="px-6 py-24 max-w-3xl mx-auto">
+  <h2 class="text-3xl font-semibold tracking-tight text-center">Preguntas honestas</h2>
+  <div class="mt-12 space-y-6">
+    <div>
+      <h4 class="font-medium">¿Es seguro que una IA controle mi computadora?</h4>
+      <p class="text-sm text-zinc-400 mt-2">Sí. Cada acción se verifica visualmente antes y después con SSIM (Structural Similarity Index). Si el sistema no detecta el cambio esperado, NO continúa. Tiene un tribunal interno (Actor-Critic) que audita código de alto riesgo antes de ejecutarlo. Y nunca toca tu mouse sin tu permiso explícito.</p>
+    </div>
+    <div>
+      <h4 class="font-medium">¿Mis datos se mezclan con los de otros clientes?</h4>
+      <p class="text-sm text-zinc-400 mt-2">No. Cada cliente tiene su propio archivo de base de datos aislado en disco (data/tenants/{tu_id}/). Las API keys se guardan cifradas con SOPS+age fuera de la base de datos. Cumple el patrón multi-tenant que pide SOC 2.</p>
+    </div>
+    <div>
+      <h4 class="font-medium">¿Qué pasa si la IA se equivoca?</h4>
+      <p class="text-sm text-zinc-400 mt-2">El sistema registra cada acción en SQLite con éxito/error y métrica SSIM. Tienes un dashboard donde ves exactamente qué hizo, qué falló, y por qué. La memoria persistente aprende de los errores para no repetirlos.</p>
+    </div>
+    <div>
+      <h4 class="font-medium">¿Cuánto pago de extra a Anthropic / OpenAI por las llamadas IA?</h4>
+      <p class="text-sm text-zinc-400 mt-2">Cero extra. El plan que pagas incluye todas las llamadas IA. Usamos OAuth Max con suscripción flat, sin pay-per-token al cliente final.</p>
+    </div>
+  </div>
+</section>
+
+<!-- CTA FINAL -->
+<section class="px-6 py-24 text-center">
+  <h2 class="text-3xl font-semibold">¿Empezamos?</h2>
+  <p class="text-zinc-400 mt-3">14 días gratis. Sin tarjeta hasta el final.</p>
+  <a href="/signup" class="mt-8 inline-block bg-emerald-500 hover:bg-emerald-400 text-zinc-950 px-8 py-3 rounded-md font-medium glow">
+    Crear mi cuenta →
+  </a>
+</section>
+
+<footer class="border-t border-zinc-900 px-6 py-8 text-center text-xs text-zinc-500">
+  <p>© 2026 Jarvis V2 · Emmanuel Pedraza · Hecho en México 🇲🇽</p>
+  <p class="mt-2">
+    <a href="/admin" class="hover:text-zinc-300">Dashboard</a> ·
+    <a href="https://github.com/Corgipollo/JarvisAI" class="hover:text-zinc-300">GitHub</a>
+  </p>
+</footer>
+
+</body>
+</html>

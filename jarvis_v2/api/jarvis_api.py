@@ -64,6 +64,13 @@ try:
 except Exception as e:
     print(f"[api] stripe_billing not loaded: {e}", flush=True)
 
+# Mount signup routes (landing + wizard publicos)
+try:
+    from jarvis_v2.api.signup_routes import router as signup_router
+    app.include_router(signup_router)
+except Exception as e:
+    print(f"[api] signup_routes not loaded: {e}", flush=True)
+
 # Estado in-memory de tasks lanzadas (persiste a disco en TASKS_DIR)
 _TASKS: dict = {}
 _TASKS_LOCK = threading.Lock()
