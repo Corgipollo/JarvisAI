@@ -93,12 +93,27 @@ def _run_task(task_id: str, objective: str, thread_id: str | None):
     try:
         from jarvis_v2.core.graph import run_objective
         result = run_objective(objective, thread_id=thread_id or f"api_{task_id}")
+        rd = result or {}
+        plan = rd.get("plan") or []
+        last_err = rd.get("last_error")
         with _TASKS_LOCK:
             t = _TASKS[task_id]
-            t["status"] = "done"
+            # Si el planner devolvio plan vacio o el graph propago last_error,
+            # NO marcar done - marcar error con causa. Antes este branch era
+            # "done con result={}" -> bug de alucinacion de exito.
+            if not plan or last_err:
+                t["status"] = "error"
+                t["error"] = (last_err or "empty_plan_or_no_steps")
+            else:
+                t["status"] = "done"
             t["completed_at"] = datetime.utcnow().isoformat()
-            t["result"] = {k: str(v)[:500] for k, v in (result or {}).items()
-                           if k in ("plan", "current_step", "done", "messages")}
+            t["result"] = {
+                "plan_len": len(plan),
+                "current_step": rd.get("current_step", 0),
+                "done": rd.get("done", False),
+                "last_error": last_err,
+                "messages_tail": str(rd.get("messages", []))[-400:],
+            }
             _save_task(t)
     except Exception as e:
         with _TASKS_LOCK:

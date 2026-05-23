@@ -99,8 +99,9 @@ def propose_improvement(file_path: Path, focus: str = "") -> dict:
 
     if len(original) < 100:
         return {"ok": False, "error": "file_too_short"}
-    if len(original) > 15000:
-        return {"ok": False, "error": "file_too_long_for_safe_refactor"}
+    if len(original) > 50000:
+        return {"ok": False, "error": "file_too_long_for_safe_refactor",
+                "size": len(original), "limit": 50000}
 
     focus_line = f"\nFOCUS DEL USUARIO: {focus}\n" if focus else ""
     system = (
@@ -195,17 +196,36 @@ def commit_and_push(file_path: Path, reason: str) -> dict:
 
 def run_one_cycle(focus: str = "",
                    strategy: str = "todo_or_old",
-                   do_push: bool = True) -> dict:
+                   do_push: bool = True,
+                   target_file: str | Path | None = None) -> dict:
     """Un ciclo completo: pick -> propose -> apply -> validate -> commit + push.
+
+    Args:
+        focus: hint en lenguaje natural para el LLM (ej. bug a fixear).
+        strategy: 'todo_or_old' | 'random' | 'shortest' si no hay target_file.
+        do_push: si False, aplica + valida pero no committea.
+        target_file: ruta absoluta o relativa a ROOT. Si se provee, brinca
+            pick_target y opera quirurgicamente sobre ESE archivo. Indispensable
+            para auto-reparacion de bugs especificos (no random).
 
     Devuelve dict con steps + final outcome.
     """
     _log(f"=== self_improvement cycle start ===")
-    target = pick_target(strategy)
-    if not target:
-        _log("no target picked")
-        return {"ok": False, "step": "pick", "error": "no_targets"}
-    _log(f"target: {target.relative_to(ROOT)}")
+    if target_file:
+        target = Path(target_file)
+        if not target.is_absolute():
+            target = ROOT / target
+        if not target.exists():
+            _log(f"target_file no existe: {target}")
+            return {"ok": False, "step": "pick", "error": "target_not_found",
+                    "target": str(target)}
+        _log(f"target (explicit): {target.relative_to(ROOT)}")
+    else:
+        target = pick_target(strategy)
+        if not target:
+            _log("no target picked")
+            return {"ok": False, "step": "pick", "error": "no_targets"}
+        _log(f"target (strategy={strategy}): {target.relative_to(ROOT)}")
 
     prop = propose_improvement(target, focus=focus)
     if not prop.get("ok"):
@@ -234,7 +254,38 @@ def run_one_cycle(focus: str = "",
             "reason": prop["reason"], **push}
 
 
+def _parse_argv(argv: list[str]) -> dict:
+    """Parser minimo: --target FILE, --focus TEXT, --no-push, --strategy NAME.
+
+    Cualquier argumento suelto (sin flag) se concatena como focus para mantener
+    compat con uso historico 'python -m self_improvement "fix planner bug"'.
+    """
+    out = {"target_file": None, "focus": "", "do_push": True,
+           "strategy": "todo_or_old"}
+    free: list[str] = []
+    i = 0
+    while i < len(argv):
+        a = argv[i]
+        if a in ("--target", "--file") and i + 1 < len(argv):
+            out["target_file"] = argv[i + 1]; i += 2; continue
+        if a == "--focus" and i + 1 < len(argv):
+            out["focus"] = argv[i + 1]; i += 2; continue
+        if a == "--strategy" and i + 1 < len(argv):
+            out["strategy"] = argv[i + 1]; i += 2; continue
+        if a == "--no-push":
+            out["do_push"] = False; i += 1; continue
+        free.append(a); i += 1
+    if free and not out["focus"]:
+        out["focus"] = " ".join(free)
+    return out
+
+
 if __name__ == "__main__":
-    focus = " ".join(sys.argv[1:]) if len(sys.argv) > 1 else ""
-    r = run_one_cycle(focus=focus, do_push=True)
-    print(json.dumps(r, ensure_ascii=False, indent=2))
+    args = _parse_argv(sys.argv[1:])
+    r = run_one_cycle(
+        focus=args["focus"],
+        strategy=args["strategy"],
+        do_push=args["do_push"],
+        target_file=args["target_file"],
+    )
+    print(json.dumps(r, ensure_ascii=False, indent=2, default=str))

@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import json
 import operator
+import re
 import sqlite3
 import sys
 from datetime import datetime
@@ -19,6 +20,31 @@ ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
 
 CHECKPOINT_DB = ROOT / "data" / "jarvis_v2_checkpoints.db"
+
+
+_EXPLICIT_STEP_RE = re.compile(r"(?:^|\s)(\d+)\s*[\.\)]\s+", re.MULTILINE)
+
+
+def count_explicit_steps(objective: str) -> int:
+    """Cuenta enumeraciones '1.', '2)', etc. para detectar objetivos multi-paso.
+
+    Solo cuenta si hay >=2 distintos para evitar falsos positivos con un
+    '1.' suelto en medio del texto.
+    """
+    nums = {int(m.group(1)) for m in _EXPLICIT_STEP_RE.finditer(objective)}
+    nums = {n for n in nums if 1 <= n <= 20}
+    if len(nums) < 2:
+        return 0
+    return max(nums)
+
+
+def split_objective_by_numbers(objective: str) -> list[str]:
+    """Parte un objetivo numerado '1. foo 2. bar 3. baz' en sub-objectives.
+
+    Fallback usado si el LLM persiste en condensar despues de retry.
+    """
+    parts = re.split(r"(?:^|\s)\d+\s*[\.\)]\s+", objective)
+    return [p.strip() for p in parts if len(p.strip()) > 5]
 
 
 # ============================================================================
@@ -108,6 +134,20 @@ def node_planner(state: JarvisState) -> JarvisState:
             except Exception:
                 pass
 
+    explicit_n = count_explicit_steps(obj)
+    step_rule = (
+        "5. Genera el MINIMO numero de steps. Si una sola linea de shell hace "
+        "todo el objetivo, usa 1 solo step.\n"
+    )
+    if explicit_n >= 2:
+        step_rule = (
+            f"5. ANTI-CONDENSACION: El objetivo del usuario enumera {explicit_n} "
+            f"sub-tareas explicitas ('1.', '2.', ...). DEBES generar AL MENOS "
+            f"{explicit_n} steps separados, uno por cada sub-tarea numerada. "
+            "PROHIBIDO meter varias sub-tareas en un solo step. NO uses "
+            "operadores '&&' / ';' para colapsar varias en un solo shell.\n"
+        )
+
     prompt = (
         f"OBJETIVO USUARIO: {obj}\n\n"
         f"CONTEXTO RELEVANTE (CerebroEmmanuel):\n{ctx[:2000]}\n"
@@ -121,8 +161,7 @@ def node_planner(state: JarvisState) -> JarvisState:
         "3. Cada step DEBE tener estimated_spend_usd (0.0 si es gratis).\n"
         "4. Acciones de archivos/carpetas son REVERSIBLE=true, "
         "estimated_spend_usd=0.0, is_financial=false.\n"
-        "5. Genera el MINIMO numero de steps. Si una sola linea de shell hace "
-        "todo el objetivo, usa 1 solo step.\n"
+        + step_rule +
         "6. command_or_task DEBE ser autosuficiente: 'cmd /c <cmd>' o "
         "'powershell -Command \"<ps>\"'. Nunca uses paths Unix (/c/foo) en Windows.\n"
     )
@@ -137,7 +176,7 @@ def node_planner(state: JarvisState) -> JarvisState:
         system=(
             "Eres planner atomico Windows. Generas action=shell con "
             "command_or_task='cmd /c ...' o 'powershell -Command ...' literal. "
-            "Sin placeholders, sin TODOs, sin pasos abstractos. Steps minimos. "
+            "Sin placeholders, sin TODOs, sin pasos abstractos. "
             "Si objetivo implica navegador (Twitter, Shopify, etc.) usa "
             "action=browser_interact con JSON {url, selector, click, text}. "
             "Si implica video YouTube usa action=youtube_watch con {url, prompt}."
@@ -147,14 +186,70 @@ def node_planner(state: JarvisState) -> JarvisState:
         max_retries=2,
     )
 
+    # ANTI-CONDENSACION post-LLM: si objetivo tiene N steps enumerados y el
+    # planner devolvio menos, reintentar con prompt aun mas explicito; si
+    # vuelve a fallar, expandir manualmente partiendo por enumeracion.
+    if explicit_n >= 2 and len(plan_obj.steps) < explicit_n:
+        print(f"[planner] CONDENSACION detectada: esperaba >={explicit_n} "
+              f"steps, planner devolvio {len(plan_obj.steps)}. Retry forzado.",
+              file=sys.stderr)
+        sub_objs = split_objective_by_numbers(obj)
+        if len(sub_objs) >= explicit_n:
+            enumerated = "\n".join(
+                f"  STEP {i+1} OBLIGATORIO: {s}"
+                for i, s in enumerate(sub_objs[:explicit_n])
+            )
+            retry_prompt = (
+                f"OBJETIVO NUMERADO USUARIO (NO CONDENSES):\n{enumerated}\n\n"
+                f"CONTEXTO:\n{ctx[:1500]}\n\n"
+                "GENERA EXACTAMENTE UN STEP POR CADA STEP OBLIGATORIO LISTADO. "
+                f"len(plan.steps) DEBE SER >= {explicit_n}. Acciones individuales, "
+                "una sub-tarea por step. Sin '&&' ni ';' colapsando. "
+                "Cada step con action='shell' + cmd literal Windows; o 'file_write' "
+                "si el sub-step pide escribir un archivo; o 'api' si pide invocar "
+                "un LLM externo."
+            )
+            try:
+                plan_obj_retry = llm_structured(
+                    retry_prompt, Plan,
+                    system="Eres planner NO condensador. Un step por cada sub-tarea explicita.",
+                    model="claude-haiku-4-5-20251001",
+                    max_tokens=4000, max_retries=1,
+                )
+                if len(plan_obj_retry.steps) >= explicit_n:
+                    plan_obj = plan_obj_retry
+                    print(f"[planner] retry OK: {len(plan_obj.steps)} steps",
+                          file=sys.stderr)
+                else:
+                    print(f"[planner] retry insuficiente: {len(plan_obj_retry.steps)} steps",
+                          file=sys.stderr)
+            except Exception as e:
+                print(f"[planner] retry fail: {e}", file=sys.stderr)
+
+    # HARDENING: si despues de todo el plan sigue vacio, no devolver state
+    # mudo (causa el bug status=done con result={}). Propagar last_error.
+    steps = [s.model_dump() for s in plan_obj.steps]
+    if not steps:
+        return {
+            "plan": [],
+            "objective_summary": plan_obj.objective_summary or "(empty plan)",
+            "current_step": 0,
+            "retries_for_step": 0,
+            "max_retries": 3,
+            "last_error": f"planner_empty_plan (explicit_n={explicit_n})",
+            "done": True,
+            "messages": [{"role": "planner",
+                          "content": f"FAIL: plan vacio, objective requeria {explicit_n} steps"}],
+        }
+
     return {
-        "plan": [s.model_dump() for s in plan_obj.steps],
+        "plan": steps,
         "objective_summary": plan_obj.objective_summary,
         "current_step": 0,
         "retries_for_step": 0,
         "max_retries": 3,
         "messages": [{"role": "planner",
-                      "content": f"plan_{len(plan_obj.steps)}_steps_with_{len(lessons)}_lessons"}],
+                      "content": f"plan_{len(steps)}_steps_lessons_{len(lessons)}_explicit_n_{explicit_n}"}],
     }
 
 
@@ -559,7 +654,15 @@ def build_graph(use_checkpoint: bool = True):
 
 
 def run_objective(objective: str, thread_id: str = "default") -> dict:
-    """Entry point usuario."""
+    """Entry point usuario.
+
+    Bugfix 2026-05-23: antes iteraba app.stream() que emite {node_name: ...}
+    por step y el ultimo NO es el state acumulado -> result quedaba con
+    solo lo del ultimo nodo (load_step/halt) y campos como plan/messages
+    se perdian. Ahora usamos stream_mode='values' que emite el state
+    COMPLETO acumulado en cada step, y devolvemos el ultimo. Eso ademas
+    arregla el bug visible 'plan_len=0' tras ejecucion exitosa.
+    """
     app = build_graph()
     initial: JarvisState = {
         "objective": objective,
@@ -569,12 +672,14 @@ def run_objective(objective: str, thread_id: str = "default") -> dict:
         "insights": [],
     }
     config = {"configurable": {"thread_id": thread_id}}
-    final = None
-    for state in app.stream(initial, config=config):
-        final = state
-        nodes = list(state.keys())
-        print(f"[graph] node={nodes}", flush=True)
-    return final or {}
+    final_state: dict = {}
+    for state in app.stream(initial, config=config, stream_mode="values"):
+        final_state = state  # state COMPLETO acumulado, no per-node
+        plan_len = len(state.get("plan", []))
+        cstep = state.get("current_step", 0)
+        print(f"[graph] step state: plan={plan_len} cur={cstep} done={state.get('done')}",
+              flush=True)
+    return final_state
 
 
 if __name__ == "__main__":
