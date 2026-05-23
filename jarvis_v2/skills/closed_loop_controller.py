@@ -149,7 +149,13 @@ def execute_action_verified(action: dict) -> dict:
     a_type = action.get("type", "click")
     target_desc = action.get("target_desc", "")
     max_retries = int(action.get("max_retries", 1))
-    ssim_threshold = float(action.get("ssim_change_threshold", 0.995))
+    # Threshold ajustado tras E2E Notepad test 2026-05-23:
+    #   - text_input/key cambian regiones pequenas -> SSIM 0.995 era falso-neg
+    #   - default ahora 0.985 (cambios sutiles cuentan)
+    #   - click sigue siendo mas estricto (0.992) porque debe abrir
+    #     menu/dialog/etc.
+    default_ssim = 0.985 if a_type in ("type_text", "key") else 0.992
+    ssim_threshold = float(action.get("ssim_change_threshold", default_ssim))
     record = {
         "ts": datetime.utcnow().isoformat(),
         "action_type": a_type,
