@@ -130,17 +130,29 @@ class MessagesRequest(BaseModel):
     temperature: float | None = None
     stream: bool = False
     tools: list | None = None
+    # Beta headers extra (ej. ['computer-use-2025-01-24']). El proxy
+    # los concatena con ANTHROPIC_BETA default cuando llama upstream.
+    betas: list[str] | None = None
 
 
-def _call_anthropic_with_retry(payload: dict) -> dict:
-    """Call al endpoint Anthropic. Auto-refresca token si 401, backoff si 429."""
+def _call_anthropic_with_retry(payload: dict,
+                                extra_betas: list[str] | None = None) -> dict:
+    """Call al endpoint Anthropic. Auto-refresca token si 401, backoff si 429.
+
+    extra_betas: lista de beta tags del request original (ej. computer-use)
+    que se concatenan con el default ANTHROPIC_BETA.
+    """
     last_error = None
+    beta_value = ANTHROPIC_BETA
+    if extra_betas:
+        merged = [ANTHROPIC_BETA] + [b for b in extra_betas if b]
+        beta_value = ",".join(sorted(set(merged)))
     for attempt in range(4):  # 4 intentos para 429 backoff: 0, 5s, 15s, 45s
         token = _get_access_token(force_refresh=(attempt > 0 and "401" in str(last_error or "")))
         headers = {
             "Authorization": f"Bearer {token}",
             "anthropic-version": ANTHROPIC_VERSION,
-            "anthropic-beta": ANTHROPIC_BETA,
+            "anthropic-beta": beta_value,
             "content-type": "application/json",
             "user-agent": "claude-cli/1.0 (proxy)",
         }
@@ -213,7 +225,7 @@ async def messages_endpoint(req: MessagesRequest):
     # No streaming por ahora (worker no lo procesa)
 
     t0 = time.time()
-    data = _call_anthropic_with_retry(payload)
+    data = _call_anthropic_with_retry(payload, extra_betas=req.betas)
     dt = time.time() - t0
     print(f"[proxy] /v1/messages OK in {dt:.2f}s model={payload['model']}",
           file=sys.stderr)
