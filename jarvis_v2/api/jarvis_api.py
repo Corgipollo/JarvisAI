@@ -46,6 +46,17 @@ HOST = os.environ.get("JARVIS_API_HOST", "0.0.0.0" if API_TOKEN else "127.0.0.1"
 
 app = FastAPI(title="Jarvis v2 API", version="1.0")
 
+# Mount admin routes (multi-tenant dashboard) + static HTML
+try:
+    from jarvis_v2.api.admin_routes import router as admin_router, serve_admin
+    app.include_router(admin_router)
+
+    @app.get("/admin")
+    def _admin_html():
+        return serve_admin()
+except Exception as e:
+    print(f"[api] admin_routes not loaded: {e}", flush=True)
+
 # Estado in-memory de tasks lanzadas (persiste a disco en TASKS_DIR)
 _TASKS: dict = {}
 _TASKS_LOCK = threading.Lock()

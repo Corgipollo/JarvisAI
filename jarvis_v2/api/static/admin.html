@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="es" class="bg-zinc-950 text-zinc-100">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jarvis V2 — Admin Dashboard</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.1/dist/cdn.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  body { font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; }
+  .glass { background: rgba(24, 24, 27, 0.6); backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.06); }
+  .pill { padding: 0.125rem 0.5rem; border-radius: 9999px; font-size: 0.7rem; }
+  .success { color: #4ade80; }
+  .err { color: #f87171; }
+  .muted { color: #71717a; }
+  table th { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em; color: #a1a1aa; }
+  table td { font-size: 0.85rem; padding: 0.5rem 0.75rem; border-bottom: 1px solid rgba(255,255,255,0.04); }
+</style>
+</head>
+<body x-data="adminApp()" x-init="init()" class="min-h-screen">
+
+<!-- HEADER -->
+<header class="border-b border-zinc-800 px-6 py-4 flex items-center justify-between glass sticky top-0 z-10">
+  <div>
+    <h1 class="text-xl font-semibold tracking-tight">Jarvis V2 <span class="muted font-normal text-sm">/ admin</span></h1>
+    <p class="text-xs muted">Multi-tenant SaaS Dashboard</p>
+  </div>
+  <div class="flex items-center gap-3">
+    <input type="password" x-model="token" placeholder="X-Jarvis-Token"
+      class="bg-zinc-900 border border-zinc-700 rounded-md px-3 py-1.5 text-sm w-64 focus:outline-none focus:border-zinc-500">
+    <button @click="loadTenants()"
+      class="bg-zinc-100 text-zinc-900 px-3 py-1.5 rounded-md text-sm font-medium hover:bg-white">
+      Conectar
+    </button>
+  </div>
+</header>
+
+<div class="grid grid-cols-12 gap-4 p-6">
+
+  <!-- SIDEBAR TENANTS -->
+  <aside class="col-span-3 glass rounded-lg p-4 max-h-[80vh] overflow-y-auto">
+    <div class="flex items-center justify-between mb-3">
+      <h2 class="text-sm font-medium">Tenants <span class="muted" x-text="`(${tenants.length})`"></span></h2>
+      <button @click="showNewTenant = !showNewTenant" class="text-xs muted hover:text-white">+ nuevo</button>
+    </div>
+
+    <div x-show="showNewTenant" class="mb-3 p-3 bg-zinc-900 rounded">
+      <input x-model="newTenant.tenant_id" placeholder="tenant_id" class="w-full bg-zinc-950 border border-zinc-700 rounded px-2 py-1 text-xs mb-1">
+      <input x-model="newTenant.legal_name" placeholder="Legal name" class="w-full bg-zinc-950 border border-zinc-700 rounded px-2 py-1 text-xs mb-1">
+      <select x-model="newTenant.industry" class="w-full bg-zinc-950 border border-zinc-700 rounded px-2 py-1 text-xs mb-1">
+        <template x-for="ind in industries" :key="ind">
+          <option x-text="ind" :value="ind"></option>
+        </template>
+      </select>
+      <select x-model="newTenant.plan" class="w-full bg-zinc-950 border border-zinc-700 rounded px-2 py-1 text-xs mb-2">
+        <option value="standard">Standard $1.5K</option>
+        <option value="pro">Pro $5K</option>
+        <option value="enterprise">Enterprise $15K</option>
+      </select>
+      <button @click="createTenant()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white text-xs py-1.5 rounded">
+        Crear tenant
+      </button>
+    </div>
+
+    <ul class="space-y-1">
+      <template x-for="t in tenants" :key="t.tenant_id">
+        <li>
+          <button @click="selectTenant(t.tenant_id)"
+            :class="selected === t.tenant_id ? 'bg-zinc-800 border-zinc-600' : 'hover:bg-zinc-900 border-transparent'"
+            class="w-full text-left px-3 py-2 rounded-md border text-sm">
+            <div class="flex items-center justify-between">
+              <span class="font-medium" x-text="t.legal_name || t.tenant_id"></span>
+              <span class="pill bg-zinc-800" x-text="t.plan"></span>
+            </div>
+            <div class="text-xs muted mt-0.5">
+              <span x-text="t.industry"></span> · <span x-text="`${t.total_actions || 0} acciones`"></span>
+            </div>
+          </button>
+        </li>
+      </template>
+    </ul>
+  </aside>
+
+  <!-- MAIN PANEL -->
+  <main class="col-span-9 space-y-4">
+
+    <!-- KPI cards -->
+    <div class="grid grid-cols-4 gap-4">
+      <div class="glass rounded-lg p-4">
+        <div class="text-xs muted uppercase tracking-wide">Total acciones</div>
+        <div class="text-3xl font-semibold mt-1" x-text="summary.total_actions ?? '—'"></div>
+        <div class="text-xs mt-1" :class="successRate > 80 ? 'success' : 'err'"
+          x-text="successRate !== null ? `${successRate}% éxito` : '—'"></div>
+      </div>
+      <div class="glass rounded-lg p-4">
+        <div class="text-xs muted uppercase tracking-wide">Spend (USD)</div>
+        <div class="text-3xl font-semibold mt-1" x-text="summary.total_spend_usd ?? '0.0000'"></div>
+        <div class="text-xs muted mt-1" x-text="`OAuth Max = $0 real`"></div>
+      </div>
+      <div class="glass rounded-lg p-4">
+        <div class="text-xs muted uppercase tracking-wide">Memory lessons</div>
+        <div class="text-3xl font-semibold mt-1" x-text="summary.lessons_learned ?? 0"></div>
+        <div class="text-xs muted mt-1">acumuladas</div>
+      </div>
+      <div class="glass rounded-lg p-4">
+        <div class="text-xs muted uppercase tracking-wide">Integraciones</div>
+        <div class="text-3xl font-semibold mt-1" x-text="summary.active_integrations ?? 0"></div>
+        <div class="text-xs muted mt-1">API activas</div>
+      </div>
+    </div>
+
+    <!-- Spend chart -->
+    <div class="glass rounded-lg p-4">
+      <div class="flex items-center justify-between mb-2">
+        <h3 class="text-sm font-medium">Spend & tokens (últimos 30 días)</h3>
+        <span class="text-xs muted" x-text="spendDailyCount ? `${spendDailyCount} días con actividad` : 'sin datos'"></span>
+      </div>
+      <canvas id="spend-chart" height="80"></canvas>
+    </div>
+
+    <!-- Action log -->
+    <div class="glass rounded-lg p-4">
+      <div class="flex items-center justify-between mb-2">
+        <h3 class="text-sm font-medium">Action log <span class="muted">(últimas 50)</span></h3>
+        <button @click="loadTenantData(selected)" class="text-xs muted hover:text-white">↻ refresh</button>
+      </div>
+      <table class="w-full">
+        <thead>
+          <tr>
+            <th class="text-left">Timestamp</th>
+            <th class="text-left">Action</th>
+            <th class="text-left">Target</th>
+            <th class="text-left">Industry</th>
+            <th class="text-right">Status</th>
+            <th class="text-right">ms</th>
+          </tr>
+        </thead>
+        <tbody>
+          <template x-for="a in actions" :key="a.id">
+            <tr>
+              <td class="muted" x-text="a.ts ? a.ts.slice(11, 19) : '—'"></td>
+              <td><span class="pill bg-zinc-800" x-text="a.action_type"></span></td>
+              <td class="muted truncate max-w-xs" x-text="(a.target_or_command || '').slice(0, 80)"></td>
+              <td class="muted" x-text="a.industry || '—'"></td>
+              <td class="text-right">
+                <span :class="a.success ? 'success' : 'err'" x-text="a.success ? '✓' : '✗'"></span>
+              </td>
+              <td class="text-right muted" x-text="a.elapsed_ms ?? '—'"></td>
+            </tr>
+          </template>
+          <tr x-show="actions.length === 0">
+            <td colspan="6" class="muted text-center py-6">Sin acciones registradas para este tenant.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Lessons -->
+    <div class="glass rounded-lg p-4">
+      <h3 class="text-sm font-medium mb-2">Memory lessons (top 20)</h3>
+      <ul class="space-y-2">
+        <template x-for="l in lessons" :key="l.id">
+          <li class="border border-zinc-800 rounded p-2 text-sm">
+            <div class="flex items-center gap-2 mb-1">
+              <span class="pill"
+                :class="l.severity === 'critical' ? 'bg-red-950 text-red-300' :
+                         l.severity === 'warning' ? 'bg-amber-950 text-amber-300' :
+                         'bg-zinc-800'"
+                x-text="l.severity || 'info'"></span>
+              <span class="muted text-xs" x-text="`${l.helpful_count || 0} hits`"></span>
+              <span class="muted text-xs" x-text="l.industry"></span>
+            </div>
+            <div x-text="l.insight"></div>
+          </li>
+        </template>
+        <li x-show="lessons.length === 0" class="muted text-sm text-center py-6">Sin lecciones aprendidas aún.</li>
+      </ul>
+    </div>
+
+  </main>
+</div>
+
+<script>
+function adminApp() {
+  return {
+    token: localStorage.getItem('jarvis_token') || '',
+    tenants: [],
+    selected: null,
+    summary: {},
+    actions: [],
+    spend: {by_provider: [], daily: []},
+    lessons: [],
+    showNewTenant: false,
+    industries: ['ecommerce', 'agri_logistics', 'marketing', 'dev',
+                  'video_pipeline', 'trading', 'generic'],
+    newTenant: { tenant_id: '', legal_name: '', industry: 'generic', plan: 'standard' },
+    chart: null,
+    spendDailyCount: 0,
+
+    get successRate() {
+      if (!this.summary.total_actions) return null;
+      return Math.round((this.summary.ok_actions / this.summary.total_actions) * 100);
+    },
+
+    async api(path, opts={}) {
+      const r = await fetch(`/api/v1${path}`, {
+        ...opts,
+        headers: {
+          'X-Jarvis-Token': this.token,
+          'Content-Type': 'application/json',
+          ...(opts.headers || {}),
+        },
+      });
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      return r.json();
+    },
+
+    async init() {
+      if (this.token) await this.loadTenants();
+    },
+
+    async loadTenants() {
+      localStorage.setItem('jarvis_token', this.token);
+      try {
+        const d = await this.api('/tenants');
+        this.tenants = d.tenants || [];
+        if (this.tenants.length && !this.selected) {
+          await this.selectTenant(this.tenants[0].tenant_id);
+        }
+      } catch (e) {
+        alert(`Error: ${e.message}\nVerifica el token`);
+      }
+    },
+
+    async selectTenant(tid) {
+      this.selected = tid;
+      await this.loadTenantData(tid);
+    },
+
+    async loadTenantData(tid) {
+      try {
+        const [summary, actions, spend, lessons] = await Promise.all([
+          this.api(`/tenants/${tid}/summary`),
+          this.api(`/tenants/${tid}/actions?limit=50`),
+          this.api(`/tenants/${tid}/spend?days=30`),
+          this.api(`/tenants/${tid}/lessons?limit=20`),
+        ]);
+        this.summary = summary;
+        this.actions = actions.actions || [];
+        this.spend = spend;
+        this.lessons = lessons.lessons || [];
+        this.spendDailyCount = (spend.daily || []).length;
+        this.renderSpendChart();
+      } catch (e) {
+        console.error(e);
+      }
+    },
+
+    async createTenant() {
+      if (!this.newTenant.tenant_id || !this.newTenant.legal_name) {
+        alert('tenant_id y legal_name requeridos');
+        return;
+      }
+      try {
+        await this.api('/tenants', {
+          method: 'POST', body: JSON.stringify(this.newTenant),
+        });
+        this.showNewTenant = false;
+        this.newTenant = { tenant_id: '', legal_name: '', industry: 'generic', plan: 'standard' };
+        await this.loadTenants();
+      } catch (e) {
+        alert(`Error creando tenant: ${e.message}`);
+      }
+    },
+
+    renderSpendChart() {
+      const ctx = document.getElementById('spend-chart');
+      if (!ctx) return;
+      const labels = (this.spend.daily || []).map(d => d.day);
+      const costs = (this.spend.daily || []).map(d => d.cost_usd || 0);
+      const tokens = (this.spend.daily || []).map(d => d.tokens || 0);
+      if (this.chart) this.chart.destroy();
+      this.chart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: labels,
+          datasets: [
+            { label: 'Cost USD', data: costs, borderColor: '#4ade80',
+              backgroundColor: 'rgba(74,222,128,0.1)', tension: 0.3, yAxisID: 'y' },
+            { label: 'Tokens', data: tokens, borderColor: '#60a5fa',
+              backgroundColor: 'rgba(96,165,250,0.1)', tension: 0.3, yAxisID: 'y1' },
+          ],
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: { legend: { labels: { color: '#a1a1aa' } } },
+          scales: {
+            x: { ticks: { color: '#71717a' }, grid: { color: 'rgba(255,255,255,0.04)' } },
+            y: { position: 'left', ticks: { color: '#4ade80' }, grid: { color: 'rgba(255,255,255,0.04)' } },
+            y1: { position: 'right', ticks: { color: '#60a5fa' }, grid: { drawOnChartArea: false } },
+          },
+        },
+      });
+    },
+  };
+}
+</script>
+
+</body>
+</html>
