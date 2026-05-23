@@ -57,6 +57,13 @@ try:
 except Exception as e:
     print(f"[api] admin_routes not loaded: {e}", flush=True)
 
+# Mount stripe billing routes (subscription + webhook)
+try:
+    from jarvis_v2.api.stripe_billing import router as billing_router
+    app.include_router(billing_router)
+except Exception as e:
+    print(f"[api] stripe_billing not loaded: {e}", flush=True)
+
 # Estado in-memory de tasks lanzadas (persiste a disco en TASKS_DIR)
 _TASKS: dict = {}
 _TASKS_LOCK = threading.Lock()
