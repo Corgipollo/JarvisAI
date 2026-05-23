@@ -28,9 +28,28 @@ import os
 import sys
 from pathlib import Path
 
-from fastapi import APIRouter, HTTPException, Header
+from fastapi import APIRouter, HTTPException, Header, Request
 from fastapi.responses import FileResponse
 from pydantic import BaseModel, EmailStr, Field
+
+
+def _public_host(request: Request) -> str:
+    """Auto-detect public host desde headers de Cloudflare/proxy.
+
+    Prioridad:
+      1. X-Forwarded-Host (Cloudflare Tunnel pasa este)
+      2. Host header
+      3. env PUBLIC_HOST
+      4. fallback http://127.0.0.1:5000
+    """
+    proto = request.headers.get("x-forwarded-proto", "https")
+    fwd_host = request.headers.get("x-forwarded-host")
+    if fwd_host:
+        return f"{proto}://{fwd_host}"
+    host = request.headers.get("host")
+    if host and not host.startswith("127.0.0.1"):
+        return f"{proto}://{host}"
+    return os.environ.get("PUBLIC_HOST", "http://127.0.0.1:5000")
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
@@ -59,13 +78,18 @@ def _slug(text: str) -> str:
 
 
 @router.post("/api/v1/signup")
-def signup(req: SignupRequest):
-    """Endpoint publico: crea tenant + devuelve Stripe Checkout URL."""
+def signup(req: SignupRequest, request: Request):
+    """Endpoint publico: crea tenant + devuelve Stripe Checkout URL.
+
+    Auto-detecta el host publico via X-Forwarded-Host (Cloudflare Tunnel)
+    para que el checkout_url apunte al dominio publico, no a 127.0.0.1.
+    """
     if req.industry not in INDUSTRIES_VALID:
         raise HTTPException(400, f"invalid_industry. Valid: {sorted(INDUSTRIES_VALID)}")
     if req.plan not in PLANS_VALID:
         raise HTTPException(400, f"invalid_plan. Valid: {sorted(PLANS_VALID)}")
 
+    public_host = _public_host(request)
     tenant_id = req.tenant_id or _slug(req.legal_name)
     # Bootstrap tenant
     from jarvis_v2.core.tenant_context import bootstrap_tenant
@@ -79,14 +103,10 @@ def signup(req: SignupRequest):
 
     # Crea Stripe Checkout (demo mode si no hay STRIPE_SECRET_KEY)
     from jarvis_v2.api.stripe_billing import (
-        create_checkout_session, CheckoutRequest as CR,
-    )
-    from jarvis_v2.api.stripe_billing import (
         _stripe_demo_mode, STRIPE_KEY,
     )
-    # Re-implementamos sin auth porque create_checkout_session pide token
     if not STRIPE_KEY:
-        checkout_url = (f"{PUBLIC_HOST}/admin?checkout=success"
+        checkout_url = (f"{public_host}/admin?checkout=success"
                          f"&tenant={tenant_id}&plan={req.plan}&demo=1")
         return {
             "ok": True,
@@ -108,9 +128,9 @@ def signup(req: SignupRequest):
             mode="subscription",
             line_items=[{"price": price_id, "quantity": 1}],
             customer_email=req.contact_email,
-            success_url=f"{PUBLIC_HOST}/admin?checkout=success"
+            success_url=f"{public_host}/admin?checkout=success"
                           f"&tenant={tenant_id}&session_id={{CHECKOUT_SESSION_ID}}",
-            cancel_url=f"{PUBLIC_HOST}/signup?checkout=cancel",
+            cancel_url=f"{public_host}/signup?checkout=cancel",
             client_reference_id=tenant_id,
             subscription_data={
                 "metadata": {"tenant_id": tenant_id, "plan": req.plan},
