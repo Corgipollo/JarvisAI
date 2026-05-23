@@ -1,0 +1,37 @@
+# cap_test_dummy.yaml - Sprint 4 nominal target (CapCut).
+# NOTA 2026-05-23: CapCut NO está instalado actualmente en esta PC.
+# Este YAML queda como template del schema canónico. Una vez instales:
+#   - Descarga CapCut desde https://www.capcut.com/es-es/
+#   - Ajusta `app.binary` al path real (usualmente AppData\Local\CapCut)
+#   - Ejecuta: python -m jarvis_v2.skills.capcut_pipeline data/fixtures/cap_test_dummy.yaml
+
+app:
+  binary: "C:\\Users\\Emmanuel\\AppData\\Local\\CapCut\\CapCut.exe"
+  window_title_contains: "CapCut"
+  launch_wait_s: 8
+
+assets:
+  - "C:/Users/Emmanuel/Documents/JarvisAI/data/fixtures/test_image_1080p.png"
+
+output:
+  path: "C:/Users/Emmanuel/Documents/JarvisAI/data/fixtures/cap_dummy_export.mp4"
+  format: "mp4"
+  verify_size_min_bytes: 50000
+
+goal: "Crear video de 2 segundos con una sola imagen y exportar como MP4."
+
+instructions:
+  - "Click en 'New project' o equivalente para empezar un proyecto nuevo."
+  - "Click en 'Import' en el sidebar de media."
+  - "En el dialogo de archivos, escribe el path completo del asset PNG y presiona Enter."
+  - "Arrastra el thumbnail del asset importado a la timeline (track 1, posicion 0)."
+  - "Espera 2 segundos para que el clip se asiente."
+  - "Click en 'Export' en la esquina superior derecha."
+  - "En el dialogo de export: ajusta path al output indicado, format MP4, resolucion 1080p."
+  - "Click en 'Export' para confirmar."
+  - "Espera hasta que aparezca 'Export complete' o el progreso llegue a 100%."
+  - "Cierra el dialogo (No abras el folder)."
+
+tenant_id: "default"
+model: "claude-haiku-4-5-20251001"
+max_iterations: 30

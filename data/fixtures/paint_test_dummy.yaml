@@ -1,0 +1,33 @@
+# paint_test_dummy.yaml - Sprint 4 EJECUTABLE (Paint nativo Windows).
+#
+# Validación del stack E2E completo cuando no hay editor de video.
+# Mismo flujo conceptual: abrir app → input → exportar artefacto → verify disk.
+#
+# Ejecutar (cuando libere el mouse y teclado):
+#   python -m jarvis_v2.skills.capcut_pipeline data/fixtures/paint_test_dummy.yaml
+
+app:
+  binary: "C:\\Windows\\System32\\mspaint.exe"
+  window_title_contains: "Paint"
+  launch_wait_s: 4
+
+output:
+  path: "C:/Users/Emmanuel/Documents/JarvisAI/data/fixtures/paint_export_test.png"
+  format: "png"
+  verify_size_min_bytes: 1000
+
+goal: "Crear un dibujo simple en Paint, guardarlo como PNG y verificar el archivo en disco."
+
+instructions:
+  - "Verifica que Paint esta abierto y en foreground."
+  - "Click en cualquier punto del canvas central (alrededor de 800,500) para empezar."
+  - "Dibuja una linea: click_drag desde (500,400) hasta (1000,600)."
+  - "Pulsa ctrl+s para abrir el dialogo Save."
+  - "En el dialogo: type_text el path completo del output indicado."
+  - "Pulsa enter para guardar."
+  - "Si aparece un cuadro confirmando overwrite, pulsa enter de nuevo."
+  - "Cierra Paint con alt+F4. Si pregunta save: pulsa 'n' (no save again, ya guardamos)."
+
+tenant_id: "default"
+model: "claude-haiku-4-5-20251001"
+max_iterations: 15
