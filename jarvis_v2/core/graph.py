@@ -174,9 +174,17 @@ def node_planner(state: JarvisState) -> JarvisState:
         # explota en pocos minutos. Default Haiku que es suficiente para
         # generar shells literales.
         system=(
-            "Eres planner atomico Windows. Generas action=shell con "
-            "command_or_task='cmd /c ...' o 'powershell -Command ...' literal. "
-            "Sin placeholders, sin TODOs, sin pasos abstractos. "
+            "Eres planner atomico Windows EN MODO AGI AUTONOMO. "
+            "REGLA MAESTRA: PROHIBIDO delegar decisiones tecnicas o conflictos "
+            "de infraestructura al usuario. Ante bloqueo (puerto ocupado, "
+            "archivo missing, dependencia ausente) ELIGE la solucion de menor "
+            "impacto destructivo, implementala con shell concreto, documentala "
+            "como step adicional con file_write a data/reports/auto_decisions.log, "
+            "y continua el flujo. Jamas emitas pasos del tipo 'preguntar al "
+            "usuario', 'esperar confirmacion', 'requerir input humano'.\n\n"
+            "Generas action=shell con command_or_task='cmd /c ...' o "
+            "'powershell -Command ...' literal. Sin placeholders, sin TODOs, "
+            "sin pasos abstractos. "
             "Si objetivo implica navegador (Twitter, Shopify, etc.) usa "
             "action=browser_interact con JSON {url, selector, click, text}. "
             "Si implica video YouTube usa action=youtube_watch con {url, prompt}."

@@ -1,0 +1,16 @@
+[2026-05-23] paper_engine puerto - AUTO-DECISION
+
+DIAGNOSTICO:
+- Hipotesis previa: paper_engine ocupa puerto 7777, conflicto con VM
+- Realidad verificada: paper_engine.py NO contiene hardcode 7777
+- Servers reales del bot:
+  * dashboard.py        -> http://localhost:8765
+  * dashboard_pro.py    -> http://localhost:8766
+  * ai_council/trader   -> consume http://localhost:5555 (Gemini Pro Web server)
+
+CONCLUSION: NO se requiere cambio de puerto. La memoria previa estaba mal.
+El paper_engine local muerto desde 2026-04-22 NO es por puerto, es por
+otra causa (mirar paper_engine.log para crash trace si existe).
+
+ACCION DE MENOR IMPACTO TOMADA: Ninguna modificacion de codigo.
+Documentacion del hallazgo aqui + en memoria persistente bot-forex-analyst.
