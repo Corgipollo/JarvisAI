@@ -57,6 +57,9 @@ def propose_topics(limit: int = 3) -> list[str]:
     import time as _time
     reports = ROOT / "data" / "reports"
     proposals: list[str] = []
+    # Timestamp Python-side: el planner emite cmd para Windows que NO expande
+    # $(date +%s). Mejor que el filename ya venga literal en el objective.
+    ts = int(_time.time())
 
     # 1. Status MDs recientes con "Proximo paso" pendiente
     for status_md in reports.glob("*_status.md"):
@@ -71,7 +74,8 @@ def propose_topics(limit: int = 3) -> list[str]:
                 f"{status_md.as_posix()} y ejecuta UN comando shell concreto "
                 f"que avance el proyecto (ej. correr un test, validar un build, "
                 f"contar archivos generados). Guarda el resultado en "
-                f"data/reports/{slug}_check_$(date +%s).txt."
+                f"data/reports/{slug}_check_{ts}.txt (filename literal, NO uses "
+                f"$(date), %date% ni nada que el shell tenga que expandir)."
             )
         except Exception:
             continue
