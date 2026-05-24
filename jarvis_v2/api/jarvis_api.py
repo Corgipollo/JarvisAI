@@ -71,6 +71,13 @@ try:
 except Exception as e:
     print(f"[api] signup_routes not loaded: {e}", flush=True)
 
+# Mount outreach routes (CRM + cold email + tracking)
+try:
+    from jarvis_v2.api.outreach_routes import router as outreach_router
+    app.include_router(outreach_router)
+except Exception as e:
+    print(f"[api] outreach_routes not loaded: {e}", flush=True)
+
 # Estado in-memory de tasks lanzadas (persiste a disco en TASKS_DIR)
 _TASKS: dict = {}
 _TASKS_LOCK = threading.Lock()
