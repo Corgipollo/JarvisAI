@@ -104,16 +104,32 @@ def gather_business_state() -> dict:
                             for d in done30[:5]]
     except Exception:
         s["done_sample"] = []
-    # Daemons up (heuristica via psutil)
+    # Daemons up (fix v2: extraer modulo via regex -m, no split por espacios
+    # que rompia con paths con espacios)
     try:
         import subprocess
         out = subprocess.check_output(
             ["powershell", "-NoProfile", "-Command",
              "Get-CimInstance Win32_Process -Filter \"Name='python.exe'\" | "
              "Where-Object { $_.CommandLine -match 'jarvis_v2|jarvis_bridge' } | "
-             "ForEach-Object { ($_.CommandLine -split ' ')[-1] }"],
+             "ForEach-Object { "
+             "  if ($_.CommandLine -match '-m\\s+(\\S+)') { $matches[1] } "
+             "  else { 'unknown_python_proc' } "
+             "}"],
             timeout=10, text=True)
         s["daemons_up"] = [line.strip() for line in out.splitlines() if line.strip()]
+        # Tambien cuenta cloudflared + localtunnel via node
+        try:
+            out2 = subprocess.check_output(
+                ["powershell", "-NoProfile", "-Command",
+                 "@(Get-Process cloudflared, node -ErrorAction SilentlyContinue) | "
+                 "Where-Object { $_ } | ForEach-Object { $_.Name }"],
+                timeout=5, text=True)
+            for line in out2.splitlines():
+                if line.strip():
+                    s["daemons_up"].append(line.strip())
+        except Exception:
+            pass
     except Exception:
         pass
     return s
