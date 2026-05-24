@@ -336,6 +336,22 @@ def send_emails(req: SendRequest, request: Request,
                     "INSERT INTO outreach_events(lead_id, event, metadata) "
                     "VALUES (?, 'sent', ?)",
                     (lead_id, req.template_id))
+                # Persist a la memoria vectorial. Fire-and-forget: si falla,
+                # no debe romper el send. Captura ancha intencional.
+                try:
+                    from jarvis_v2.memory import lead_context
+                    lead_context.remember_interaction(
+                        lead_id=lead_id,
+                        channel="email",
+                        direction="outbound",
+                        content=f"Subject: {tpl['subject']}\n\n{body_text}",
+                        outcome="sent",
+                        meta={"template_id": req.template_id,
+                              "company": row["company"],
+                              "vertical": row["vertical"]},
+                    )
+                except Exception as ctx_err:
+                    print(f"[outreach] lead_context save failed (non-fatal): {ctx_err}", flush=True)
                 results.append({"lead_id": lead_id, "ok": True})
             except Exception as e:
                 results.append({"lead_id": lead_id, "ok": False,
