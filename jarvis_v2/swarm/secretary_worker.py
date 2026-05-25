@@ -76,28 +76,110 @@ escribes en chat como cualquier amigo en redes sociales:
 
 
 def open_browser_to(url: str, timeout: int = 8) -> bool:
-    """Abre Chrome al URL. Usa Win+R 'chrome.exe URL' para no depender de PATH."""
+    """Abre Chrome al URL + lo trae al frente para que SoM scanee la ventana correcta.
+
+    Guardias anti-spam (2026-05-24):
+    1. Si JARVIS_SECRETARY_FORCE_OPEN != "1", verifica primero via CDP del Brave
+       de Jarvis (puerto 9222) si hay sesion auth en el dominio. Si no la hay,
+       NO abre nada y registra el fallo en task_failure_memory.
+    2. Si el URL es social (x.com/twitter/reddit/instagram) y no tiene cookies
+       en data/social_cookies/{platform}.json, skip y log.
+    3. Hard cap: max 1 apertura del mismo URL por 10 minutos (anti-spam).
+    """
+    import os
     try:
+        # Check si hay cookies para esta plataforma social
+        from urllib.parse import urlparse
+        host = urlparse(url).hostname or ""
+        platform = None
+        for p in ["x.com", "twitter.com", "reddit.com", "instagram.com"]:
+            if p in host:
+                platform = p.split(".")[0]
+                break
+        if platform:
+            cookies_file = ROOT / "data" / "social_cookies" / f"{platform}.json"
+            force_open = os.environ.get("JARVIS_SECRETARY_FORCE_OPEN", "0") == "1"
+            if not cookies_file.exists() and not force_open:
+                msg = (f"[secretary] SKIP open {url}: sin cookies en "
+                       f"{cookies_file}. Set JARVIS_SECRETARY_FORCE_OPEN=1 "
+                       f"para forzar.")
+                print(msg, flush=True)
+                # Registrar fallo en memoria para que el sistema NO encole mas social
+                try:
+                    from jarvis_v2.memory import task_failure_memory as _tfm
+                    _tfm.record_failure(
+                        objective=f"open social url {platform}",
+                        error_msg=f"no_session_cookies for {platform}",
+                        hint=f"crear {cookies_file} con cookies de sesion validas",
+                    )
+                except Exception:
+                    pass
+                return False
+
+        # Anti-spam: max 1 apertura del mismo URL cada 10 min
+        global _LAST_OPEN
+        try:
+            _LAST_OPEN
+        except NameError:
+            _LAST_OPEN = {}
+        now = time.time()
+        last = _LAST_OPEN.get(url, 0)
+        if now - last < 600:
+            ago = int(now - last)
+            print(f"[secretary] SKIP {url}: opened {ago}s ago < 10min", flush=True)
+            return False
+        _LAST_OPEN[url] = now
+
         import subprocess
-        # Detecta Chrome path
         chrome_paths = [
+            r"C:\Program Files\BraveSoftware\Brave-Browser\Application\brave.exe",
             r"C:\Program Files\Google\Chrome\Application\chrome.exe",
             r"C:\Program Files (x86)\Google\Chrome\Application\chrome.exe",
-            r"C:\Program Files\BraveSoftware\Brave-Browser\Application\brave.exe",
         ]
+        # Usar el perfil dedicado Jarvis para NO hijack browser del usuario
+        jarvis_profile = ROOT / "data" / "brave_profile"
         for path in chrome_paths:
             if Path(path).exists():
-                subprocess.Popen([path, url])
+                args = [path, url]
+                if "brave" in path.lower() and jarvis_profile.exists():
+                    args = [path, f"--user-data-dir={jarvis_profile}", url]
+                subprocess.Popen(args)
                 time.sleep(timeout)
+                _bring_browser_to_front()
                 return True
-        # Fallback: webbrowser
         import webbrowser
         webbrowser.open(url)
         time.sleep(timeout)
+        _bring_browser_to_front()
         return True
     except Exception as e:
         print(f"[secretary] browser open failed: {e}", flush=True)
         return False
+
+
+def _bring_browser_to_front():
+    """Force foreground del navegador (sino SoM scanea Antigravity/cualquier app)."""
+    try:
+        import pygetwindow as gw
+        for title in ("Chrome", "Brave", "Firefox", "Edge"):
+            wins = gw.getWindowsWithTitle(title)
+            if wins:
+                w = wins[0]
+                try:
+                    if w.isMinimized:
+                        w.restore()
+                    w.activate()
+                    print(f"[secretary] foreground -> {w.title[:60]}",
+                          flush=True)
+                    time.sleep(1.0)
+                    return
+                except Exception as e:
+                    print(f"[secretary] activate failed: {e}", flush=True)
+        print("[secretary] no browser window found to focus", flush=True)
+    except ImportError:
+        print("[secretary] pygetwindow no disponible", flush=True)
+    except Exception as e:
+        print(f"[secretary] foreground failed: {e}", flush=True)
 
 
 def find_unread_via_som(task_description: str) -> dict | None:
@@ -180,6 +262,69 @@ def already_replied(message_text: str) -> bool:
         return False
 
 
+def try_google_login() -> bool:
+    """Si esta en pantalla de login, busca 'Continue with Google' y entra.
+
+    Funciona porque Chrome ya tiene la cuenta Google logueada -> account selector
+    solo pide 1 click. Sin tipear password.
+    Devuelve True si hizo el flujo de login.
+    """
+    print("[secretary] checking if login required...", flush=True)
+    # Paso 1: detectar y clickear "Continue with Google"
+    google_btn = None
+    try:
+        with gui_mouse_lock:
+            google_btn = find_unread_via_som(
+                "click on 'Continue with Google', 'Sign in with Google', "
+                "'Iniciar sesion con Google', or any Google login button"
+            )
+    except Exception as e:
+        print(f"[secretary] google btn lookup failed: {e}", flush=True)
+
+    if not google_btn:
+        print("[secretary] no Google login button visible -> assume logged in",
+              flush=True)
+        return False
+
+    print(f"[secretary] clicking Google login at ({google_btn['center_x']}, "
+          f"{google_btn['center_y']})", flush=True)
+    with gui_mouse_lock:
+        human_click(google_btn["center_x"], google_btn["center_y"])
+        time.sleep(random.uniform(2.5, 4.0))
+
+    # Paso 2: Google account selector -> click en cuenta Emmanuel
+    try:
+        with gui_mouse_lock:
+            account_btn = find_unread_via_som(
+                "click on Emmanuel Pedraza account (emmanuelpedrazavega8 or "
+                "emmanuelpedrazavega6 @gmail.com) in the Google account picker"
+            )
+            if account_btn:
+                print(f"[secretary] clicking Google account at "
+                      f"({account_btn['center_x']}, {account_btn['center_y']})",
+                      flush=True)
+                human_click(account_btn["center_x"], account_btn["center_y"])
+                time.sleep(random.uniform(3.0, 5.0))
+    except Exception as e:
+        print(f"[secretary] account picker failed: {e}", flush=True)
+
+    # Paso 3: si aparece "Allow"/"Continue" confirmacion -> click
+    try:
+        with gui_mouse_lock:
+            allow_btn = find_unread_via_som(
+                "click on 'Continue', 'Allow', 'Authorize', or 'Aceptar' "
+                "confirmation button (if a permission dialog is visible)"
+            )
+            if allow_btn:
+                human_click(allow_btn["center_x"], allow_btn["center_y"])
+                time.sleep(random.uniform(2.0, 4.0))
+    except Exception:
+        pass
+
+    print("[secretary] login flow attempted", flush=True)
+    return True
+
+
 def scan_and_reply(platform: str | None = None) -> dict:
     """Una iteracion completa: open browser -> find replies -> respond."""
     platform = platform or DEFAULT_PLATFORM
@@ -193,6 +338,9 @@ def scan_and_reply(platform: str | None = None) -> dict:
     if not open_browser_to(cfg["url"], timeout=10):
         return {"error": "browser_open_failed",
                 "replied_count": 0, "platform": platform}
+
+    # Auto-login con Google si la pantalla pide login
+    try_google_login()
 
     replied_count = 0
     errors = []

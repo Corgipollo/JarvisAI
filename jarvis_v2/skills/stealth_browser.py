@@ -92,16 +92,26 @@ def stealth_session(headless: bool = True,
     p = sync_playwright().start()
     browser = None
     try:
-        browser = p.chromium.launch(
-            headless=headless,
-            args=[
+        # Default to Brave si JARVIS_BROWSER_PATH apunta a brave.exe (configurable
+        # via env var). Cae a Chromium bundled si no se setea o si Brave no existe.
+        import os
+        brave_path = os.environ.get(
+            "JARVIS_BROWSER_PATH",
+            r"C:\Program Files\BraveSoftware\Brave-Browser\Application\brave.exe",
+        )
+        launch_kwargs = {
+            "headless": headless,
+            "args": [
                 "--disable-blink-features=AutomationControlled",
                 "--no-sandbox",
                 "--disable-dev-shm-usage",
                 "--disable-gpu",
                 "--no-first-run",
             ],
-        )
+        }
+        if brave_path and os.path.exists(brave_path):
+            launch_kwargs["executable_path"] = brave_path
+        browser = p.chromium.launch(**launch_kwargs)
         ctx = browser.new_context(
             user_agent=random.choice(UA_POOL),
             viewport=random.choice(VIEWPORTS),

@@ -418,6 +418,104 @@ def ping_proxy() -> bool:
         return False
 
 
+# ============================================================================
+# ASYNC API (2026-05-25) - Para callers async puros (FastAPI endpoints).
+# Sync API arriba (ask_claude/ask_claude_json) se mantiene para retro-compat
+# con LangGraph/threads existentes. Migrar gradualmente.
+# ============================================================================
+import asyncio as _asyncio
+
+_HTTPX_ASYNC: "httpx.AsyncClient | None" = None
+
+
+def _async_client() -> "httpx.AsyncClient":
+    global _HTTPX_ASYNC
+    if _HTTPX_ASYNC is None:
+        import httpx as _httpx
+        _HTTPX_ASYNC = _httpx.AsyncClient(
+            timeout=_httpx.Timeout(180.0, connect=10.0),
+            limits=_httpx.Limits(max_keepalive_connections=10,
+                                   max_connections=20,
+                                   keepalive_expiry=300.0),
+            http2=False,
+        )
+    return _HTTPX_ASYNC
+
+
+async def ask_claude_async(
+    prompt: str,
+    system: str = "Eres Jarvis, asistente autonomo de Emmanuel. Respondes directo, sin preamble, en espanol.",
+    model: str = DEFAULT_MODEL,
+    max_tokens: int = 2000,
+    timeout: int = 180,
+    retries: int = 2,
+) -> str | None:
+    """Version async puro via httpx.AsyncClient + claude_proxy_fast :8088.
+
+    NO bloquea el event loop. Para usar desde FastAPI endpoints async def.
+    Para callers sync existentes, sigue usando ask_claude() (proxy sync).
+    """
+    import httpx as _httpx
+    payload = {"model": model, "system": system,
+                "messages": [{"role": "user", "content": prompt}],
+                "max_tokens": max_tokens}
+    last_err = None
+    for attempt in range(retries + 1):
+        try:
+            r = await _async_client().post(
+                f"{PROXY}/v1/messages", json=payload, timeout=timeout)
+            r.raise_for_status()
+            data = r.json()
+            if "content" in data and isinstance(data["content"], list):
+                for c in data["content"]:
+                    if c.get("type") == "text":
+                        return c.get("text", "")
+            return None
+        except _httpx.HTTPStatusError as e:
+            last_err = f"http_{e.response.status_code}: {e.response.text[:200]}"
+            if e.response.status_code in (429, 502, 503) and attempt < retries:
+                await _asyncio.sleep(min(30, 5 * (2 ** attempt)))
+                continue
+            break
+        except (_httpx.TimeoutException, _httpx.ConnectError) as e:
+            last_err = f"net: {e}"
+            if attempt < retries:
+                await _asyncio.sleep(min(15, 3 * (2 ** attempt)))
+                continue
+        except Exception as e:
+            last_err = f"unknown: {e}"
+            break
+    print(f"[brain.async] failed after {retries+1} attempts: {last_err}",
+          file=sys.stderr)
+    return None
+
+
+async def ask_claude_json_async(
+    prompt: str,
+    schema_hint: str = "JSON estricto: {key: value}",
+    system: str | None = None,
+    **kwargs,
+) -> dict | None:
+    """Variante async de ask_claude_json. Espera JSON valido del LLM."""
+    import re
+    sys_prompt = (system or
+                   f"Eres Jarvis. Respondes SOLO JSON valido, sin markdown. {schema_hint}")
+    text = await ask_claude_async(prompt, system=sys_prompt, **kwargs)
+    if not text:
+        return None
+    m = re.search(r"\{.*\}", text, re.DOTALL)
+    if not m:
+        return None
+    try:
+        return json.loads(m.group(0))
+    except json.JSONDecodeError:
+        cleaned = re.sub(r",\s*([\]}])", r"\1", m.group(0))
+        try:
+            return json.loads(cleaned)
+        except json.JSONDecodeError:
+            return None
+
+
 if __name__ == "__main__":
     if not ping_proxy():
         print("ERROR: proxy en :8088 no responde. Arranca claude_proxy.py primero.")

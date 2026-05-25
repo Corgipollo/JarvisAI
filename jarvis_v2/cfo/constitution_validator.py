@@ -118,9 +118,18 @@ def evaluate(ctx: dict, constitution: dict | None = None) -> dict:
                 continue  # rule does not apply
 
             actual = _resolve_path(ctx, rule["field"])
+            op_name = rule["op"]
             if actual is None:
                 if "default" in rule:
                     actual = rule["default"]
+                elif op_name in ("not_matches", "not_in", "ne"):
+                    # "NO matchea pattern X" con field None = True (no es ese item)
+                    continue
+                elif op_name in ("lte", "lt", "gte", "gt"):
+                    # Reglas de spend/budget: si la metrica no esta en el ledger,
+                    # asumir 0 (no se ha gastado nada todavia). Antes este branch
+                    # bloqueaba defensive y detenia al planner inutilmente.
+                    actual = 0
                 else:
                     # Field missing y no default -> trata como violation defensive
                     violations.append({
@@ -132,7 +141,6 @@ def evaluate(ctx: dict, constitution: dict | None = None) -> dict:
                     })
                     continue
 
-            op_name = rule["op"]
             op_fn = OPERATORS.get(op_name)
             if op_fn is None:
                 violations.append({

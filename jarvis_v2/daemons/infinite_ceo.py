@@ -31,6 +31,7 @@ import sys
 import time
 from datetime import datetime, timedelta
 from pathlib import Path
+from typing import Any
 
 import requests
 
@@ -40,6 +41,10 @@ sys.path.insert(0, str(ROOT))
 API_URL = os.environ.get("JARVIS_API_URL", "http://127.0.0.1:5000")
 API_TOKEN = os.environ.get("JARVIS_API_TOKEN", "jarvis_a8x29kfp3lz7m2qw9bdv")
 CYCLE_MIN = int(os.environ.get("CEO_CYCLE_MIN", "30"))
+# CEO_CYCLE_SEC override (en segundos). Si se setea, gana sobre CYCLE_MIN.
+# Util para modo "always-on" agresivo. La guardia queue_pending>=10 dentro de
+# cycle_once() evita explosion: si la cola se satura, skip silenciosamente.
+CYCLE_SEC = int(os.environ.get("CEO_CYCLE_SEC", str(CYCLE_MIN * 60)))
 LOG = ROOT / "data" / "infinite_ceo.log"
 REPORT = ROOT / "data" / "reports" / "agencia_autonoma_live.md"
 TENANT_DB = ROOT / "data" / "tenants" / "default" / "memory.db"
@@ -61,14 +66,27 @@ def _enqueue(objective: str, priority: int = 5, source: str = "infinite_ceo") ->
     try:
         r = requests.post(
             f"{API_URL}/queue/add",
-            json={"objective": objective, "priority": priority},
+            json={
+                "objective": objective,
+                "priority": priority,
+                "source": source,
+            },
             headers={"X-Jarvis-Token": API_TOKEN, "Content-Type": "application/json"},
             timeout=10,
         )
         r.raise_for_status()
         return r.json().get("qid", "?")
+    except requests.exceptions.Timeout:
+        _log(f"enqueue timeout (source={source}): request exceeded 10s")
+        return ""
+    except requests.exceptions.ConnectionError as e:
+        _log(f"enqueue connection error (source={source}): {e}")
+        return ""
+    except requests.exceptions.HTTPError as e:
+        _log(f"enqueue http error (source={source}): {e.response.status_code}")
+        return ""
     except Exception as e:
-        _log(f"enqueue fail: {e}")
+        _log(f"enqueue fail (source={source}): {e}")
         return ""
 
 
@@ -155,50 +173,87 @@ def audit_business_state() -> dict:
     return state
 
 
+def _objective_research_leads() -> tuple[str, int]:
+    """Research emails publicos de leads sin contacto via skill auto_research."""
+    return (
+        "Lista los 5 primeros leads sin email contactado via GET /api/v1/outreach/leads "
+        "y para cada uno usa la skill auto_research.deep_research para encontrar email "
+        "publico del COO/CEO. Reporta hallazgos en data/reports/leads_emails_found.md.",
+        7
+    )
+
+
+def _objective_followup_leads(pending_count: int) -> tuple[str, int]:
+    """Generar followups dry-run usando POST /api/v1/outreach/send con dry_run=true."""
+    return (
+        f"Hay {pending_count} leads con email enviado >5 dias sin reply. "
+        f"Usa GET /api/v1/outreach/leads para listarlos (filtra status='sent' replied=0), "
+        f"luego POST /api/v1/outreach/send con dry_run=true y un template followup_v1 "
+        f"para previsualizar drafts sin enviar.",
+        5
+    )
+
+
+def _objective_audit_funnel(tenants_total: int) -> tuple[str, int]:
+    """Audit funnel usando endpoints REALES /tenants + /tenants/{id}/summary."""
+    return (
+        f"Audit funnel: usa GET /tenants para listar los {tenants_total} tenants, "
+        f"luego GET /tenants/{{tenant_id}}/summary para cada uno. "
+        f"Calcula conversion rate por etapa (signup -> demo -> active). "
+        f"Reporta a data/reports/funnel_audit.md.",
+        4
+    )
+
+
+def _objective_self_improvement() -> tuple[str, int]:
+    """Self-improvement via /execute (interpreta instruccion + corre skills)."""
+    return (
+        "Self-improvement: escanea jarvis_v2/ buscando TODO/FIXME/XXX comments "
+        "en archivos modificados ultimos 7 dias. Selecciona uno con severidad alta "
+        "y propone fix concreto (no aplica al codigo). Reporta a data/reports/todo_review.md.",
+        3
+    )
+
+
+def _objective_market_research(keyword: str) -> tuple[str, int]:
+    """Market research via skill auto_research (no endpoint /research/market falso)."""
+    return (
+        f"Research: usa skill auto_research.deep_research(query='{keyword}', max_results=6) "
+        f"para investigar este tema. Sintetiza hallazgos y guarda en "
+        f"data/reports/research_{keyword.replace(' ', '_')[:40]}.md.",
+        3
+    )
+
+
+def _objective_backup_tenants(timestamp: str) -> tuple[str, int]:
+    """Backup via /execute con shell command (no endpoint backup falso)."""
+    return (
+        f"Backup: comprime con shutil.make_archive() las DBs de data/tenants/*/memory.db "
+        f"a data/backups/tenants_{timestamp}.zip. Mantiene ultimas 7 copias.",
+        2
+    )
+
+
 def generate_objectives(state: dict) -> list[tuple[str, int]]:
     """Decide que tareas encolar basado en el estado. Retorna lista de
-    (objective_text, priority). Tareas legitimas, sin riesgo."""
+    (objective_text, priority). Tareas legitimas, via API endpoints seguros."""
     objectives: list[tuple[str, int]] = []
 
     # Objetivo 1: si hay leads sin email, investigar emails publicos
     if state["leads_without_email"] >= 3:
-        objectives.append((
-            "MODO INVESTIGACION: ejecuta shell 'python -c \"import sys; "
-            "sys.path.insert(0, r\\\"C:/Users/Emmanuel/Documents/JarvisAI\\\"); "
-            "from jarvis_v2.tools.research_lead_contacts import bulk_research; "
-            "import json; print(json.dumps(bulk_research(limit=5), default=str)[:500])\"' "
-            "para investigar emails publicos de 5 leads sin contacto.",
-            7))
+        objectives.append(_objective_research_leads())
 
     # Objetivo 2: si hay leads pending followup, generar drafts dry-run
     if state["leads_pending_followup"] > 0:
-        objectives.append((
-            f"MODO FOLLOWUP: hay {state['leads_pending_followup']} leads "
-            "con email enviado hace >5 dias sin respuesta. Ejecuta shell "
-            "'curl -X POST http://127.0.0.1:5000/api/v1/outreach/send "
-            "-H \"X-Jarvis-Token: jarvis_a8x29kfp3lz7m2qw9bdv\" "
-            "-H \"Content-Type: application/json\" "
-            "-d \"{\\\"lead_ids\\\":[1,2,3],\\\"template_id\\\":\\\"agro_v1\\\",\\\"dry_run\\\":true}\"' "
-            "para generar drafts de follow-up listos para revision humana.",
-            5))
+        objectives.append(_objective_followup_leads(state["leads_pending_followup"]))
 
     # Objetivo 3: si hay 0 tenants paid pero >0 signups, audit funnel
     if state["tenants_total"] > 0 and state["tenants_paid"] == 0:
-        objectives.append((
-            "MODO AUDIT: ejecuta shell 'curl -s http://127.0.0.1:5000/api/v1/tenants "
-            "-H \"X-Jarvis-Token: jarvis_a8x29kfp3lz7m2qw9bdv\" > "
-            "data/reports/tenants_health_$(powershell -c (Get-Date).ToString(\\\"HHmm\\\")).txt' "
-            "para snapshot del funnel.",
-            4))
+        objectives.append(_objective_audit_funnel(state["tenants_total"]))
 
     # Objetivo 4: self-improvement cycle (busca TODO/FIXME y aplica fix)
     if random.random() < 0.4:  # 40% chance cada ciclo
-        objectives.append((
-            "MODO SELF-IMPROVEMENT: ejecuta shell 'python -m "
-            "jarvis_v2.skills.self_improvement --strategy todo_or_old "
-            "--no-push' para mejora puntual sobre archivo random con TODO. "
-            "Sin push automatico - commit local solo.",
-            3))
+        objectives.append(_objective_self_improvement())
 
     # Objetivo 5: research de mercado / competencia (siempre algo)
     keywords_pool = [
@@ -210,22 +265,13 @@ def generate_objectives(state: dict) -> list[tuple[str, int]]:
         "Shopify multi-tenant best practices",
     ]
     kw = random.choice(keywords_pool)
-    objectives.append((
-        f"MODO RESEARCH: investiga novedades sobre '{kw}'. "
-        "Ejecuta shell 'python -m jarvis_v2.daemons.omniparser_researcher' "
-        "para correr un ciclo extra del researcher.",
-        3))
+    objectives.append(_objective_market_research(kw))
 
     # Objetivo 6: backup tenant DBs (cada 4 ciclos = ~2h)
     cycle_count = int(time.time() / (CYCLE_MIN * 60))
     if cycle_count % 4 == 0:
         ts = datetime.utcnow().strftime("%Y%m%d_%H%M")
-        objectives.append((
-            f"MODO BACKUP: ejecuta shell 'powershell -Command \""
-            f"Compress-Archive -Path data/tenants -DestinationPath "
-            f"data/backups/tenants_{ts}.zip -Force\"' para backup de "
-            "todas las DBs multi-tenant.",
-            2))
+        objectives.append(_objective_backup_tenants(ts))
 
     return objectives
 
@@ -242,7 +288,7 @@ def write_report(state: dict, generated: list[tuple[str, int]],
             f.write("# Agencia Autonoma — Bitacora del CEO Perpetuo\n\n")
             f.write("> Daemon `infinite_ceo.py` corre cada 30 min auto-generando objetivos.\n")
             f.write("> Cada entrada es un ciclo. Append-only, no sobreescribe.\n\n")
-            f.write("**Boundaries respetadas siempre** (decision arquitectonica):\n")
+            f.write("**Boundaries respetados siempre** (decision arquitectonica):\n")
             f.write("- NO genera DMs masivos Reddit/Twitter/Instagram (ban garantizado)\n")
             f.write("- NO compras autonomas con tarjeta del usuario sin OK por accion\n")
             f.write("- NO refactor + push core sin debate_engine + py_compile pass\n")
@@ -278,6 +324,25 @@ def cycle_once() -> None:
 
     objectives = generate_objectives(state)
     _log(f"objetivos generados: {len(objectives)}")
+
+    # Filtrar objetivos que ya han fallado N veces consecutivas (memoria)
+    try:
+        from jarvis_v2.memory import task_failure_memory
+        filtered = []
+        skipped = 0
+        for obj, prio in objectives:
+            should, reason = task_failure_memory.should_skip(obj, threshold=3)
+            if should:
+                skipped += 1
+                _log(f"  SKIP por memoria de fallos: {obj[:60]}... ({reason})")
+                continue
+            filtered.append((obj, prio))
+        objectives = filtered
+        if skipped:
+            _log(f"  filtrados {skipped} objetivos por memoria")
+    except Exception as e:
+        _log(f"  failure_memory check fallo (no fatal): {e}")
+
     qids: list[str] = []
     for obj, prio in objectives:
         qid = _enqueue(obj, priority=prio)
@@ -289,15 +354,17 @@ def cycle_once() -> None:
 
 
 def main_loop() -> None:
-    _log(f"=== INFINITE CEO started, cycle every {CYCLE_MIN} min ===")
+    _log(f"=== INFINITE CEO started, cycle every {CYCLE_SEC}s ===")
+    # Si intervalo agresivo (<60s), no logear el sleep cada ciclo (spam log)
+    silent_sleep = CYCLE_SEC < 60
     while True:
         try:
             cycle_once()
         except Exception as e:
             _log(f"cycle EXCEPTION: {e}")
-        sleep_s = CYCLE_MIN * 60
-        _log(f"sleeping {sleep_s}s hasta siguiente ciclo")
-        time.sleep(sleep_s)
+        if not silent_sleep:
+            _log(f"sleeping {CYCLE_SEC}s hasta siguiente ciclo")
+        time.sleep(CYCLE_SEC)
 
 
 if __name__ == "__main__":

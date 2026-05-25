@@ -22,6 +22,7 @@ UFO/Jarvis config:
 """
 from __future__ import annotations
 
+import asyncio
 import json
 import os
 import sys
@@ -46,14 +47,18 @@ app = FastAPI(title="Claude OAuth Proxy (raw HTTP, no CLI)")
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"],
                     allow_headers=["*"])
 
-# Connection pooling para baja latencia
-_HTTPX_CLIENT: httpx.Client | None = None
+# Connection pooling para baja latencia.
+# 2026-05-25: refactor a AsyncClient para NO bloquear el event loop de FastAPI.
+# Antes el endpoint era async def pero el cliente httpx.Client era sync -> el
+# event loop se congelaba 2-6s por cada request Claude -> el CEO y task_worker
+# recibian "Read timed out" porque la API estaba sorda.
+_HTTPX_CLIENT: httpx.AsyncClient | None = None
 
 
-def _client() -> httpx.Client:
+def _client() -> httpx.AsyncClient:
     global _HTTPX_CLIENT
     if _HTTPX_CLIENT is None:
-        _HTTPX_CLIENT = httpx.Client(
+        _HTTPX_CLIENT = httpx.AsyncClient(
             timeout=httpx.Timeout(180.0, connect=10.0),
             limits=httpx.Limits(max_keepalive_connections=10,
                                  max_connections=20,
@@ -73,8 +78,8 @@ def _save_creds(data: dict):
     CREDS_PATH.write_text(json.dumps(data, indent=2), encoding="utf-8")
 
 
-def _get_access_token(force_refresh: bool = False) -> str:
-    """Devuelve accessToken valido. Refresca si esta expirado."""
+async def _get_access_token(force_refresh: bool = False) -> str:
+    """Devuelve accessToken valido. Refresca si esta expirado. Async para no bloquear event loop."""
     creds = _read_creds()
     oauth = creds.get("claudeAiOauth", {})
     token = oauth.get("accessToken", "")
@@ -93,7 +98,7 @@ def _get_access_token(force_refresh: bool = False) -> str:
 
     print(f"[proxy] refrescando OAuth token...", file=sys.stderr)
     try:
-        r = _client().post(
+        r = await _client().post(
             ANTHROPIC_TOKEN_REFRESH,
             json={
                 "grant_type": "refresh_token",
@@ -135,9 +140,12 @@ class MessagesRequest(BaseModel):
     betas: list[str] | None = None
 
 
-def _call_anthropic_with_retry(payload: dict,
+async def _call_anthropic_with_retry(payload: dict,
                                 extra_betas: list[str] | None = None) -> dict:
     """Call al endpoint Anthropic. Auto-refresca token si 401, backoff si 429.
+
+    Async puro: usa await en post + asyncio.sleep en backoff. Sin bloquear el
+    event loop (antes time.sleep + httpx.Client sync congelaban FastAPI).
 
     extra_betas: lista de beta tags del request original (ej. computer-use)
     que se concatenan con el default ANTHROPIC_BETA.
@@ -148,7 +156,7 @@ def _call_anthropic_with_retry(payload: dict,
         merged = [ANTHROPIC_BETA] + [b for b in extra_betas if b]
         beta_value = ",".join(sorted(set(merged)))
     for attempt in range(4):  # 4 intentos para 429 backoff: 0, 5s, 15s, 45s
-        token = _get_access_token(force_refresh=(attempt > 0 and "401" in str(last_error or "")))
+        token = await _get_access_token(force_refresh=(attempt > 0 and "401" in str(last_error or "")))
         headers = {
             "Authorization": f"Bearer {token}",
             "anthropic-version": ANTHROPIC_VERSION,
@@ -157,7 +165,7 @@ def _call_anthropic_with_retry(payload: dict,
             "user-agent": "claude-cli/1.0 (proxy)",
         }
         try:
-            r = _client().post(ANTHROPIC_API, json=payload, headers=headers,
+            r = await _client().post(ANTHROPIC_API, json=payload, headers=headers,
                                 timeout=180.0)
             if r.status_code == 401 and attempt == 0:
                 print(f"[proxy] 401, forcing refresh", file=sys.stderr)
@@ -175,7 +183,7 @@ def _call_anthropic_with_retry(payload: dict,
                 print(f"[proxy] 429 rate-limited, backoff {wait_s}s (try {attempt+1}/4)",
                       file=sys.stderr)
                 last_error = "429"
-                time.sleep(wait_s)
+                await asyncio.sleep(wait_s)
                 continue
             r.raise_for_status()
             return r.json()
@@ -188,7 +196,7 @@ def _call_anthropic_with_retry(payload: dict,
         except Exception as e:
             last_error = str(e)
             if attempt < 3:
-                time.sleep(2 ** attempt)
+                await asyncio.sleep(2 ** attempt)
                 continue
             raise HTTPException(502, f"upstream: {e}")
     raise HTTPException(429, f"rate_limit_exhausted_after_4_retries: {last_error}")
@@ -225,7 +233,7 @@ async def messages_endpoint(req: MessagesRequest):
     # No streaming por ahora (worker no lo procesa)
 
     t0 = time.time()
-    data = _call_anthropic_with_retry(payload, extra_betas=req.betas)
+    data = await _call_anthropic_with_retry(payload, extra_betas=req.betas)
     dt = time.time() - t0
     print(f"[proxy] /v1/messages OK in {dt:.2f}s model={payload['model']}",
           file=sys.stderr)
@@ -251,7 +259,7 @@ async def openai_compat(req: dict):
     }
     if system:
         payload["system"] = system
-    data = _call_anthropic_with_retry(payload)
+    data = await _call_anthropic_with_retry(payload)
     # Convert response to OpenAI format
     text = ""
     if isinstance(data.get("content"), list):

@@ -130,6 +130,18 @@ def main_loop():
                 continue
 
             log(f"work on {item['qid']}: {item['objective'][:80]}")
+
+            # Memoria de fallos: skip si ya fallo >=5 veces consecutivas
+            try:
+                from jarvis_v2.memory import task_failure_memory as _tfm
+                should, reason = _tfm.should_skip(item["objective"], threshold=5)
+                if should:
+                    log(f"  SKIP qid={item['qid']} (memoria fallos): {reason[:120]}")
+                    Q.mark_failed(item["qid"], f"skipped_by_failure_memory: {reason}")
+                    continue
+            except Exception:
+                pass
+
             result = dispatch_task(item)
             if result.get("ok"):
                 Q.mark_done(item["qid"],
@@ -137,6 +149,19 @@ def main_loop():
                             result={"status": result.get("status"),
                                     "error": result.get("error", "")})
                 log(f"  done qid={item['qid']} status={result.get('status')}")
+                # Registrar success/failure en memoria persistente
+                try:
+                    from jarvis_v2.memory import task_failure_memory as _tfm
+                    if result.get("status") == "done":
+                        _tfm.record_success(item["objective"])
+                    else:
+                        _tfm.record_failure(
+                            objective=item["objective"],
+                            error_msg=result.get("error", "") or f"status={result.get('status')}",
+                            hint="ver endpoints REALES en task_failure_memory.KNOWN_ENDPOINTS",
+                        )
+                except Exception:
+                    pass
                 # Reset circuit breaker en done
                 if result.get("status") == "done":
                     consecutive_fails = 0
@@ -158,6 +183,16 @@ def main_loop():
             else:
                 Q.mark_failed(item["qid"], result.get("error", "?"))
                 log(f"  FAIL qid={item['qid']} {result.get('error', '?')[:120]}")
+                # Registrar failure en memoria persistente (dispatch fail)
+                try:
+                    from jarvis_v2.memory import task_failure_memory as _tfm
+                    _tfm.record_failure(
+                        objective=item["objective"],
+                        error_msg=result.get("error", "dispatch_failed"),
+                        hint="dispatch fail; revisa que el endpoint/skill existe",
+                    )
+                except Exception:
+                    pass
                 consecutive_fails += 1
                 # Circuit breaker: si demasiados fails seguidos, pausa larga
                 if consecutive_fails >= MAX_CONSECUTIVE_FAILS:

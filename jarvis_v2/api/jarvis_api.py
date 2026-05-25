@@ -116,43 +116,97 @@ def _save_task(task: dict):
 
 
 def _run_task(task_id: str, objective: str, thread_id: str | None):
-    """Runner que ejecuta el grafo en thread separado."""
+    """Supervisor que lanza la task en SUBPROCESS independiente.
+
+    Refactor 2026-05-25: antes corria en threading.Thread. Cuando LangGraph se
+    colgaba cargando Florence-2/chroma, el thread no se podia matar (Python no
+    soporta thread.kill) -> RAM API crecia a 11.8 GB.
+
+    Solucion: subprocess.Popen lanza task_executor.py en proceso propio. Si se
+    cuelga, process.kill() lo MATA forzosamente y libera toda su RAM al SO.
+    El API queda 100% libre para responder polls del worker.
+    """
+    import subprocess
     with _TASKS_LOCK:
         t = _TASKS[task_id]
         t["status"] = "running"
         t["started_at"] = datetime.utcnow().isoformat()
         _save_task(t)
+
+    timeout_sec = int(os.environ.get("JARVIS_TASK_HARD_TIMEOUT_SEC", "120"))
+    py = os.environ.get("JARVIS_PYTHON", sys.executable)
+    proj_root = Path(__file__).resolve().parents[2]
+
+    cmd = [
+        py, "-m", "jarvis_v2.task_executor",
+        "--task-id", task_id,
+        "--objective", objective,
+    ]
+    if thread_id:
+        cmd.extend(["--thread-id", thread_id])
+
+    proc = None
+    timed_out = False
     try:
-        from jarvis_v2.core.graph import run_objective
-        result = run_objective(objective, thread_id=thread_id or f"api_{task_id}")
-        rd = result or {}
-        plan = rd.get("plan") or []
-        last_err = rd.get("last_error")
-        with _TASKS_LOCK:
-            t = _TASKS[task_id]
-            # Si el planner devolvio plan vacio o el graph propago last_error,
-            # NO marcar done - marcar error con causa. Antes este branch era
-            # "done con result={}" -> bug de alucinacion de exito.
-            if not plan or last_err:
+        proc = subprocess.Popen(
+            cmd,
+            cwd=str(proj_root),
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+        )
+        try:
+            stdout, stderr = proc.communicate(timeout=timeout_sec)
+            rc = proc.returncode
+        except subprocess.TimeoutExpired:
+            timed_out = True
+            proc.kill()
+            try:
+                stdout, stderr = proc.communicate(timeout=10)
+            except Exception:
+                stdout, stderr = "", "killed_after_timeout"
+            rc = -9
+
+        # El task_executor.py ya escribio el JSON con el resultado. Solo
+        # actualizamos in-memory + agregamos info si fue killed.
+        if timed_out:
+            with _TASKS_LOCK:
+                t = _TASKS.get(task_id, {"task_id": task_id})
                 t["status"] = "error"
-                t["error"] = (last_err or "empty_plan_or_no_steps")
+                t["error"] = (f"hard_timeout_killed: subprocess excedio "
+                              f"{timeout_sec}s y fue terminado. "
+                              f"stderr_tail: {(stderr or '')[-300:]}")
+                t["completed_at"] = datetime.utcnow().isoformat()
+                _save_task(t)
+        else:
+            # Re-cargar desde disco lo que escribio el subprocess
+            p = TASKS_DIR / f"{task_id}.json"
+            if p.exists():
+                try:
+                    fresh = json.loads(p.read_text(encoding="utf-8"))
+                    with _TASKS_LOCK:
+                        _TASKS[task_id] = fresh
+                except Exception:
+                    pass
             else:
-                t["status"] = "done"
-            t["completed_at"] = datetime.utcnow().isoformat()
-            t["result"] = {
-                "plan_len": len(plan),
-                "current_step": rd.get("current_step", 0),
-                "done": rd.get("done", False),
-                "last_error": last_err,
-                "messages_tail": str(rd.get("messages", []))[-400:],
-            }
-            _save_task(t)
+                # Subprocess murio sin escribir -> marcar error
+                with _TASKS_LOCK:
+                    t = _TASKS.get(task_id, {"task_id": task_id})
+                    t["status"] = "error"
+                    t["error"] = f"subprocess_no_output rc={rc} stderr={(stderr or '')[-300:]}"
+                    t["completed_at"] = datetime.utcnow().isoformat()
+                    _save_task(t)
     except Exception as e:
+        if proc:
+            try:
+                proc.kill()
+            except Exception:
+                pass
         with _TASKS_LOCK:
-            t = _TASKS[task_id]
+            t = _TASKS.get(task_id, {"task_id": task_id})
             t["status"] = "error"
+            t["error"] = f"supervisor_error: {type(e).__name__}: {e}"
             t["completed_at"] = datetime.utcnow().isoformat()
-            t["error"] = f"{type(e).__name__}: {e}"
             _save_task(t)
 
 
