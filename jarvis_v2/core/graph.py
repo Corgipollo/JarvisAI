@@ -651,6 +651,21 @@ def route_after_verifier(state: JarvisState) -> str:
     return "load_step"
 
 
+def route_after_load_step(state: JarvisState) -> str:
+    """Despues de load_step: end si done (plan agotado), cfo si hay step para evaluar.
+
+    Fix 2026-05-25: antes era add_edge directo a cfo, ignoraba done=True que
+    node_load_step setea cuando current_step >= len(plan). Eso causaba loop
+    infinito load_step->cfo->skip_step->load_step sin pasar por verifier
+    (unico nodo que chequeaba done).
+    """
+    if state.get("done"):
+        return "end"
+    if not state.get("proposed_action"):
+        return "end"  # defensa extra: sin action no hay nada que evaluar
+    return "cfo"
+
+
 def route_after_reflector(state: JarvisState) -> str:
     """Reflexion retry o give up."""
     if state.get("done"):
@@ -681,7 +696,12 @@ def build_graph(use_checkpoint: bool = True):
     sg.set_entry_point("rag")
     sg.add_edge("rag", "planner")
     sg.add_edge("planner", "load_step")
-    sg.add_edge("load_step", "cfo")
+    # load_step puede setear done=True si plan agotado -> conditional edge
+    sg.add_conditional_edges(
+        "load_step",
+        route_after_load_step,
+        {"end": END, "cfo": "cfo"},
+    )
 
     # CFO -> fail-closed routing (skip_step para idempotency, halt para resto)
     sg.add_conditional_edges(
