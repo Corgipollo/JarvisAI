@@ -174,11 +174,15 @@ def audit_business_state() -> dict:
 
 
 def _objective_research_leads() -> tuple[str, int]:
-    """Research emails publicos de leads sin contacto via skill auto_research."""
+    """Research emails publicos via shell script tangible.
+
+    Antes generaba objetivo natural-language que el planner skipeaba por
+    duplicate_recent sin producir output. Ahora invoca shell -> script
+    standalone que SIEMPRE escribe un .md con datos reales.
+    """
     return (
-        "Lista los 5 primeros leads sin email contactado via GET /api/v1/outreach/leads "
-        "y para cada uno usa la skill auto_research.deep_research para encontrar email "
-        "publico del COO/CEO. Reporta hallazgos en data/reports/leads_emails_found.md.",
+        "Ejecuta este comando shell exacto sin modificarlo: "
+        "python C:/Users/Emmanuel/Documents/JarvisAI/scripts/lead_research_writer.py",
         7
     )
 
@@ -195,12 +199,10 @@ def _objective_followup_leads(pending_count: int) -> tuple[str, int]:
 
 
 def _objective_audit_funnel(tenants_total: int) -> tuple[str, int]:
-    """Audit funnel usando endpoints REALES /tenants + /tenants/{id}/summary."""
+    """Audit funnel via shell script tangible (siempre escribe .md)."""
     return (
-        f"Audit funnel: usa GET /tenants para listar los {tenants_total} tenants, "
-        f"luego GET /tenants/{{tenant_id}}/summary para cada uno. "
-        f"Calcula conversion rate por etapa (signup -> demo -> active). "
-        f"Reporta a data/reports/funnel_audit.md.",
+        "Ejecuta este comando shell exacto sin modificarlo: "
+        "python C:/Users/Emmanuel/Documents/JarvisAI/scripts/audit_funnel_writer.py",
         4
     )
 
@@ -216,11 +218,19 @@ def _objective_self_improvement() -> tuple[str, int]:
 
 
 def _objective_market_research(keyword: str) -> tuple[str, int]:
-    """Market research via skill auto_research (no endpoint /research/market falso)."""
+    """Market research via shell script tangible (rota topics, escribe .md timestamped)."""
+    # El script rota topics internamente. Si quieres keyword especifico, lo pasa
+    # como arg quoted; sino script elige 3 del pool default.
+    if keyword and len(keyword) < 80:
+        kw_safe = keyword.replace('"', '').replace("'", "")[:60]
+        return (
+            f"Ejecuta este comando shell exacto sin modificarlo: "
+            f'python C:/Users/Emmanuel/Documents/JarvisAI/scripts/competitor_research_writer.py "{kw_safe}"',
+            3
+        )
     return (
-        f"Research: usa skill auto_research.deep_research(query='{keyword}', max_results=6) "
-        f"para investigar este tema. Sintetiza hallazgos y guarda en "
-        f"data/reports/research_{keyword.replace(' ', '_')[:40]}.md.",
+        "Ejecuta este comando shell exacto sin modificarlo: "
+        "python C:/Users/Emmanuel/Documents/JarvisAI/scripts/competitor_research_writer.py",
         3
     )
 
