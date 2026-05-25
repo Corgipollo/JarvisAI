@@ -8,7 +8,8 @@ Reconciler obligatorio post-execute_real para asentar costo real en ledger.
 from __future__ import annotations
 
 import json
-import operator
+import operator  # kept for legacy callers, capped reducer below replaces uses
+import os
 import re
 import sqlite3
 import sys
@@ -50,6 +51,36 @@ def split_objective_by_numbers(objective: str) -> list[str]:
 # ============================================================================
 # STATE - explicito, TypedDict, operator.add solo donde DEBE acumularse
 # ============================================================================
+
+# Reducer factory: append + cap FIFO a los N mas recientes.
+# Fix 2026-05-25: antes los campos messages/history/insights usaban operator.add
+# sin techo. Cada iteracion del graph crecia la lista -> LangGraph binop.py:122
+# (BinaryOperator.update) acumulaba state hasta MemoryError. El subprocess se
+# moria con el bug interno de langgraph. Capped reducer previene la explosion.
+def _capped_append(max_n: int):
+    """Factory de reducer: concatena + trunca a max_n elementos mas recientes."""
+    def _reducer(left: list | None, right: list | None) -> list:
+        if left is None:
+            left = []
+        if right is None:
+            right = []
+        merged = left + right
+        if len(merged) > max_n:
+            return merged[-max_n:]
+        return merged
+    _reducer.__name__ = f"capped_append_{max_n}"
+    return _reducer
+
+
+# Caps razonables para state agentic:
+#  - messages: 200 (suficiente para 10+ ciclos planner/executor con margen)
+#  - history: 100 (acciones tomadas, suele ser 1-2 por step)
+#  - insights: 50 (lecciones acumuladas, deduplicadas por memory_manager)
+_MAX_MESSAGES = int(os.environ.get("JARVIS_STATE_MAX_MESSAGES", "200"))
+_MAX_HISTORY = int(os.environ.get("JARVIS_STATE_MAX_HISTORY", "100"))
+_MAX_INSIGHTS = int(os.environ.get("JARVIS_STATE_MAX_INSIGHTS", "50"))
+
+
 class JarvisState(TypedDict, total=False):
     # Input
     objective: str
@@ -86,10 +117,10 @@ class JarvisState(TypedDict, total=False):
     retries_for_step: int
     max_retries: int
 
-    # ACCUMULATING fields (operator.add = append)
-    messages: Annotated[list, operator.add]
-    history: Annotated[list, operator.add]
-    insights: Annotated[list, operator.add]
+    # ACCUMULATING fields (capped reducer - previene MemoryError en binop.py)
+    messages: Annotated[list, _capped_append(_MAX_MESSAGES)]
+    history: Annotated[list, _capped_append(_MAX_HISTORY)]
+    insights: Annotated[list, _capped_append(_MAX_INSIGHTS)]
 
     # Control
     done: bool
@@ -719,14 +750,31 @@ def run_objective(objective: str, thread_id: str = "default") -> dict:
         "history": [],
         "insights": [],
     }
-    config = {"configurable": {"thread_id": thread_id}}
+    # recursion_limit: cap defensivo contra loops infinitos del router.
+    # Antes era default 10007 (LangGraph) -> una task cicla 66s consumiendo CPU
+    # antes de abortar. Con cap=50 abortamos en <5s y el subprocess muere limpio.
+    # Si necesitas mas iteraciones para casos especificos, override via env.
+    _RECURSION_CAP = int(os.environ.get("JARVIS_GRAPH_RECURSION_LIMIT", "50"))
+    config = {"configurable": {"thread_id": thread_id},
+              "recursion_limit": _RECURSION_CAP}
     final_state: dict = {}
-    for state in app.stream(initial, config=config, stream_mode="values"):
-        final_state = state  # state COMPLETO acumulado, no per-node
-        plan_len = len(state.get("plan", []))
-        cstep = state.get("current_step", 0)
-        print(f"[graph] step state: plan={plan_len} cur={cstep} done={state.get('done')}",
-              flush=True)
+    try:
+        for state in app.stream(initial, config=config, stream_mode="values"):
+            final_state = state  # state COMPLETO acumulado, no per-node
+            plan_len = len(state.get("plan", []))
+            cstep = state.get("current_step", 0)
+            print(f"[graph] step state: plan={plan_len} cur={cstep} done={state.get('done')}",
+                  flush=True)
+    except Exception as e:
+        # GraphRecursionError u otro -> marcar last_error y devolver state parcial.
+        # El task_executor lo veera y marcara status=error en el JSON.
+        cls = type(e).__name__
+        print(f"[graph] stream EXCEPTION {cls}: {e}", flush=True)
+        if not final_state:
+            final_state = {"messages": [], "plan": [],
+                            "last_error": f"{cls}: {str(e)[:300]}"}
+        else:
+            final_state["last_error"] = f"{cls}: {str(e)[:300]}"
     return final_state
 
 
