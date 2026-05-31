@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="es" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jarvis AI — Tu Asistente Personal Inteligente Voice-First</title>
+
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="Jarvis AI: asistente personal voice-first con IA híbrida (Claude, Gemini, Ollama). Piensa, recuerda y actúa en español. Manos libres, memoria conectada a Obsidian.">
+    <meta name="keywords" content="asistente IA, voice AI, faster-whisper, Claude API, Ollama, asistente personal, IA español">
+    <meta name="author" content="Emmanuel Pedraza">
+
+    <!-- Open Graph -->
+    <meta property="og:title" content="Jarvis AI — Tu cerebro aumentado. Sin tocar el teclado.">
+    <meta property="og:description" content="Asistente personal voice-first con routing inteligente de IA. Claude, Gemini, Ollama. Todo en español.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://corgipollo.github.io/JarvisAI">
+    <meta property="og:image" content="https://corgipollo.github.io/JarvisAI/og-image.jpg">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Jarvis AI — Asistente Personal Voice-First">
+    <meta name="twitter:description" content="IA híbrida en español. Habla, Jarvis piensa, escucha la respuesta.">
+    <meta name="twitter:image" content="https://corgipollo.github.io/JarvisAI/og-image.jpg">
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Tailwind Config -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3b82f6',
+                        secondary: '#8b5cf6',
+                        dark: '#0f172a',
+                        light: '#f8fafc',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Favicon -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🤖</text></svg>">
+
+    <style>
+        body { font-family: 'Inter', system-ui, sans-serif; }
+        .gradient-text {
+            background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .card-hover {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .card-hover:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+        }
+    </style>
+</head>
+
+<body class="bg-white text-gray-900 antialiased">
+
+    <!-- Header / Nav -->
+    <header class="fixed top-0 w-full bg-white/80 backdrop-blur-md z-50 border-b border-gray-200">
+        <nav class="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+                <span class="text-3xl">🤖</span>
+                <span class="text-xl font-bold gradient-text">Jarvis AI</span>
+            </div>
+            <div class="hidden md:flex gap-8 text-sm font-medium">
+                <a href="#features" class="hover:text-primary transition">Características</a>
+                <a href="#how-it-works" class="hover:text-primary transition">Cómo Funciona</a>
+                <a href="#demo" class="hover:text-primary transition">Demo</a>
+                <a href="#pricing" class="hover:text-primary transition">Pricing</a>
+            </div>
+            <a href="#cta" class="bg-primary text-white px-6 py-2 rounded-lg font-semibold hover:bg-blue-600 transition">
+                Probar Ahora
+            </a>
+        </nav>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="pt-32 pb-20 px-6 bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
+        <div class="max-w-4xl mx-auto text-center">
+            <div class="inline-block mb-4 px-4 py-2 bg-primary/10 text-primary rounded-full text-sm font-semibold">
+                ✨ Asistente IA Voice-First en Español
+            </div>
+            <h1 class="text-5xl md:text-7xl font-extrabold mb-6 leading-tight">
+                Tu cerebro aumentado.<br>
+                <span class="gradient-text">Sin tocar el teclado.</span>
+            </h1>
+            <p class="text-xl md:text-2xl text-gray-700 mb-10 max-w-3xl mx-auto leading-relaxed">
+                Jarvis AI es tu asistente personal activado por voz que <strong>piensa, recuerda y actúa</strong>
+                usando los mejores modelos de IA del mundo — Claude, Gemini, Cerebras y Ollama —
+                todo orquestado inteligentemente.
+            </p>
+            <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                <a href="#cta" class="gradient-bg text-white px-8 py-4 rounded-xl text-lg font-bold hover:opacity-90 transition shadow-lg">
+                    🚀 Únete a la Beta Gratuita
+                </a>
+                <a href="https://github.com/Corgipollo/JarvisAI" target="_blank" class="bg-gray-900 text-white px-8 py-4 rounded-xl text-lg font-bold hover:bg-gray-800 transition shadow-lg">
+                    ⭐ Ver en GitHub
+                </a>
+            </div>
+            <p class="mt-6 text-sm text-gray-600">
+                🔒 100% local-first • Sin suscripción obligatoria • Open source
+            </p>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="py-20 px-6 bg-white">
+        <div class="max-w-6xl mx-auto">
+            <h2 class="text-4xl md:text-5xl font-bold text-center mb-4">
+                ¿Por qué <span class="gradient-text">Jarvis AI</span>?
+            </h2>
+            <p class="text-center text-gray-600 mb-16 text-lg max-w-2xl mx-auto">
+                No es un chatbot más. Es tu segundo cerebro con voz.
+            </p>
+
+            <div class="grid md:grid-cols-3 gap-8">
+                <!-- Feature 1 -->
+                <div class="bg-gradient-to-br from-blue-50 to-blue-100 p-8 rounded-2xl card-hover border border-blue-200">
+                    <div class="text-5xl mb-4">🧠</div>
+                    <h3 class="text-2xl font-bold mb-3">Inteligencia Híbrida Automática</h3>
+                    <p class="text-gray-700 leading-relaxed">
+                        No eliges el modelo. Jarvis elige por ti: <strong>Claude</strong> para razonamiento profundo,
+                        <strong>Gemini/Cerebras</strong> para velocidad, <strong>Ollama local</strong> offline.
+                        La mejor respuesta siempre.
+                    </p>
+                </div>
+
+                <!-- Feature 2 -->
+                <div class="bg-gradient-to-br from-purple-50 to-purple-100 p-8 rounded-2xl card-hover border border-purple-200">
+                    <div class="text-5xl mb-4">🎙️</div>
+                    <h3 class="text-2xl font-bold mb-3">Voice-First, Manos Libres</h3>
+                    <p class="text-gray-700 leading-relaxed">
+                        Habla y escucha. Jarvis transcribe con <strong>faster-whisper</strong> (precisión profesional)
+                        y responde con <strong>edge-tts</strong> (voz natural). Trabaja mientras caminas, cocinas o conduces.
+                    </p>
+                </div>
+
+                <!-- Feature 3 -->
+                <div class="bg-gradient-to-br from-pink-50 to-pink-100 p-8 rounded-2xl card-hover border border-pink-200">
+                    <div class="text-5xl mb-4">📚</div>
+                    <h3 class="text-2xl font-bold mb-3">Tu Memoria Externa Conectada</h3>
+                    <p class="text-gray-700 leading-relaxed">
+                        Integrado con tu <strong>vault de Obsidian</strong>. Jarvis lee tus notas, documentos
+                        y conocimiento acumulado para darte respuestas <strong>personalizadas a tu contexto</strong>,
+                        no genéricas.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works Section -->
+    <section id="how-it-works" class="py-20 px-6 bg-gradient-to-br from-gray-50 to-gray-100">
+        <div class="max-w-5xl mx-auto">
+            <h2 class="text-4xl md:text-5xl font-bold text-center mb-4">
+                Cómo funciona <span class="gradient-text">en 3 pasos</span>
+            </h2>
+            <p class="text-center text-gray-600 mb-16 text-lg">
+                Magia en menos de un segundo.
+            </p>
+
+            <div class="grid md:grid-cols-3 gap-12">
+                <!-- Step 1 -->
+                <div class="text-center">
+                    <div class="w-20 h-20 mx-auto mb-6 gradient-bg rounded-full flex items-center justify-center text-white text-3xl font-bold shadow-xl">
+                        1
+                    </div>
+                    <h3 class="text-2xl font-bold mb-3">Habla</h3>
+                    <p class="text-gray-700 leading-relaxed">
+                        Presiona el botón o di "Hey Jarvis". Tu voz se transcribe localmente con
+                        <strong>faster-whisper</strong> — rápido, preciso, privado.
+                    </p>
+                </div>
+
+                <!-- Step 2 -->
+                <div class="text-center">
+                    <div class="w-20 h-20 mx-auto mb-6 gradient-bg rounded-full flex items-center justify-center text-white text-3xl font-bold shadow-xl">
+                        2
+                    </div>
+                    <h3 class="text-2xl font-bold mb-3">Jarvis Piensa</h3>
+                    <p class="text-gray-700 leading-relaxed">
+                        El router de IA analiza tu pregunta y decide automáticamente:
+                        <strong>Claude</strong> para complejidad, <strong>Gemini/Cerebras</strong> para rapidez,
+                        u <strong>Ollama local</strong> para privacidad.
+                    </p>
+                </div>
+
+                <!-- Step 3 -->
+                <div class="text-center">
+                    <div class="w-20 h-20 mx-auto mb-6 gradient-bg rounded-full flex items-center justify-center text-white text-3xl font-bold shadow-xl">
+                        3
+                    </div>
+                    <h3 class="text-2xl font-bold mb-3">Escucha la Respuesta</h3>
+                    <p class="text-gray-700 leading-relaxed">
+                        Jarvis responde en español, directo al grano, con voz natural.
+                        La respuesta se guarda en tu vault para consulta futura. Todo sincronizado.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Video Demo Section -->
+    <section id="demo" class="py-20 px-6 bg-white">
+        <div class="max-w-4xl mx-auto text-center">
+            <h2 class="text-4xl md:text-5xl font-bold mb-4">
+                Míralo <span class="gradient-text">en acción</span>
+            </h2>
+            <p class="text-gray-600 mb-12 text-lg">
+                30 segundos que valen más que 1000 palabras.
+            </p>
+
+            <!-- Video Embed (placeholder — replace with actual URL) -->
+            <div class="relative w-full aspect-video bg-gray-900 rounded-2xl overflow-hidden shadow-2xl">
+                <!-- Replace src with actual YouTube/Loom video -->
+                <iframe
+                    class="w-full h-full"
+                    src="https://www.youtube.com/embed/dQw4w9WgXcQ"
+                    title="Jarvis AI Demo"
+                    frameborder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowfullscreen>
+                </iframe>
+            </div>
+
+            <p class="mt-6 text-sm text-gray-500">
+                📹 Demo real grabado por Emmanuel Pedraza • Sin edición, sin guion
+            </p>
+        </div>
+    </section>
+
+    <!-- Proof / Credibility Section -->
+    <section class="py-20 px-6 bg-gradient-to-br from-blue-50 to-purple-50">
+        <div class="max-w-4xl mx-auto">
+            <h2 class="text-4xl md:text-5xl font-bold text-center mb-12">
+                🔒 Prueba y <span class="gradient-text">Credibilidad</span>
+            </h2>
+
+            <div class="grid md:grid-cols-2 gap-8">
+                <div class="bg-white p-8 rounded-2xl shadow-lg">
+                    <h3 class="text-xl font-bold mb-3 flex items-center gap-2">
+                        <span class="text-2xl">🔐</span> 100% Local-First
+                    </h3>
+                    <p class="text-gray-700">
+                        <strong>faster-whisper</strong> y <strong>Ollama</strong> corren en tu máquina.
+                        Tus datos nunca salen sin tu control. APIs externas solo cuando tú lo permites.
+                    </p>
+                </div>
+
+                <div class="bg-white p-8 rounded-2xl shadow-lg">
+                    <h3 class="text-xl font-bold mb-3 flex items-center gap-2">
+                        <span class="text-2xl">⚡</span> Routing Inteligente Real
+                    </h3>
+                    <p class="text-gray-700">
+                        Código abierto en <code class="bg-gray-100 px-2 py-1 rounded">backend/ai_router.py</code>.
+                        Prioridad: Claude → Gemini/Cerebras → Ollama. Sin marketing, solo lógica.
+                    </p>
+                </div>
+
+                <div class="bg-white p-8 rounded-2xl shadow-lg">
+                    <h3 class="text-xl font-bold mb-3 flex items-center gap-2">
+                        <span class="text-2xl">👨‍💻</span> Built by Emmanuel Pedraza
+                    </h3>
+                    <p class="text-gray-700">
+                        Orquestador de múltiples proyectos de IA, usuario real, no corporación.
+                        <strong>Jarvis es mi asistente diario.</strong>
+                        <a href="https://github.com/Corgipollo" target="_blank" class="text-primary hover:underline">
+                            @Corgipollo
+                        </a>
+                    </p>
+                </div>
+
+                <div class="bg-white p-8 rounded-2xl shadow-lg">
+                    <h3 class="text-xl font-bold mb-3 flex items-center gap-2">
+                        <span class="text-2xl">📖</span> Open Source
+                    </h3>
+                    <p class="text-gray-700">
+                        Todo el código en GitHub. Fork, modifica, contribuye.
+                        Licencia MIT. Transparencia total.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Pricing Section -->
+    <section id="pricing" class="py-20 px-6 bg-white">
+        <div class="max-w-5xl mx-auto text-center">
+            <h2 class="text-4xl md:text-5xl font-bold mb-4">
+                Pricing <span class="gradient-text">Simple</span>
+            </h2>
+            <p class="text-gray-600 mb-16 text-lg">
+                Empieza gratis. Escala cuando lo necesites.
+            </p>
+
+            <div class="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+                <!-- Free Beta -->
+                <div class="bg-gradient-to-br from-gray-50 to-gray-100 p-10 rounded-2xl border-2 border-gray-300">
+                    <h3 class="text-2xl font-bold mb-2">Beta Gratuita</h3>
+                    <div class="text-5xl font-extrabold mb-6">
+                        $0
+                        <span class="text-lg font-normal text-gray-600">/mes</span>
+                    </div>
+                    <ul class="text-left space-y-3 mb-8">
+                        <li class="flex items-start gap-2">
+                            <span class="text-green-500 text-xl">✓</span>
+                            <span>Ollama local ilimitado</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <span class="text-green-500 text-xl">✓</span>
+                            <span>Faster-whisper (STT local)</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <span class="text-green-500 text-xl">✓</span>
+                            <span>Edge-TTS (voz natural)</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <span class="text-green-500 text-xl">✓</span>
+                            <span>Integración Obsidian</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <span class="text-gray-400 text-xl">✗</span>
+                            <span class="text-gray-500">APIs Claude/Gemini (BYO keys)</span>
+                        </li>
+                    </ul>
+                    <a href="#cta" class="block bg-gray-900 text-white px-6 py-3 rounded-xl font-bold hover:bg-gray-800 transition">
+                        Descargar Ahora
+                    </a>
+                </div>
+
+                <!-- Pro Plan (Coming Soon) -->
+                <div class="gradient-bg p-10 rounded-2xl border-2 border-purple-500 text-white shadow-2xl transform scale-105">
+                    <div class="inline-block mb-2 px-3 py-1 bg-white/20 rounded-full text-sm font-semibold">
+                        🚀 Próximamente
+                    </div>
+                    <h3 class="text-2xl font-bold mb-2">Pro</h3>
+                    <div class="text-5xl font-extrabold mb-6">
+                        $9
+                        <span class="text-lg font-normal opacity-90">/mes</span>
+                    </div>
+                    <ul class="text-left space-y-3 mb-8">
+                        <li class="flex items-start gap-2">
+                            <span class="text-green-300 text-xl">✓</span>
+                            <span>Todo de Beta gratis</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <span class="text-green-300 text-xl">✓</span>
+                            <span>Claude API incluida (sin keys)</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <span class="text-green-300 text-xl">✓</span>
+                            <span>Gemini Pro incluido</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <span class="text-green-300 text-xl">✓</span>
+                            <span>Memoria en la nube + sync</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <span class="text-green-300 text-xl">✓</span>
+                            <span>Soporte prioritario</span>
+                        </li>
+                    </ul>
+                    <a href="#cta" class="block bg-white text-purple-700 px-6 py-3 rounded-xl font-bold hover:bg-gray-100 transition">
+                        Únete a la Waitlist
+                    </a>
+                </div>
+            </div>
+
+            <p class="mt-12 text-gray-600">
+                💡 Trae tus propias API keys (Claude, Gemini) y usa Beta gratis para siempre.
+            </p>
+        </div>
+    </section>
+
+    <!-- CTA Final Section -->
+    <section id="cta" class="py-24 px-6 gradient-bg text-white">
+        <div class="max-w-3xl mx-auto text-center">
+            <h2 class="text-4xl md:text-5xl font-extrabold mb-6">
+                ¿Listo para tu propio Jarvis?
+            </h2>
+            <p class="text-xl mb-10 opacity-95">
+                Descarga la beta, clona el repo, o únete a la waitlist del plan Pro.
+            </p>
+
+            <div class="grid md:grid-cols-2 gap-6 mb-10">
+                <!-- For Developers -->
+                <div class="bg-white/10 backdrop-blur-sm p-8 rounded-2xl border border-white/20">
+                    <h3 class="text-2xl font-bold mb-3">👨‍💻 Para Developers</h3>
+                    <p class="mb-6 opacity-90">
+                        Clona el repo, ajusta el código, hostea donde quieras. Open source total.
+                    </p>
+                    <a
+                        href="https://github.com/Corgipollo/JarvisAI"
+                        target="_blank"
+                        class="block bg-gray-900 text-white px-6 py-3 rounded-xl font-bold hover:bg-gray-800 transition"
+                    >
+                        Ver en GitHub →
+                    </a>
+                </div>
+
+                <!-- For Non-Developers -->
+                <div class="bg-white/10 backdrop-blur-sm p-8 rounded-2xl border border-white/20">
+                    <h3 class="text-2xl font-bold mb-3">🚀 Para Usuarios</h3>
+                    <p class="mb-6 opacity-90">
+                        Emmanuel está construyendo la versión empaquetada .exe (Windows). Únete a la waitlist.
+                    </p>
+                    <a
+                        href="https://forms.gle/YOUR_GOOGLE_FORM_ID"
+                        target="_blank"
+                        class="block bg-white text-purple-700 px-6 py-3 rounded-xl font-bold hover:bg-gray-100 transition"
+                    >
+                        Únete a la Waitlist →
+                    </a>
+                </div>
+            </div>
+
+            <p class="text-sm opacity-75">
+                🔒 Sin spam. Sin compromisos. Solo te avisamos cuando esté listo.
+            </p>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-gray-400 py-12 px-6">
+        <div class="max-w-6xl mx-auto grid md:grid-cols-3 gap-8">
+            <div>
+                <div class="flex items-center gap-2 mb-4">
+                    <span class="text-3xl">🤖</span>
+                    <span class="text-xl font-bold text-white">Jarvis AI</span>
+                </div>
+                <p class="text-sm leading-relaxed">
+                    Tu asistente personal inteligente voice-first.
+                    Built with ❤️ by <a href="https://github.com/Corgipollo" class="text-primary hover:underline">Emmanuel Pedraza</a>.
+                </p>
+            </div>
+
+            <div>
+                <h4 class="text-white font-semibold mb-4">Links</h4>
+                <ul class="space-y-2 text-sm">
+                    <li><a href="https://github.com/Corgipollo/JarvisAI" class="hover:text-white transition">GitHub</a></li>
+                    <li><a href="https://github.com/Corgipollo/JarvisAI/blob/main/README.md" class="hover:text-white transition">Documentación</a></li>
+                    <li><a href="https://github.com/Corgipollo/JarvisAI/issues" class="hover:text-white transition">Reportar Bug</a></li>
+                    <li><a href="#pricing" class="hover:text-white transition">Pricing</a></li>
+                </ul>
+            </div>
+
+            <div>
+                <h4 class="text-white font-semibold mb-4">Legal</h4>
+                <ul class="space-y-2 text-sm">
+                    <li><a href="#" class="hover:text-white transition">Privacidad</a></li>
+                    <li><a href="#" class="hover:text-white transition">Términos de Uso</a></li>
+                    <li><a href="https://github.com/Corgipollo/JarvisAI/blob/main/LICENSE" class="hover:text-white transition">Licencia MIT</a></li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="max-w-6xl mx-auto mt-10 pt-8 border-t border-gray-800 text-center text-sm">
+            <p>© 2026 Jarvis AI by Emmanuel Pedraza. Open Source bajo licencia MIT.</p>
+        </div>
+    </footer>
+
+    <!-- Smooth Scroll Script -->
+    <script>
+        // Smooth scroll para links internos
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html>
