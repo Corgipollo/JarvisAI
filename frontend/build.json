@@ -1,0 +1,59 @@
+{
+  "appId": "com.corgipollo.jarvisai",
+  "productName": "Jarvis AI",
+  "directories": {
+    "output": "../dist-installer",
+    "buildResources": "build"
+  },
+  "files": [
+    "**/*",
+    "!**/*.map",
+    "!.git",
+    "!node_modules/.cache"
+  ],
+  "win": {
+    "target": [
+      {
+        "target": "nsis",
+        "arch": ["x64"]
+      }
+    ],
+    "icon": "build/icon.ico",
+    "artifactName": "JarvisAI-Setup-${version}.${ext}",
+    "publisherName": "Emmanuel Pedraza"
+  },
+  "nsis": {
+    "oneClick": false,
+    "allowToChangeInstallationDirectory": true,
+    "createDesktopShortcut": true,
+    "createStartMenuShortcut": true,
+    "shortcutName": "Jarvis AI",
+    "installerIcon": "build/icon.ico",
+    "uninstallerIcon": "build/icon.ico",
+    "installerHeader": "build/installerHeader.bmp",
+    "installerSidebar": "build/installerSidebar.bmp",
+    "runAfterFinish": true,
+    "license": "../LICENSE",
+    "include": "build/installer.nsh"
+  },
+  "extraResources": [
+    {
+      "from": "../backend",
+      "to": "backend",
+      "filter": ["**/*", "!**/__pycache__", "!**/*.pyc", "!venv", "!.env"]
+    },
+    {
+      "from": "../.env.example",
+      "to": ".env.example"
+    },
+    {
+      "from": "../scripts",
+      "to": "scripts"
+    }
+  ],
+  "publish": {
+    "provider": "github",
+    "owner": "Corgipollo",
+    "repo": "JarvisAI"
+  }
+}

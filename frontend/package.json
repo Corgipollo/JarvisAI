@@ -1,15 +1,26 @@
 {
   "name": "jarvis-ai",
-  "version": "1.0.0",
+  "version": "1.0.0-alpha",
   "description": "Jarvis AI - Asistente Personal Local",
   "main": "main.js",
   "scripts": {
     "start": "electron .",
-    "dev": "electron . --dev"
+    "dev": "electron . --dev",
+    "build": "electron-builder build --config build.json --win",
+    "build:dir": "electron-builder build --config build.json --dir",
+    "dist": "electron-builder build --config build.json --win --publish never",
+    "release": "electron-builder build --config build.json --win --publish always"
   },
   "dependencies": {
     "electron": "^41.1.1"
   },
+  "devDependencies": {
+    "electron-builder": "^24.13.3"
+  },
   "author": "Emmanuel Pedraza",
-  "license": "MIT"
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Corgipollo/JarvisAI.git"
+  }
 }
