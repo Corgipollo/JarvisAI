@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Primary Meta Tags -->
+    <title>Pricing — Jarvis V3 | Planes desde $79/mes para PyMEs</title>
+    <meta name="title" content="Pricing — Jarvis V3 | Planes desde $79/mes para PyMEs">
+    <meta name="description" content="Automatiza tu negocio desde $79/mes. Starter para solopreneurs, Pro para equipos PyME, Enterprise para corporativos. 15 días gratis, sin tarjeta.">
+    <meta name="keywords" content="precio jarvis ai, asistente ia pymes mexico, automatizacion negocio precio, voice ai costo, jarvis pricing">
+    <meta name="author" content="Emmanuel Pedraza">
+    <link rel="canonical" href="https://jarvisv3.ai/pricing">
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://jarvisv3.ai/pricing">
+    <meta property="og:title" content="Pricing — Jarvis V3 | Desde $79/mes">
+    <meta property="og:description" content="Automatiza tu negocio. 3 planes: Starter ($79), Pro ($199), Enterprise ($799). 15 días gratis.">
+    <meta property="og:image" content="https://jarvisv3.ai/og-pricing.png">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:url" content="https://jarvisv3.ai/pricing">
+    <meta name="twitter:title" content="Pricing — Jarvis V3">
+    <meta name="twitter:description" content="Automatiza desde $79/mes. 15 días gratis, sin tarjeta.">
+    <meta name="twitter:image" content="https://jarvisv3.ai/og-pricing.png">
+    <meta name="twitter:creator" content="@corgipollo">
+
+    <!-- Schema.org Product Pricing -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Product",
+      "name": "Jarvis V3 AI Assistant",
+      "offers": [
+        {
+          "@type": "Offer",
+          "name": "Starter",
+          "price": "79.00",
+          "priceCurrency": "USD",
+          "availability": "https://schema.org/InStock"
+        },
+        {
+          "@type": "Offer",
+          "name": "Pro",
+          "price": "199.00",
+          "priceCurrency": "USD",
+          "availability": "https://schema.org/InStock"
+        },
+        {
+          "@type": "Offer",
+          "name": "Enterprise",
+          "price": "799.00",
+          "priceCurrency": "USD",
+          "availability": "https://schema.org/InStock"
+        }
+      ]
+    }
+    </script>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        arena: '#C5A882',
+                        obsidian: '#1a1a1a',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+
+    <style>
+        * { font-family: 'Inter', sans-serif; }
+        html { scroll-behavior: smooth; }
+        @media (prefers-reduced-motion: reduce) {
+            html { scroll-behavior: auto; }
+            * { animation-duration: 0.01ms !important; }
+        }
+        .pricing-card-shadow {
+            box-shadow: 0 10px 40px rgba(197, 168, 130, 0.1);
+        }
+        .pricing-card-popular {
+            transform: scale(1.05);
+            border: 2px solid #C5A882;
+            box-shadow: 0 20px 60px rgba(197, 168, 130, 0.25);
+        }
+        @media (max-width: 768px) {
+            .pricing-card-popular {
+                transform: scale(1);
+            }
+        }
+    </style>
+</head>
+<body class="bg-obsidian text-white antialiased">
+
+    <!-- NAVIGATION (simple, back to home) -->
+    <nav class="fixed top-0 w-full bg-obsidian/95 backdrop-blur-sm border-b border-gray-800 z-50">
+        <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+            <a href="index.html" class="text-2xl font-black text-arena hover:text-arena/80 transition">
+                ← Jarvis V3
+            </a>
+            <div class="flex gap-6 items-center">
+                <a href="#faq" class="text-gray-400 hover:text-white transition">FAQ</a>
+                <a href="#compare" class="text-gray-400 hover:text-white transition">Comparar</a>
+                <a href="#cta" class="px-6 py-2 bg-arena text-obsidian font-bold rounded-lg hover:bg-arena/90 transition">
+                    Empezar gratis
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- HERO PRICING SECTION -->
+    <section class="pt-32 pb-16 px-6">
+        <div class="max-w-7xl mx-auto text-center">
+            <!-- Urgency Badge (Principle #6: Scarcity) -->
+            <div class="inline-flex items-center px-4 py-2 bg-red-900/20 border border-red-600/50 rounded-full text-red-400 text-sm font-semibold mb-6 animate-pulse">
+                🔥 Oferta Beta — Solo 50 plazas disponibles este mes
+            </div>
+
+            <!-- Main Headline -->
+            <h1 class="text-5xl md:text-6xl font-black mb-6 leading-tight">
+                Automatiza tu negocio<br>
+                desde <span class="text-arena">$79/mes</span>
+            </h1>
+
+            <!-- Subheadline (Loss Aversion Framing - Principle #3) -->
+            <p class="text-xl md:text-2xl text-gray-300 mb-4 max-w-3xl mx-auto">
+                Deja de perder <span class="text-red-400 font-bold">20+ horas/semana</span> en tareas manuales.
+                <span class="text-arena font-semibold">Jarvis automatiza todo</span> por el precio de 3 cafés al día.
+            </p>
+
+            <!-- Guarantee / Trust Signal (Principle #12) -->
+            <p class="text-gray-400 text-lg mb-12">
+                ✅ 15 días gratis · Sin tarjeta · Cancela cuando quieras · <span class="text-arena font-semibold">Garantía 100% reembolso</span>
+            </p>
+
+            <!-- Social Proof (Principle #5) -->
+            <div class="flex flex-wrap justify-center gap-8 items-center mb-8 text-sm text-gray-500">
+                <div class="flex items-center gap-2">
+                    <div class="flex -space-x-2">
+                        <div class="w-8 h-8 rounded-full bg-gray-700 border-2 border-obsidian"></div>
+                        <div class="w-8 h-8 rounded-full bg-gray-600 border-2 border-obsidian"></div>
+                        <div class="w-8 h-8 rounded-full bg-gray-500 border-2 border-obsidian"></div>
+                    </div>
+                    <span>120+ founders usando Jarvis</span>
+                </div>
+                <div>⭐⭐⭐⭐⭐ 4.8/5 (24 reviews)</div>
+                <div>🚀 Y Combinator W26 batch</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- PRICING CARDS SECTION -->
+    <section id="pricing-tiers" class="py-16 px-6">
+        <div class="max-w-7xl mx-auto">
+
+            <!-- Toggle MXN / USD -->
+            <div class="flex justify-center mb-12">
+                <div class="inline-flex bg-gray-800 rounded-lg p-1">
+                    <button onclick="toggleCurrency('usd')" id="btn-usd" class="px-6 py-2 rounded-md bg-arena text-obsidian font-semibold transition">
+                        USD
+                    </button>
+                    <button onclick="toggleCurrency('mxn')" id="btn-mxn" class="px-6 py-2 rounded-md text-gray-400 font-semibold transition hover:text-white">
+                        MXN
+                    </button>
+                </div>
+            </div>
+
+            <!-- 3-Tier Grid (Principle #11: Visual Hierarchy - Pro destacado) -->
+            <div class="grid md:grid-cols-3 gap-8 items-start">
+
+                <!-- STARTER PLAN -->
+                <div class="bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl p-8 border border-gray-700 pricing-card-shadow">
+                    <!-- Plan Name (Principle #7: Aspirational Naming) -->
+                    <h3 class="text-2xl font-bold mb-2">Starter</h3>
+                    <p class="text-gray-400 text-sm mb-6">Para solopreneurs y freelancers</p>
+
+                    <!-- Price (Principle #10: Charm Pricing $79) -->
+                    <div class="mb-8">
+                        <div class="flex items-baseline gap-2">
+                            <span class="text-5xl font-black text-white price-usd">$79</span>
+                            <span class="text-5xl font-black text-white price-mxn hidden">$1,580</span>
+                            <span class="text-gray-400">/mes</span>
+                        </div>
+                        <p class="text-sm text-gray-500 mt-2">≈ $2.60/día · Menos que 3 cafés</p>
+                    </div>
+
+                    <!-- CTA Button (Principle #8: Action-Outcome Copy) -->
+                    <a href="#cta" class="block w-full text-center px-6 py-4 bg-gray-700 text-white font-bold rounded-lg hover:bg-gray-600 transition mb-8">
+                        Empezar 15 días gratis →
+                    </a>
+
+                    <!-- Features (Principle #4: Feature + Value) -->
+                    <ul class="space-y-3 text-sm text-gray-300">
+                        <li class="flex items-start gap-3">
+                            <svg class="w-5 h-5 text-arena flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
+                            <span><strong>1 usuario</strong> · Ideal para trabajo solo</span>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <svg class="w-5 h-5 text-arena flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
+                            <span><strong>Voice control básico</strong> · Abre apps, busca, automatiza tareas comunes</span>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <svg class="w-5 h-5 text-arena flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
+                            <span><strong>Ollama local + Gemini API</strong> · IA 100% gratis, funciona offline</span>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <svg class="w-5 h-5 text-arena flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
+                            <span><strong>Obsidian integration</strong> · Lee tu knowledge base personal</span>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <svg class="w-5 h-5 text-arena flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
+                            <span><strong>500 voice commands/mes</strong> · Suficiente para uso diario</span>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <svg class="w-5 h-5 text-arena flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
+                            <span><strong>Email support</strong> · Respuesta en 48h</span>
+                        </li>
+                        <li class="flex items-start gap-3 text-gray-500">
+                            <svg class="w-5 h-5 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path></svg>
+                            <span>No multi-agent orchestration</span>
+                        </li>
+                        <li class="flex items-start gap-3 text-gray-500">
+                            <svg class="w-5 h-5 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path></svg>
+                            <span>No custom skills builder</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- PRO PLAN (Principle #2: Decoy Effect + #11: Visual Highlight) -->
+                <div class="bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl p-8 border pricing-card-popular relative">
+                    <!-- Popular Badge -->
+                    <div class="absolute -top-4 left-1/2 transform -translate-x-1/2 px-6 py-2 bg-arena text-obsidian font-bold text-sm rounded-full shadow-lg">
+                        🔥 MÁS POPULAR
+                    </div>
+
+                    <h3 class="text-2xl font-bold mb-2 mt-4">Pro</h3>
+                    <p class="text-gray-400 text-sm mb-6">Para equipos PyME y fundadores</p>
+
+                    <!-- Price (Principle #1: Anchoring - mostrado después de Starter hace que se vea razonable) -->
+                    <div class="mb-8">
+                        <div class="flex items-baseline gap-2">
+                            <span class="text-5xl font-black text-arena price-usd">$199</span>
+                            <span class="text-5xl font-black text-arena price-mxn hidden">$3,980</span>
+                            <span class="text-gray-400">/mes</span>
+                        </div>
+                        <p class="text-sm text-arena font-semibold mt-2">🎯 Precio de 1 empleado PT, output de 3 FT</p>
+                    </div>
+
+                    <!-- CTA (Stronger for popular tier) -->
+                    <a href="#cta" class="block w-full text-center px-6 py-4 bg-arena text-obsidian font-bold rounded-lg hover:bg-arena/90 transition mb-8 shadow-lg shadow-arena/30">
+                        Empezar 15 días gratis →
+                    </a>
+
+                    <!-- Features -->
+                    <ul class="space-y-3 text-sm text-gray-300">
+                        <li class="flex items-start gap-3">
+                            <svg class="w-5 h-5 text-arena flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
+                            <span><strong class="text-arena">Todo de Starter +</strong></span>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <svg class="w-5 h-5 text-arena flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
+                            <span><strong>Hasta 5 usuarios</strong> · Colabora con tu equipo</span>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <svg class="w-5 h-5 text-arena flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
+                            <span><strong>Claude API integration</strong> · Máxima inteligencia (Opus 4.6)</span>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <svg class="w-5 h-5 text-arena flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
+                            <span><strong>Multi-agent orchestration</strong> · Swarms trabajando en paralelo</span>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <svg class="w-5 h-5 text-arena flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
+                            <span><strong>Custom skills builder</strong> · Automatiza flujos únicos de tu negocio</span>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <svg class="w-5 h-5 text-arena flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
+                            <span><strong>CRM automation completo</strong> · Google Sheets, Notion, Airtable</span>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <svg class="w-5 h-5 text-arena flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
+                            <span><strong>Unlimited voice commands</strong> · Sin límites de uso</span>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <svg class="w-5 h-5 text-arena flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
+                            <span><strong>Priority support 24h</strong> · Respuesta garantizada en 1 día hábil</span>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <svg class="w-5 h-5 text-arena flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
+                            <span><strong>Monthly analytics</strong> · Reportes de ahorro de tiempo y ROI</span>
+                        </li>
+                        <li class="flex items-start gap-3 text-gray-500">
+                            <svg class="w-5 h-5 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path></svg>
+                            <span>No on-premise deploy</span>
+                        </li>
+                        <li class="flex items-start gap-3 text-gray-500">
+                            <svg class="w-5 h-5 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path></svg>
+                            <span>No SLA 99.5% garantizado</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- ENTERPRISE PLAN -->
+                <div class="bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl p-8 border border-gray-700 pricing-card-shadow">
+                    <h3 class="text-2xl font-bold mb-2">Enterprise</h3>
+                    <p class="text-gray-400 text-sm mb-6">Para corporativos y agencias</p>
+
+                    <!-- Price (High anchor for Decoy Effect - Principle #1 & #2) -->
+                    <div class="mb-8">
+                        <div class="flex items-baseline gap-2">
+                            <span class="text-5xl font-black text-white price-usd">$799</span>
+                            <span class="text-5xl font-black text-white price-mxn hidden">$15,980</span>
+                            <span class="text-gray-400">/mes</span>
+                        </div>
+                        <p class="text-sm text-gray-500 mt-2">Usuarios ilimitados · Flat pricing</p>
+                    </div>
+
+                    <!-- CTA -->
+                    <a href="#cta" class="block w-full text-center px-6 py-4 border-2 border-arena text-arena font-bold rounded-lg hover:bg-arena hover:text-obsidian transition mb-8">
+                        Agendar demo →
+                    </a>
+
+                    <!-- Features -->
+                    <ul class="space-y-3 text-sm text-gray-300">
+                        <li class="flex items-start gap-3">
+                            <svg class="w-5 h-5 text-arena flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
+                            <span><strong class="text-arena">Todo de Pro +</strong></span>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <svg class="w-5 h-5 text-arena flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
+                            <span><strong>Usuarios ilimitados</strong> · Flat pricing sin sorpresas</span>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <svg class="w-5 h-5 text-arena flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
+                            <span><strong>On-premise deploy</strong> · Redes corporativas, control total</span>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <svg class="w-5 h-5 text-arena flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
+                            <span><strong>SSO / Active Directory</strong> · Integración con tu infraestructura</span>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <svg class="w-5 h-5 text-arena flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
+                            <span><strong>Custom LLM endpoint</strong> · Trae tus propias API keys</span>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <svg class="w-5 h-5 text-arena flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
+                            <span><strong>White-label branding</strong> · Tu logo, tu marca</span>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <svg class="w-5 h-5 text-arena flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
+                            <span><strong>Dedicated CSM</strong> · Customer Success Manager asignado</span>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <svg class="w-5 h-5 text-arena flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
+                            <span><strong>SLA 99.5% uptime</strong> · Garantía de disponibilidad</span>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <svg class="w-5 h-5 text-arena flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
+                            <span><strong>Custom integrations</strong> · Salesforce, SAP, legacy systems</span>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <svg class="w-5 h-5 text-arena flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
+                            <span><strong>QBR trimestrales</strong> · Quarterly Business Review</span>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <svg class="w-5 h-5 text-arena flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
+                            <span><strong>Training sessions</strong> · 2 horas/trimestre para tu equipo</span>
+                        </li>
+                    </ul>
+                </div>
+
+            </div>
+
+        </div>
+    </section>
+
+    <!-- COMPARISON TABLE SECTION -->
+    <section id="compare" class="py-24 px-6 bg-gray-900/50">
+        <div class="max-w-6xl mx-auto">
+            <h2 class="text-4xl font-black mb-4 text-center">Compara planes en detalle</h2>
+            <p class="text-gray-400 text-center mb-12 max-w-2xl mx-auto">
+                Todos los planes incluyen 15 días de prueba gratis, sin tarjeta de crédito.
+            </p>
+
+            <div class="overflow-x-auto">
+                <table class="w-full bg-gray-800 rounded-xl overflow-hidden">
+                    <thead class="bg-gray-700">
+                        <tr>
+                            <th class="px-6 py-4 text-left font-bold">Feature</th>
+                            <th class="px-6 py-4 text-center font-bold">Starter</th>
+                            <th class="px-6 py-4 text-center font-bold text-arena">Pro</th>
+                            <th class="px-6 py-4 text-center font-bold">Enterprise</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-700 text-sm">
+                        <tr>
+                            <td class="px-6 py-4 font-semibold">Usuarios</td>
+                            <td class="px-6 py-4 text-center text-gray-400">1</td>
+                            <td class="px-6 py-4 text-center text-arena font-semibold">Hasta 5</td>
+                            <td class="px-6 py-4 text-center text-white font-semibold">Ilimitados</td>
+                        </tr>
+                        <tr>
+                            <td class="px-6 py-4 font-semibold">Voice commands/mes</td>
+                            <td class="px-6 py-4 text-center text-gray-400">500</td>
+                            <td class="px-6 py-4 text-center text-arena font-semibold">Ilimitados</td>
+                            <td class="px-6 py-4 text-center text-white font-semibold">Ilimitados</td>
+                        </tr>
+                        <tr>
+                            <td class="px-6 py-4 font-semibold">IA providers</td>
+                            <td class="px-6 py-4 text-center text-gray-400">Ollama + Gemini free</td>
+                            <td class="px-6 py-4 text-center text-arena font-semibold">+ Claude API</td>
+                            <td class="px-6 py-4 text-center text-white font-semibold">+ Custom endpoint</td>
+                        </tr>
+                        <tr>
+                            <td class="px-6 py-4 font-semibold">Multi-agent orchestration</td>
+                            <td class="px-6 py-4 text-center text-gray-500">✗</td>
+                            <td class="px-6 py-4 text-center text-arena">✓</td>
+                            <td class="px-6 py-4 text-center text-white">✓</td>
+                        </tr>
+                        <tr>
+                            <td class="px-6 py-4 font-semibold">Custom skills builder</td>
+                            <td class="px-6 py-4 text-center text-gray-500">✗</td>
+                            <td class="px-6 py-4 text-center text-arena">✓</td>
+                            <td class="px-6 py-4 text-center text-white">✓</td>
+                        </tr>
+                        <tr>
+                            <td class="px-6 py-4 font-semibold">CRM automation</td>
+                            <td class="px-6 py-4 text-center text-gray-500">✗</td>
+                            <td class="px-6 py-4 text-center text-arena">✓ Sheets/Notion/Airtable</td>
+                            <td class="px-6 py-4 text-center text-white">✓ + Salesforce/SAP</td>
+                        </tr>
+                        <tr>
+                            <td class="px-6 py-4 font-semibold">On-premise deploy</td>
+                            <td class="px-6 py-4 text-center text-gray-500">✗</td>
+                            <td class="px-6 py-4 text-center text-gray-500">✗</td>
+                            <td class="px-6 py-4 text-center text-white">✓</td>
+                        </tr>
+                        <tr>
+                            <td class="px-6 py-4 font-semibold">SSO / Active Directory</td>
+                            <td class="px-6 py-4 text-center text-gray-500">✗</td>
+                            <td class="px-6 py-4 text-center text-gray-500">✗</td>
+                            <td class="px-6 py-4 text-center text-white">✓</td>
+                        </tr>
+                        <tr>
+                            <td class="px-6 py-4 font-semibold">Support</td>
+                            <td class="px-6 py-4 text-center text-gray-400">Email 48h</td>
+                            <td class="px-6 py-4 text-center text-arena font-semibold">Priority 24h</td>
+                            <td class="px-6 py-4 text-center text-white font-semibold">Dedicated CSM</td>
+                        </tr>
+                        <tr>
+                            <td class="px-6 py-4 font-semibold">SLA uptime</td>
+                            <td class="px-6 py-4 text-center text-gray-500">—</td>
+                            <td class="px-6 py-4 text-center text-gray-500">—</td>
+                            <td class="px-6 py-4 text-center text-white">✓ 99.5%</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <!-- FAQ SECTION -->
+    <section id="faq" class="py-24 px-6">
+        <div class="max-w-4xl mx-auto">
+            <h2 class="text-4xl font-black mb-12 text-center">Preguntas Frecuentes</h2>
+
+            <div class="space-y-6">
+                <!-- FAQ 1 -->
+                <details class="bg-gray-800 rounded-xl p-6 border border-gray-700 cursor-pointer">
+                    <summary class="font-bold text-lg text-arena">¿Es realmente gratis por 15 días?</summary>
+                    <p class="mt-4 text-gray-300">
+                        Sí. No pedimos tarjeta de crédito. Creas tu cuenta, tienes 15 días completos para probar TODAS las features del plan que elijas. Si decides no continuar, simplemente no haces nada — no hay cargos automáticos.
+                    </p>
+                </details>
+
+                <!-- FAQ 2 -->
+                <details class="bg-gray-800 rounded-xl p-6 border border-gray-700 cursor-pointer">
+                    <summary class="font-bold text-lg text-arena">¿Funciona en español?</summary>
+                    <p class="mt-4 text-gray-300">
+                        100%. El voice recognition soporta español de México, Argentina, Colombia, España y otros dialectos. La síntesis de voz (TTS) usa voces latinas nativas. La interfaz está disponible en español e inglés.
+                    </p>
+                </details>
+
+                <!-- FAQ 3 -->
+                <details class="bg-gray-800 rounded-xl p-6 border border-gray-700 cursor-pointer">
+                    <summary class="font-bold text-lg text-arena">¿Necesito conocimientos técnicos?</summary>
+                    <p class="mt-4 text-gray-300">
+                        No. Jarvis es voice-first: le hablas y funciona. El setup inicial toma ~15 minutos siguiendo nuestro video tutorial. Para custom skills avanzados, sí ayuda tener nociones de scripting, pero el 90% de usuarios nunca lo necesitan.
+                    </p>
+                </details>
+
+                <!-- FAQ 4 -->
+                <details class="bg-gray-800 rounded-xl p-6 border border-gray-700 cursor-pointer">
+                    <summary class="font-bold text-lg text-arena">¿Mis datos están seguros?</summary>
+                    <p class="mt-4 text-gray-300">
+                        Sí. Jarvis corre 100% local en tu PC Windows. Los modelos Ollama procesan todo sin internet. Si usas APIs opcionales (Claude, Gemini), solo esas llamadas van a la nube — tú controlas cuáles. GDPR y normativas LATAM compliant. Zero tracking, zero analytics de tus datos.
+                    </p>
+                </details>
+
+                <!-- FAQ 5 -->
+                <details class="bg-gray-800 rounded-xl p-6 border border-gray-700 cursor-pointer">
+                    <summary class="font-bold text-lg text-arena">¿Qué pasa si no me funciona para mi negocio?</summary>
+                    <p class="mt-4 text-gray-300">
+                        Garantía 100% reembolso en los primeros 30 días. Si no ahorras al menos 10 horas/mes con Jarvis, te devolvemos el dinero + te regalamos el mes 2 gratis para que lo intentes de nuevo con nuestra ayuda. Zero riesgo.
+                    </p>
+                </details>
+
+                <!-- FAQ 6 -->
+                <details class="bg-gray-800 rounded-xl p-6 border border-gray-700 cursor-pointer">
+                    <summary class="font-bold text-lg text-arena">¿Puedo cambiar de plan después?</summary>
+                    <p class="mt-4 text-gray-300">
+                        Sí. Upgrade inmediato en cualquier momento (se prorratea el costo). Downgrade al final del ciclo de facturación. Sin penalidades. Si tienes Enterprise y bajas a Pro, perdemos las features enterprise pero tu data permanece intacta.
+                    </p>
+                </details>
+
+                <!-- FAQ 7 -->
+                <details class="bg-gray-800 rounded-xl p-6 border border-gray-700 cursor-pointer">
+                    <summary class="font-bold text-lg text-arena">¿Qué requisitos de hardware necesito?</summary>
+                    <p class="mt-4 text-gray-300">
+                        Mínimo: Windows 11, 16 GB RAM, 10 GB disco libre. Recomendado: 24 GB RAM + GPU NVIDIA RTX (para faster-whisper con CUDA). Funciona sin GPU, pero la transcripción de voz es ~3x más lenta.
+                    </p>
+                </details>
+
+                <!-- FAQ 8 -->
+                <details class="bg-gray-800 rounded-xl p-6 border border-gray-700 cursor-pointer">
+                    <summary class="font-bold text-lg text-arena">¿Ofrecen descuentos anuales?</summary>
+                    <p class="mt-4 text-gray-300">
+                        Sí. Pago anual = 2 meses gratis (equivalente a 16% descuento). Starter anual: $948/año ($79×10), Pro anual: $2,388/año ($199×10), Enterprise anual: $9,588/año ($799×10). Contáctanos para factura/transferencia bancaria.
+                    </p>
+                </details>
+            </div>
+        </div>
+    </section>
+
+    <!-- FINAL CTA SECTION -->
+    <section id="cta" class="py-24 px-6 bg-gradient-to-br from-arena/10 to-obsidian">
+        <div class="max-w-4xl mx-auto text-center">
+            <h2 class="text-5xl font-black mb-6">
+                Deja de perder tiempo.<br>
+                <span class="text-arena">Automatiza hoy.</span>
+            </h2>
+
+            <p class="text-xl text-gray-300 mb-8 max-w-2xl mx-auto">
+                15 días gratis · Sin tarjeta · Garantía 100% reembolso · Cancela cuando quieras
+            </p>
+
+            <div class="flex flex-col sm:flex-row gap-4 justify-center items-center mb-8">
+                <a href="https://app.jarvisv3.ai/signup?plan=pro" class="px-10 py-5 bg-arena text-obsidian font-bold rounded-lg text-xl hover:bg-arena/90 transition-all transform hover:scale-105 shadow-2xl shadow-arena/30">
+                    Empezar con Pro (más popular) →
+                </a>
+                <a href="https://app.jarvisv3.ai/signup?plan=starter" class="px-10 py-5 border-2 border-gray-700 text-white font-semibold rounded-lg text-xl hover:border-arena transition-all">
+                    Empezar con Starter
+                </a>
+            </div>
+
+            <p class="text-sm text-gray-500">
+                ¿Dudas? Agenda demo de 15 min: <a href="mailto:emmanuel@jarvisv3.ai" class="text-arena underline">emmanuel@jarvisv3.ai</a> o Telegram <a href="https://t.me/corgipollo" class="text-arena underline">@corgipollo</a>
+            </p>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="py-12 px-6 border-t border-gray-800">
+        <div class="max-w-7xl mx-auto text-center text-gray-500 text-sm">
+            <p>&copy; 2026 Jarvis V3. Hecho con 🤖 por <a href="https://github.com/Corgipollo" class="text-arena hover:underline">Emmanuel Pedraza</a>.</p>
+            <p class="mt-2">
+                <a href="index.html" class="hover:text-arena transition">Home</a> ·
+                <a href="pricing.html" class="hover:text-arena transition">Pricing</a> ·
+                <a href="mailto:emmanuel@jarvisv3.ai" class="hover:text-arena transition">Contact</a> ·
+                <a href="https://docs.jarvisv3.ai" class="hover:text-arena transition">Docs</a>
+            </p>
+        </div>
+    </footer>
+
+    <!-- JAVASCRIPT -->
+    <script>
+        // Currency toggle
+        function toggleCurrency(currency) {
+            const usdPrices = document.querySelectorAll('.price-usd');
+            const mxnPrices = document.querySelectorAll('.price-mxn');
+            const btnUsd = document.getElementById('btn-usd');
+            const btnMxn = document.getElementById('btn-mxn');
+
+            if (currency === 'usd') {
+                usdPrices.forEach(el => el.classList.remove('hidden'));
+                mxnPrices.forEach(el => el.classList.add('hidden'));
+                btnUsd.classList.add('bg-arena', 'text-obsidian');
+                btnUsd.classList.remove('text-gray-400');
+                btnMxn.classList.remove('bg-arena', 'text-obsidian');
+                btnMxn.classList.add('text-gray-400');
+            } else {
+                mxnPrices.forEach(el => el.classList.remove('hidden'));
+                usdPrices.forEach(el => el.classList.add('hidden'));
+                btnMxn.classList.add('bg-arena', 'text-obsidian');
+                btnMxn.classList.remove('text-gray-400');
+                btnUsd.classList.remove('bg-arena', 'text-obsidian');
+                btnUsd.classList.add('text-gray-400');
+            }
+        }
+
+        // Smooth scroll for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            });
+        });
+    </script>
+</body>
+</html>
