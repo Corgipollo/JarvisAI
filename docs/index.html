@@ -254,21 +254,22 @@
                 30 segundos que valen más que 1000 palabras.
             </p>
 
-            <!-- Video Embed (placeholder — replace with actual URL) -->
+            <!-- Video Embed (hosted on catbox.moe CDN) -->
             <div class="relative w-full aspect-video bg-gray-900 rounded-2xl overflow-hidden shadow-2xl">
-                <!-- Replace src with actual YouTube/Loom video -->
-                <iframe
+                <video
                     class="w-full h-full"
-                    src="https://www.youtube.com/embed/dQw4w9WgXcQ"
-                    title="Jarvis AI Demo"
-                    frameborder="0"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowfullscreen>
-                </iframe>
+                    controls
+                    preload="metadata"
+                    poster="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1920 1080'%3E%3Crect width='1920' height='1080' fill='%231a202c'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='Arial' font-size='48' fill='white'%3E▶️ Jarvis AI Demo%3C/text%3E%3C/svg%3E"
+                >
+                    <source src="https://files.catbox.moe/ez6eeg.mp4" type="video/mp4">
+                    Tu navegador no soporta video HTML5. <a href="https://files.catbox.moe/ez6eeg.mp4" class="text-primary hover:underline">Descargar video</a>
+                </video>
             </div>
 
             <p class="mt-6 text-sm text-gray-500">
-                📹 Demo real grabado por Emmanuel Pedraza • Sin edición, sin guion
+                📹 Demo real grabado por Emmanuel Pedraza • Sin edición, sin guion •
+                <a href="https://files.catbox.moe/ez6eeg.mp4" target="_blank" class="text-primary hover:underline">Ver directo</a>
             </p>
         </div>
     </section>
