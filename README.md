@@ -1,8 +1,21 @@
 # 🤖 Jarvis AI — Asistente Personal Voice-First
 
+[![Descargar Instalador](https://img.shields.io/badge/Descargar-v1.0.0--alpha-blue?style=for-the-badge&logo=windows&logoColor=white)](https://github.com/Corgipollo/JarvisAI/releases/download/v1.0.0-alpha/JarvisAI-Setup-1.0.0-alpha.exe)
+[![Versión](https://img.shields.io/badge/version-1.0.0--alpha-green?style=flat-square)](https://github.com/Corgipollo/JarvisAI/releases/tag/v1.0.0-alpha)
+[![Licencia](https://img.shields.io/badge/license-Proprietario-red?style=flat-square)](LICENSE)
+
 > **Asistente de voz inteligente para Windows que controla tu PC, gestiona tareas y se conecta a tus sistemas.**
 
 Jarvis AI es un asistente personal local que funciona completamente en tu máquina Windows. Combina múltiples proveedores de IA (Claude, Gemini, Cerebras, Ollama) con capacidades de control del sistema, visión por computadora y voice-first interaction.
+
+## 📦 Instalación Rápida con Instalador
+
+**Método más rápido** → [**Descargar JarvisAI-Setup-1.0.0-alpha.exe**](https://github.com/Corgipollo/JarvisAI/releases/download/v1.0.0-alpha/JarvisAI-Setup-1.0.0-alpha.exe) (108 MB)
+
+1. Descargar el instalador
+2. Ejecutar `JarvisAI-Setup-1.0.0-alpha.exe`
+3. Seguir el asistente de instalación
+4. Lanzar Jarvis desde el escritorio
 
 ---
 
