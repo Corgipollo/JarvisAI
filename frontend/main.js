@@ -1,7 +1,38 @@
-const electron = require('electron');
-console.log('[DEBUG] electron module keys:', Object.keys(electron));
-console.log('[DEBUG] app:', typeof electron.app);
-const { app, BrowserWindow, ipcMain, globalShortcut, session, Tray, Menu, nativeImage, screen } = electron;
+/**
+ * ⚠️ ELECTRON FRONTEND - ACTUALMENTE BLOQUEADO POR BUG SISTÉMICO
+ *
+ * Bug confirmado 2026-06-01: require('electron') retorna string path en vez de API
+ * en esta máquina Windows 11, probado con Electron 22/28/30/41.
+ *
+ * WORKAROUND: Usar backend FastAPI directamente (puerto 8766)
+ *
+ * Para detalles completos, ver: frontend/ELECTRON_BUG_REPORT.md
+ */
+
+console.error('');
+console.error('═'.repeat(70));
+console.error('  JARVIS AI - FRONTEND ELECTRON: ERROR CRÍTICO');
+console.error('═'.repeat(70));
+console.error('');
+console.error('El frontend de Electron no puede inicializar debido a un bug sistémico');
+console.error('de module resolution en esta máquina.');
+console.error('');
+console.error('WORKAROUND DISPONIBLE:');
+console.error('  → Backend FastAPI funciona normalmente en http://localhost:8766');
+console.error('  → Endpoints disponibles: /api/health, /api/weather, /api/obsidian/*');
+console.error('  → Automatizaciones funcionan end-to-end (verificado en QA)');
+console.error('');
+console.error('Para usar JarvisAI:');
+console.error('  1. cd C:\\Users\\Emmanuel\\Documents\\JarvisAI\\backend');
+console.error('  2. python main.py');
+console.error('  3. Interactuar via Postman/curl/navegador');
+console.error('');
+console.error('Ver reporte técnico completo: frontend/ELECTRON_BUG_REPORT.md');
+console.error('');
+console.error('═'.repeat(70));
+console.error('');
+
+process.exit(1);
 const path = require('path');
 const fs = require('fs');
 
@@ -152,9 +183,15 @@ function toggleMode(compact) {
   mainWindow.webContents.send('mode-change', isCompact ? 'compact' : 'full');
 }
 
+// Verificar que app esté disponible
+if (!app) {
+  console.error('CRITICAL: Electron app object is undefined after module resolution. Installation corrupted.');
+  console.error('Try: cd frontend && rm -rf node_modules && npm install');
+  process.exit(1);
+}
+
 app.commandLine.appendSwitch('enable-speech-dispatcher');
 app.commandLine.appendSwitch('enable-features', 'WebSpeechAPI');
-
 app.whenReady().then(createWindow);
 
 app.on('window-all-closed', () => {

@@ -11,9 +11,6 @@
     "dist": "electron-builder build --config build.json --win --publish never",
     "release": "electron-builder build --config build.json --win --publish always"
   },
-  "dependencies": {
-    "electron": "^41.1.1"
-  },
   "devDependencies": {
     "electron-builder": "^24.13.3"
   },
@@ -22,5 +19,8 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/Corgipollo/JarvisAI.git"
+  },
+  "dependencies": {
+    "electron": "28.3.3"
   }
 }

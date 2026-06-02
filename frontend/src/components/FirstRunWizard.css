@@ -1,0 +1,455 @@
+/**
+ * First Run Wizard — Estilos
+ * Diseño clean, minimalista, fácil de seguir
+ */
+
+.wizard-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(10px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+.wizard-modal {
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  border-radius: 16px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  max-width: 700px;
+  width: 90%;
+  max-height: 90vh;
+  overflow-y: auto;
+  animation: slideUp 0.4s ease-out;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.wizard-modal.tutorial {
+  max-width: 800px;
+}
+
+.wizard-modal.completed {
+  max-width: 600px;
+}
+
+.wizard-header {
+  padding: 32px 32px 24px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.wizard-header h1 {
+  font-size: 32px;
+  font-weight: 700;
+  color: #fff;
+  margin: 0 0 8px 0;
+  text-align: center;
+}
+
+.wizard-header h2 {
+  font-size: 24px;
+  font-weight: 600;
+  color: #fff;
+  margin: 0;
+}
+
+.wizard-content {
+  padding: 32px;
+}
+
+.wizard-intro {
+  font-size: 18px;
+  color: #b8c5d6;
+  line-height: 1.6;
+  margin: 0 0 16px 0;
+  text-align: center;
+}
+
+/* ===================================================================
+   Integraciones Status
+   =================================================================== */
+
+.integrations-status {
+  margin-top: 32px;
+  padding: 24px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.integrations-status h3 {
+  font-size: 16px;
+  font-weight: 600;
+  color: #fff;
+  margin: 0 0 16px 0;
+}
+
+.integrations-status ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.integrations-status li {
+  padding: 8px 0;
+  font-size: 14px;
+  color: #b8c5d6;
+}
+
+.integrations-status li.available {
+  color: #4ade80;
+}
+
+.integrations-status li.unavailable {
+  color: #f87171;
+}
+
+/* ===================================================================
+   Use Cases Grid
+   =================================================================== */
+
+.use-cases-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+  margin-top: 24px;
+}
+
+.use-case-card {
+  background: rgba(255, 255, 255, 0.05);
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 24px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.use-case-card:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: #3b82f6;
+  transform: translateY(-4px);
+  box-shadow: 0 12px 24px rgba(59, 130, 246, 0.2);
+}
+
+.use-case-card.recommended {
+  border-color: #fbbf24;
+  background: rgba(251, 191, 36, 0.05);
+}
+
+.use-case-card.recommended:hover {
+  border-color: #fbbf24;
+  box-shadow: 0 12px 24px rgba(251, 191, 36, 0.3);
+}
+
+.use-case-card .badge {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: #fbbf24;
+  color: #1a1a2e;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 6px;
+  text-transform: uppercase;
+}
+
+.use-case-card h3 {
+  font-size: 18px;
+  font-weight: 600;
+  color: #fff;
+  margin: 0 0 8px 0;
+}
+
+.use-case-card p {
+  font-size: 14px;
+  color: #b8c5d6;
+  line-height: 1.5;
+  margin: 0 0 16px 0;
+}
+
+.use-case-meta {
+  display: flex;
+  gap: 12px;
+  font-size: 12px;
+}
+
+.use-case-meta span {
+  padding: 4px 10px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.1);
+  color: #b8c5d6;
+}
+
+/* ===================================================================
+   Tutorial Steps
+   =================================================================== */
+
+.progress-bar {
+  width: 100%;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 2px;
+  margin-top: 16px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #3b82f6 0%, #8b5cf6 100%);
+  transition: width 0.4s ease;
+}
+
+.tutorial-step {
+  min-height: 200px;
+}
+
+.tutorial-step h3 {
+  font-size: 20px;
+  font-weight: 600;
+  color: #fff;
+  margin: 0 0 16px 0;
+}
+
+.step-description {
+  font-size: 16px;
+  color: #b8c5d6;
+  line-height: 1.6;
+  margin: 0 0 24px 0;
+}
+
+.command-example {
+  background: rgba(59, 130, 246, 0.1);
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  border-radius: 12px;
+  padding: 20px;
+  margin: 24px 0;
+}
+
+.command-example h4 {
+  font-size: 14px;
+  font-weight: 600;
+  color: #93bbfd;
+  margin: 0 0 12px 0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.command-example code {
+  font-size: 18px;
+  font-family: 'Consolas', 'Monaco', monospace;
+  color: #fff;
+  display: block;
+  padding: 12px;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 8px;
+}
+
+.action-required {
+  background: rgba(251, 191, 36, 0.1);
+  border: 1px solid rgba(251, 191, 36, 0.3);
+  border-radius: 12px;
+  padding: 16px;
+  margin: 24px 0;
+}
+
+.action-required p {
+  font-size: 14px;
+  color: #fbbf24;
+  margin: 0;
+  font-weight: 600;
+}
+
+.expected-result {
+  background: rgba(74, 222, 128, 0.1);
+  border: 1px solid rgba(74, 222, 128, 0.3);
+  border-radius: 12px;
+  padding: 20px;
+  margin-top: 24px;
+}
+
+.expected-result h4 {
+  font-size: 14px;
+  font-weight: 600;
+  color: #86efac;
+  margin: 0 0 12px 0;
+  text-transform: uppercase;
+}
+
+.expected-result p {
+  font-size: 14px;
+  color: #b8c5d6;
+  margin: 0;
+}
+
+/* ===================================================================
+   Completed Screen
+   =================================================================== */
+
+.success-message {
+  font-size: 18px;
+  color: #b8c5d6;
+  text-align: center;
+  margin: 0 0 32px 0;
+}
+
+.next-steps {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  padding: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.next-steps h3 {
+  font-size: 18px;
+  font-weight: 600;
+  color: #fff;
+  margin: 0 0 16px 0;
+}
+
+.next-steps ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.next-steps li {
+  padding: 8px 0;
+  font-size: 14px;
+  color: #b8c5d6;
+  line-height: 1.6;
+}
+
+.next-steps li::before {
+  content: '→';
+  color: #3b82f6;
+  margin-right: 12px;
+  font-weight: bold;
+}
+
+.next-steps code {
+  background: rgba(0, 0, 0, 0.3);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: 'Consolas', 'Monaco', monospace;
+  font-size: 13px;
+  color: #93bbfd;
+}
+
+/* ===================================================================
+   Actions
+   =================================================================== */
+
+.wizard-actions {
+  padding: 24px 32px 32px;
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.btn-primary, .btn-secondary {
+  padding: 14px 28px;
+  font-size: 16px;
+  font-weight: 600;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-family: inherit;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+  color: #fff;
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 16px rgba(59, 130, 246, 0.4);
+}
+
+.btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn-secondary {
+  background: rgba(255, 255, 255, 0.1);
+  color: #b8c5d6;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.15);
+  color: #fff;
+}
+
+.btn-secondary:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+/* ===================================================================
+   Animations
+   =================================================================== */
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ===================================================================
+   Responsive
+   =================================================================== */
+
+@media (max-width: 768px) {
+  .wizard-modal {
+    width: 95%;
+    max-height: 95vh;
+  }
+
+  .wizard-header,
+  .wizard-content,
+  .wizard-actions {
+    padding: 24px;
+  }
+
+  .wizard-header h1 {
+    font-size: 24px;
+  }
+
+  .use-cases-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .wizard-actions {
+    flex-direction: column;
+  }
+
+  .btn-primary, .btn-secondary {
+    width: 100%;
+  }
+}
