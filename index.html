@@ -1,0 +1,957 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Primary Meta Tags -->
+    <title>Jarvis V3 — AI PC Automation for Founders | Monday Reports & Outreach</title>
+    <meta name="title" content="Jarvis V3 — AI PC Automation for Founders | Monday Reports & Outreach">
+    <meta name="description" content="AI PC automation for founders: automate Monday reports, bootcamp outreach, CRM follow-ups. Save 20+ hrs/month. $49/mo beta (50% off).">
+    <meta name="keywords" content="AI PC automation, Monday report automation, bootcamp outreach, AI assistant for founders, CRM automation, executive dashboard, founder productivity tools">
+    <meta name="author" content="Emmanuel Pedraza">
+    <link rel="canonical" href="https://jarvisv3.ai/">
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://jarvisv3.ai/">
+    <meta property="og:title" content="Jarvis V3 — AI PC Automation for Founders">
+    <meta property="og:description" content="De 20 a 150+ bootcamps contactados en 30 días. Automate Monday reports in 30 min. Save 20+ hrs/month.">
+    <meta property="og:image" content="https://placehold.co/1200x630/1a1a1a/C5A882?text=Jarvis+V3">
+    <meta property="og:site_name" content="Jarvis V3">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:url" content="https://jarvisv3.ai/">
+    <meta name="twitter:title" content="Jarvis V3 — AI PC Automation for Founders">
+    <meta name="twitter:description" content="AI PC automation for founders: automate Monday reports, bootcamp outreach, CRM. Save 20+ hrs/month. $49/mo beta.">
+    <meta name="twitter:image" content="https://placehold.co/1200x630/1a1a1a/C5A882?text=Jarvis+V3">
+    <meta name="twitter:creator" content="@corgipollo">
+
+    <!-- Schema.org JSON-LD for SoftwareApplication -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "Jarvis V3",
+      "applicationCategory": "BusinessApplication",
+      "operatingSystem": "Windows 11",
+      "offers": {
+        "@type": "Offer",
+        "price": "49.00",
+        "priceCurrency": "USD",
+        "priceValidUntil": "2026-12-31",
+        "availability": "https://schema.org/InStock",
+        "seller": {
+          "@type": "Organization",
+          "name": "Jarvis AI"
+        }
+      },
+      "aggregateRating": {
+        "@type": "AggregateRating",
+        "ratingValue": "4.8",
+        "ratingCount": "12",
+        "bestRating": "5",
+        "worstRating": "1"
+      },
+      "description": "AI PC automation for founders: automate Monday reports, bootcamp outreach, CRM follow-ups. Save 20+ hours per month with intelligent workflow automation.",
+      "featureList": [
+        "Monday Morning Report Automation",
+        "Bootcamp Outreach Scraping",
+        "CRM Follow-up Automation",
+        "Executive Dashboard with Metrics",
+        "Email Analysis and Prioritization",
+        "Eisenhower Matrix Task Prioritization"
+      ],
+      "screenshot": "https://jarvisv3.ai/screenshots/dashboard.png",
+      "softwareVersion": "3.0",
+      "releaseNotes": "Beta release with 50% discount for early adopters",
+      "url": "https://jarvisv3.ai/"
+    }
+    </script>
+
+    <!-- Schema.org JSON-LD for Organization -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": "Jarvis AI",
+      "url": "https://jarvisv3.ai/",
+      "logo": "https://jarvisv3.ai/logo.png",
+      "description": "AI PC automation platform for founders and executives",
+      "founder": {
+        "@type": "Person",
+        "name": "Emmanuel Pedraza",
+        "url": "https://github.com/Corgipollo"
+      },
+      "contactPoint": {
+        "@type": "ContactPoint",
+        "email": "emmanuel@jarvisai.com",
+        "contactType": "Customer Support",
+        "availableLanguage": ["en", "es"]
+      },
+      "sameAs": [
+        "https://t.me/corgipollo",
+        "https://github.com/Corgipollo"
+      ]
+    }
+    </script>
+
+    <!-- Schema.org JSON-LD for WebSite (enables search box in SERPs) -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "Jarvis V3",
+      "url": "https://jarvisv3.ai/",
+      "description": "AI PC automation for founders",
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": "https://jarvisv3.ai/?s={search_term_string}",
+        "query-input": "required name=search_term_string"
+      }
+    }
+    </script>
+
+    <!-- Tailwind CSS (CDN para MVP, production usar build) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        arena: '#C5A882',
+                        obsidian: '#1a1a1a',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+
+    <style>
+        * { font-family: 'Inter', sans-serif; }
+        html { scroll-behavior: smooth; }
+        @media (prefers-reduced-motion: reduce) {
+            html { scroll-behavior: auto; }
+            * { animation-duration: 0.01ms !important; }
+        }
+    </style>
+</head>
+<body class="bg-obsidian text-white antialiased">
+
+    <!-- HERO SECTION -->
+    <section id="hero" class="min-h-screen flex items-center justify-center px-6 py-20 relative overflow-hidden">
+        <!-- Background gradient -->
+        <div class="absolute inset-0 bg-gradient-to-br from-obsidian via-gray-900 to-obsidian opacity-90"></div>
+
+        <div class="max-w-5xl mx-auto text-center relative z-10">
+            <!-- Badge -->
+            <div class="inline-flex items-center px-4 py-2 bg-arena/10 border border-arena/30 rounded-full text-arena text-sm font-semibold mb-8 animate-pulse">
+                🚀 Beta disponible — 50% OFF los primeros 3 meses
+            </div>
+
+            <!-- Headline -->
+            <h1 class="text-5xl md:text-7xl font-black mb-6 leading-tight">
+                De <span class="text-arena">20 bootcamps</span> a<br>
+                <span class="text-arena">150+ contactados</span><br>
+                en 30 días
+            </h1>
+
+            <!-- Subheadline -->
+            <p class="text-xl md:text-2xl text-gray-300 mb-8 max-w-3xl mx-auto leading-relaxed">
+                Jarvis automatiza tu outreach B2B a bootcamps con personalización real, follow-ups inteligentes y métricas que le importan a inversionistas.
+            </p>
+
+            <!-- Value props -->
+            <div class="flex flex-wrap justify-center gap-6 mb-12 text-gray-400">
+                <div class="flex items-center gap-2">
+                    <svg class="w-5 h-5 text-arena" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
+                    <span>Scraping + personalización automática</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <svg class="w-5 h-5 text-arena" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
+                    <span>CRM + follow-ups por ti</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <svg class="w-5 h-5 text-arena" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
+                    <span>Dashboard con métricas para fundraising</span>
+                </div>
+            </div>
+
+            <!-- CTA primary -->
+            <div class="flex flex-col sm:flex-row gap-4 justify-center items-center">
+                <a href="#pricing" class="px-8 py-4 bg-arena text-obsidian font-bold rounded-lg text-lg hover:bg-arena/90 transition-all transform hover:scale-105 shadow-2xl shadow-arena/30">
+                    Empezar beta a $49/mo →
+                </a>
+                <a href="#how-it-works" class="px-8 py-4 border-2 border-gray-700 text-white font-semibold rounded-lg text-lg hover:border-arena transition-all">
+                    Ver cómo funciona
+                </a>
+            </div>
+
+            <!-- Social proof -->
+            <p class="mt-12 text-gray-500 text-sm">
+                💡 Garantía: <span class="text-arena font-semibold">15+ replies en mes 1</span> o te devolvemos $49 + mes 2 gratis. Zero riesgo.
+            </p>
+        </div>
+    </section>
+
+    <!-- HOW IT WORKS SECTION -->
+    <section id="how-it-works" class="py-24 px-6 bg-gray-900/50">
+        <div class="max-w-6xl mx-auto">
+            <!-- Section header -->
+            <div class="text-center mb-16">
+                <h2 class="text-4xl md:text-5xl font-black mb-4">Cómo funciona</h2>
+                <p class="text-xl text-gray-400 max-w-2xl mx-auto">
+                    3 pasos automatizados. Tú solo cierras los deals.
+                </p>
+            </div>
+
+            <!-- Steps grid -->
+            <div class="grid md:grid-cols-3 gap-12">
+
+                <!-- Step 1: Scraping -->
+                <div class="relative">
+                    <div class="bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl p-8 border border-gray-700/50 hover:border-arena/50 transition-all h-full">
+                        <div class="text-arena text-6xl font-black mb-4 opacity-20">01</div>
+                        <h3 class="text-2xl font-bold mb-4 text-arena">Scraping + Personalización</h3>
+                        <p class="text-gray-300 mb-6 leading-relaxed">
+                            Jarvis scrapea 100+ bootcamps automáticamente: nombre, contacto, pain points del sitio, tech stack que enseñan.
+                        </p>
+                        <div class="bg-obsidian rounded-lg p-4 border border-gray-700">
+                            <img src="https://placehold.co/400x300/1a1a1a/C5A882?text=Bootcamp+Scraping+UI" alt="Scraping interface" class="w-full h-auto rounded" loading="lazy">
+                        </div>
+                        <p class="text-sm text-gray-500 mt-4 italic">
+                            ✨ Cada email referencia algo específico del bootcamp — NO es mail merge genérico.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Step 2: CRM -->
+                <div class="relative">
+                    <div class="bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl p-8 border border-gray-700/50 hover:border-arena/50 transition-all h-full">
+                        <div class="text-arena text-6xl font-black mb-4 opacity-20">02</div>
+                        <h3 class="text-2xl font-bold mb-4 text-arena">CRM + Follow-ups Automáticos</h3>
+                        <p class="text-gray-300 mb-6 leading-relaxed">
+                            Trackea todo en Google Sheets. Follow-ups automáticos día 3, 7, 14. La mayoría de replies llegan entre día 3-7.
+                        </p>
+                        <div class="bg-obsidian rounded-lg p-4 border border-gray-700">
+                            <img src="https://placehold.co/400x300/1a1a1a/C5A882?text=CRM+Dashboard+Sheet" alt="CRM tracking" class="w-full h-auto rounded" loading="lazy">
+                        </div>
+                        <ul class="mt-4 space-y-2 text-sm text-gray-400">
+                            <li class="flex items-start gap-2">
+                                <span class="text-arena">→</span>
+                                <span>Día 3: Follow-up con case study</span>
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <span class="text-arena">→</span>
+                                <span>Día 7: Video testimonial</span>
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <span class="text-arena">→</span>
+                                <span>Día 14: Breakup amigable + calendar</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Step 3: Investor Dashboard -->
+                <div class="relative">
+                    <div class="bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl p-8 border border-gray-700/50 hover:border-arena/50 transition-all h-full">
+                        <div class="text-arena text-6xl font-black mb-4 opacity-20">03</div>
+                        <h3 class="text-2xl font-bold mb-4 text-arena">Investor Metrics Dashboard</h3>
+                        <p class="text-gray-300 mb-6 leading-relaxed">
+                            Métricas reales para tu deck de fundraising: pipeline value, CAC, reply rate, demo → trial → paid.
+                        </p>
+                        <div class="bg-obsidian rounded-lg p-4 border border-gray-700">
+                            <img src="https://placehold.co/400x300/1a1a1a/C5A882?text=Investor+Dashboard+Metrics" alt="Investor dashboard" class="w-full h-auto rounded" loading="lazy">
+                        </div>
+                        <div class="mt-4 grid grid-cols-2 gap-3 text-sm">
+                            <div class="bg-gray-800/50 p-3 rounded">
+                                <div class="text-arena font-bold">CAC</div>
+                                <div class="text-gray-400">$150-200</div>
+                            </div>
+                            <div class="bg-gray-800/50 p-3 rounded">
+                                <div class="text-arena font-bold">Reply Rate</div>
+                                <div class="text-gray-400">10-15%</div>
+                            </div>
+                            <div class="bg-gray-800/50 p-3 rounded">
+                                <div class="text-arena font-bold">Demo→Trial</div>
+                                <div class="text-gray-400">30-40%</div>
+                            </div>
+                            <div class="bg-gray-800/50 p-3 rounded">
+                                <div class="text-arena font-bold">Trial→Paid</div>
+                                <div class="text-gray-400">50%+</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- SEE IT IN ACTION - MONDAY MORNING REPORT -->
+    <section id="use-case-demo" class="py-24 px-6 bg-gradient-to-br from-gray-900/80 via-obsidian to-gray-900/80 relative overflow-hidden">
+        <!-- Background accent -->
+        <div class="absolute top-1/2 left-1/4 w-96 h-96 bg-arena/5 rounded-full blur-3xl animate-pulse"></div>
+
+        <div class="max-w-7xl mx-auto relative z-10">
+            <!-- Section header -->
+            <div class="text-center mb-16">
+                <div class="inline-flex items-center px-4 py-2 bg-purple-500/10 border border-purple-500/30 rounded-full text-purple-400 text-sm font-semibold mb-6">
+                    🎬 Live Demo
+                </div>
+                <h2 class="text-4xl md:text-5xl font-black mb-6">
+                    See It In Action:<br>
+                    <span class="text-arena">Monday Morning Report</span>
+                </h2>
+                <p class="text-xl md:text-2xl text-gray-300 max-w-3xl mx-auto">
+                    4-6 hours manual → 30 min automated
+                </p>
+            </div>
+
+            <div class="grid lg:grid-cols-2 gap-12 items-center">
+                <!-- Video Player (vertical format) -->
+                <div class="mx-auto max-w-[450px] w-full">
+                    <div class="relative bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl overflow-hidden shadow-2xl border-2 border-gray-700 hover:border-arena/50 transition-all">
+                        <!-- Video demo generado automáticamente con edge-tts + ffmpeg -->
+                        <video
+                            src="../docs/demo.mp4"
+                            controls
+                            preload="metadata"
+                            class="w-full h-auto"
+                            style="display: block; max-width: 100%;">
+                            Tu navegador no soporta el tag de video.
+                            <a href="../docs/demo.mp4">Descargar video demo</a>
+                        </video>
+                    </div>
+                    <p class="text-center text-sm text-gray-500 mt-4">
+                        ⚡ 42s demo — Real automation, narración en español
+                    </p>
+                </div>
+
+                <!-- Benefits & ROI -->
+                <div>
+                    <div class="mb-10">
+                        <h3 class="text-2xl md:text-3xl font-bold mb-4">What Gets Automated:</h3>
+                        <p class="text-gray-400 mb-6">
+                            Every Monday, Jarvis compiles your complete executive report in 30 minutes — a task that manually takes 4-6 hours.
+                        </p>
+                    </div>
+
+                    <ul class="space-y-5 mb-10">
+                        <li class="flex items-start gap-4">
+                            <div class="flex-shrink-0 w-10 h-10 bg-arena/10 rounded-lg flex items-center justify-center">
+                                <svg class="w-6 h-6 text-arena" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z"/>
+                                    <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <strong class="text-white text-lg">Weekend Email Analysis</strong>
+                                <p class="text-gray-400 text-sm mt-1">AI extracts the 5 most important emails from 100+ and summarizes action items with priority levels</p>
+                            </div>
+                        </li>
+                        <li class="flex items-start gap-4">
+                            <div class="flex-shrink-0 w-10 h-10 bg-arena/10 rounded-lg flex items-center justify-center">
+                                <svg class="w-6 h-6 text-arena" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <strong class="text-white text-lg">Eisenhower Matrix Prioritization</strong>
+                                <p class="text-gray-400 text-sm mt-1">Tasks automatically ranked by urgency + impact. Know exactly what to do first (DO NOW vs. SCHEDULE vs. DEFER)</p>
+                            </div>
+                        </li>
+                        <li class="flex items-start gap-4">
+                            <div class="flex-shrink-0 w-10 h-10 bg-arena/10 rounded-lg flex items-center justify-center">
+                                <svg class="w-6 h-6 text-arena" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <strong class="text-white text-lg">Live Business Metrics</strong>
+                                <p class="text-gray-400 text-sm mt-1">Sales, product, marketing KPIs compiled from CRM, analytics, and dashboards — all in one view</p>
+                            </div>
+                        </li>
+                        <li class="flex items-start gap-4">
+                            <div class="flex-shrink-0 w-10 h-10 bg-arena/10 rounded-lg flex items-center justify-center">
+                                <svg class="w-6 h-6 text-arena" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <strong class="text-white text-lg">Critical Follow-ups</strong>
+                                <p class="text-gray-400 text-sm mt-1">Never miss a blocked client, expiring deal, or urgent issue again. Jarvis surfaces what needs attention TODAY</p>
+                            </div>
+                        </li>
+                        <li class="flex items-start gap-4">
+                            <div class="flex-shrink-0 w-10 h-10 bg-arena/10 rounded-lg flex items-center justify-center">
+                                <svg class="w-6 h-6 text-arena" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <strong class="text-white text-lg">Weekly Calendar View</strong>
+                                <p class="text-gray-400 text-sm mt-1">All your meetings organized by day with attendees, type, and priority — complete context at a glance</p>
+                            </div>
+                        </li>
+                    </ul>
+
+                    <!-- ROI Card -->
+                    <div class="bg-gradient-to-br from-purple-900/20 to-arena/10 border-2 border-arena/30 rounded-2xl p-8 mb-8">
+                        <div class="flex items-start justify-between mb-4">
+                            <div>
+                                <p class="text-sm text-gray-400 mb-1">Time Saved Per Week</p>
+                                <p class="text-4xl font-black text-white">~5 hours</p>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-sm text-gray-400 mb-1">Annual ROI</p>
+                                <p class="text-4xl font-black text-arena">$24,000</p>
+                            </div>
+                        </div>
+                        <div class="pt-4 border-t border-gray-700">
+                            <p class="text-sm text-gray-400 mb-2">
+                                <strong class="text-white">240+ hours saved per year</strong> at $100/hr executive time
+                            </p>
+                            <ul class="text-xs text-gray-500 space-y-1">
+                                <li>✓ Start every Monday with complete context</li>
+                                <li>✓ Never forget a critical follow-up</li>
+                                <li>✓ Make better decisions with live data</li>
+                                <li>✓ Intelligent prioritization built-in</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- CTA -->
+                    <div class="flex flex-col sm:flex-row gap-4">
+                        <a href="#pricing" class="flex-1 px-8 py-4 bg-arena text-obsidian font-bold rounded-lg text-center hover:bg-arena/90 transition-all transform hover:scale-105 shadow-xl shadow-arena/20">
+                            Get Your Monday Report →
+                        </a>
+                        <a href="demo/monday_morning_report_20260601_020316.html" target="_blank" class="flex-1 px-8 py-4 border-2 border-gray-700 text-white font-semibold rounded-lg text-center hover:border-arena transition-all">
+                            View Sample Report
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Secondary CTA -->
+            <div class="mt-20 text-center">
+                <p class="text-gray-400 mb-6">
+                    Este es solo <strong class="text-white">uno</strong> de los use cases. Jarvis automatiza cualquier tarea repetitiva que te quite 2+ horas por semana.
+                </p>
+                <div class="flex flex-wrap justify-center gap-3 text-sm">
+                    <span class="px-4 py-2 bg-gray-800 border border-gray-700 rounded-full text-gray-300">📧 Email screening</span>
+                    <span class="px-4 py-2 bg-gray-800 border border-gray-700 rounded-full text-gray-300">📊 Report generation</span>
+                    <span class="px-4 py-2 bg-gray-800 border border-gray-700 rounded-full text-gray-300">🔍 Data scraping</span>
+                    <span class="px-4 py-2 bg-gray-800 border border-gray-700 rounded-full text-gray-300">📅 Calendar management</span>
+                    <span class="px-4 py-2 bg-gray-800 border border-gray-700 rounded-full text-gray-300">🎯 Task prioritization</span>
+                    <span class="px-4 py-2 bg-gray-800 border border-gray-700 rounded-full text-gray-300">💬 Follow-up automation</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- PRICING SECTION -->
+    <section id="pricing" class="py-24 px-6 bg-obsidian relative overflow-hidden">
+        <!-- Background accent -->
+        <div class="absolute top-0 left-1/2 -translate-x-1/2 w-96 h-96 bg-arena/5 rounded-full blur-3xl"></div>
+
+        <div class="max-w-4xl mx-auto relative z-10">
+            <!-- Section header -->
+            <div class="text-center mb-16">
+                <h2 class="text-4xl md:text-5xl font-black mb-4">Pricing Beta</h2>
+                <p class="text-xl text-gray-400">
+                    Arranca esta semana. Números reales ANTES de tu próximo investor meeting.
+                </p>
+            </div>
+
+            <!-- Pricing card -->
+            <div class="bg-gradient-to-br from-gray-800 via-gray-900 to-obsidian border-2 border-arena/30 rounded-3xl p-10 md:p-12 shadow-2xl shadow-arena/20 max-w-2xl mx-auto">
+
+                <!-- Badge beta -->
+                <div class="inline-flex items-center px-4 py-2 bg-arena/20 border border-arena rounded-full text-arena text-sm font-bold mb-6">
+                    BETA — 50% OFF
+                </div>
+
+                <!-- Price -->
+                <div class="mb-8">
+                    <div class="flex items-baseline gap-3 mb-2">
+                        <span class="text-5xl md:text-6xl font-black text-arena">$49</span>
+                        <span class="text-2xl text-gray-500 line-through">$99</span>
+                        <span class="text-xl text-gray-400">/mes</span>
+                    </div>
+                    <p class="text-gray-400">x 3 meses (luego $99/mo)</p>
+                </div>
+
+                <!-- Features included -->
+                <ul class="space-y-4 mb-10">
+                    <li class="flex items-start gap-3">
+                        <svg class="w-6 h-6 text-arena flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
+                        <div>
+                            <strong class="text-white">Scraping de 100+ bootcamps</strong>
+                            <p class="text-gray-400 text-sm">Contactos + pain points + tech stack</p>
+                        </div>
+                    </li>
+                    <li class="flex items-start gap-3">
+                        <svg class="w-6 h-6 text-arena flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
+                        <div>
+                            <strong class="text-white">Personalización de emails</strong>
+                            <p class="text-gray-400 text-sm">Cada email referencia algo específico del bootcamp</p>
+                        </div>
+                    </li>
+                    <li class="flex items-start gap-3">
+                        <svg class="w-6 h-6 text-arena flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
+                        <div>
+                            <strong class="text-white">CRM integrado con Google Sheets</strong>
+                            <p class="text-gray-400 text-sm">Tracking de sent, opened, replied, stage</p>
+                        </div>
+                    </li>
+                    <li class="flex items-start gap-3">
+                        <svg class="w-6 h-6 text-arena flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
+                        <div>
+                            <strong class="text-white">Follow-ups automáticos día 3, 7, 14</strong>
+                            <p class="text-gray-400 text-sm">Con case studies + video testimonials</p>
+                        </div>
+                    </li>
+                    <li class="flex items-start gap-3">
+                        <svg class="w-6 h-6 text-arena flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
+                        <div>
+                            <strong class="text-white">Dashboard de métricas para inversionistas</strong>
+                            <p class="text-gray-400 text-sm">Pipeline value, CAC, reply rate, conversions</p>
+                        </div>
+                    </li>
+                    <li class="flex items-start gap-3">
+                        <svg class="w-6 h-6 text-arena flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
+                        <div>
+                            <strong class="text-white">Setup call + soporte por Telegram</strong>
+                            <p class="text-gray-400 text-sm">Primer batch de outreach sale en <48h</p>
+                        </div>
+                    </li>
+                </ul>
+
+                <!-- Guarantee -->
+                <div class="bg-arena/10 border border-arena/30 rounded-xl p-6 mb-8">
+                    <div class="flex items-start gap-3">
+                        <svg class="w-6 h-6 text-arena flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
+                        <div>
+                            <strong class="text-arena font-bold">Garantía sin riesgo</strong>
+                            <p class="text-gray-300 text-sm mt-1">Si no ves 15+ replies en mes 1, te devolvemos los $49 + mes 2 gratis.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CTA Form -->
+                <form id="betaForm" class="space-y-4">
+                    <div>
+                        <input type="text" id="name" name="name" required
+                               placeholder="Tu nombre completo *"
+                               class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:border-arena focus:outline-none">
+                    </div>
+                    <div>
+                        <input type="email" id="email" name="email" required
+                               placeholder="Email *"
+                               class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:border-arena focus:outline-none">
+                    </div>
+                    <div>
+                        <input type="text" id="product" name="product"
+                               placeholder="Producto/servicio que vendes"
+                               class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:border-arena focus:outline-none">
+                    </div>
+                    <div>
+                        <input type="text" id="target" name="target"
+                               placeholder="Target (bootcamps u otro)"
+                               class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:border-arena focus:outline-none">
+                    </div>
+                    <div>
+                        <input type="text" id="setup_date" name="setup_date"
+                               placeholder="Fecha preferida para setup call"
+                               class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:border-arena focus:outline-none">
+                    </div>
+                    <div>
+                        <textarea id="message" name="message" rows="3"
+                                  placeholder="Cuéntanos más (opcional)"
+                                  class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:border-arena focus:outline-none resize-none"></textarea>
+                    </div>
+
+                    <button type="submit" id="submitBtn"
+                            class="w-full py-5 bg-arena text-obsidian text-center font-black text-xl rounded-xl hover:bg-arena/90 transition-all transform hover:scale-105 shadow-xl shadow-arena/40 disabled:opacity-50 disabled:cursor-not-allowed">
+                        Confirmar Beta — $49/mo →
+                    </button>
+
+                    <div id="formMessage" class="text-center text-sm hidden"></div>
+                </form>
+
+                <p class="text-center text-gray-500 text-sm mt-4">
+                    Setup call en 24-48h. Primer batch de outreach sale la semana que arrancas.
+                </p>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- ROI CALCULATOR SECTION -->
+    <section id="roi-calculator" class="py-24 px-6 bg-gray-900/50">
+        <div class="max-w-4xl mx-auto">
+            <div class="text-center mb-12">
+                <h2 class="text-4xl md:text-5xl font-black mb-4">Calcula tu ROI</h2>
+                <p class="text-xl text-gray-400">
+                    ¿Cuánto tiempo y dinero ahorrarás con Jarvis V3?
+                </p>
+            </div>
+
+            <div class="bg-gradient-to-br from-gray-800 via-gray-900 to-obsidian border-2 border-arena/30 rounded-3xl p-8 md:p-12 shadow-2xl shadow-arena/20">
+                <!-- Inputs -->
+                <div class="space-y-6 mb-8">
+                    <div>
+                        <label for="hoursPerWeek" class="block text-sm font-semibold text-gray-300 mb-2">
+                            ¿Cuántas horas por semana dedicas a tareas repetitivas?
+                        </label>
+                        <input type="range" id="hoursPerWeek" min="1" max="40" value="10" step="1"
+                               class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-arena">
+                        <div class="flex justify-between text-sm text-gray-500 mt-1">
+                            <span>1h</span>
+                            <span id="hoursValue" class="text-arena font-bold text-lg">10h</span>
+                            <span>40h</span>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label for="hourlyRate" class="block text-sm font-semibold text-gray-300 mb-2">
+                            ¿Cuál es tu tarifa por hora? (USD)
+                        </label>
+                        <input type="range" id="hourlyRate" min="20" max="500" value="100" step="10"
+                               class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-arena">
+                        <div class="flex justify-between text-sm text-gray-500 mt-1">
+                            <span>$20</span>
+                            <span id="rateValue" class="text-arena font-bold text-lg">$100</span>
+                            <span>$500</span>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label for="automation" class="block text-sm font-semibold text-gray-300 mb-2">
+                            % de tareas que Jarvis puede automatizar
+                        </label>
+                        <input type="range" id="automation" min="10" max="90" value="50" step="10"
+                               class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-arena">
+                        <div class="flex justify-between text-sm text-gray-500 mt-1">
+                            <span>10%</span>
+                            <span id="automationValue" class="text-arena font-bold text-lg">50%</span>
+                            <span>90%</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Results -->
+                <div class="border-t border-gray-700 pt-8 space-y-6">
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div class="bg-arena/10 border border-arena/30 rounded-xl p-6">
+                            <p class="text-sm text-gray-400 mb-1">Tiempo ahorrado por semana</p>
+                            <p id="timeSaved" class="text-4xl font-black text-arena">5 hrs</p>
+                        </div>
+                        <div class="bg-arena/10 border border-arena/30 rounded-xl p-6">
+                            <p class="text-sm text-gray-400 mb-1">Ahorro mensual</p>
+                            <p id="monthlySavings" class="text-4xl font-black text-arena">$2,000</p>
+                        </div>
+                    </div>
+
+                    <div class="bg-gradient-to-br from-purple-900/20 to-arena/10 border-2 border-arena/30 rounded-2xl p-8">
+                        <div class="text-center">
+                            <p class="text-sm text-gray-400 mb-2">ROI Anual</p>
+                            <p id="annualROI" class="text-6xl font-black text-arena mb-4">$24,000</p>
+                            <p class="text-gray-300">
+                                <span id="roiMultiplier" class="text-2xl font-bold text-white">24x</span>
+                                retorno de tu inversión en Jarvis ($99/mo)
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="text-center pt-4">
+                        <a href="#pricing" class="inline-block px-10 py-5 bg-arena text-obsidian font-black text-xl rounded-xl hover:bg-arena/90 transition-all transform hover:scale-105 shadow-2xl shadow-arena/40">
+                            Empezar ahora — $49/mo (Beta) →
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- COMPARISON CHART SECTION -->
+    <section id="comparison" class="py-24 px-6 bg-obsidian">
+        <div class="max-w-6xl mx-auto">
+            <div class="text-center mb-12">
+                <h2 class="text-4xl md:text-5xl font-black mb-4">Jarvis vs. Alternativas</h2>
+                <p class="text-xl text-gray-400 max-w-2xl mx-auto">
+                    Comparación side-by-side con otras soluciones en el mercado
+                </p>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full bg-gray-800/50 rounded-2xl overflow-hidden border border-gray-700">
+                    <thead class="bg-gray-800">
+                        <tr>
+                            <th class="px-6 py-4 text-left font-bold text-white">Feature</th>
+                            <th class="px-6 py-4 text-center font-bold text-arena text-lg">Jarvis V3</th>
+                            <th class="px-6 py-4 text-center font-bold text-gray-400">Zapier</th>
+                            <th class="px-6 py-4 text-center font-bold text-gray-400">Manual VA</th>
+                            <th class="px-6 py-4 text-center font-bold text-gray-400">Apollo.io</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-700 text-sm">
+                        <tr class="hover:bg-gray-800/30 transition">
+                            <td class="px-6 py-4 font-semibold text-white">Bootcamp outreach automation</td>
+                            <td class="px-6 py-4 text-center text-arena text-2xl">✓</td>
+                            <td class="px-6 py-4 text-center text-gray-500">✗</td>
+                            <td class="px-6 py-4 text-center text-gray-500">Manual</td>
+                            <td class="px-6 py-4 text-center text-gray-500">Parcial</td>
+                        </tr>
+                        <tr class="hover:bg-gray-800/30 transition">
+                            <td class="px-6 py-4 font-semibold text-white">Monday Morning Report</td>
+                            <td class="px-6 py-4 text-center text-arena text-2xl">✓</td>
+                            <td class="px-6 py-4 text-center text-gray-500">✗</td>
+                            <td class="px-6 py-4 text-center text-gray-500">Manual</td>
+                            <td class="px-6 py-4 text-center text-gray-500">✗</td>
+                        </tr>
+                        <tr class="hover:bg-gray-800/30 transition">
+                            <td class="px-6 py-4 font-semibold text-white">Personalized emails at scale</td>
+                            <td class="px-6 py-4 text-center text-arena text-2xl">✓</td>
+                            <td class="px-6 py-4 text-center text-gray-500">✗</td>
+                            <td class="px-6 py-4 text-center text-arena">✓</td>
+                            <td class="px-6 py-4 text-center text-yellow-500">Parcial</td>
+                        </tr>
+                        <tr class="hover:bg-gray-800/30 transition">
+                            <td class="px-6 py-4 font-semibold text-white">CRM integration (Sheets/Notion)</td>
+                            <td class="px-6 py-4 text-center text-arena text-2xl">✓</td>
+                            <td class="px-6 py-4 text-center text-arena">✓</td>
+                            <td class="px-6 py-4 text-center text-gray-500">Manual</td>
+                            <td class="px-6 py-4 text-center text-arena">✓</td>
+                        </tr>
+                        <tr class="hover:bg-gray-800/30 transition">
+                            <td class="px-6 py-4 font-semibold text-white">Automated follow-ups</td>
+                            <td class="px-6 py-4 text-center text-arena text-2xl">✓</td>
+                            <td class="px-6 py-4 text-center text-yellow-500">Parcial</td>
+                            <td class="px-6 py-4 text-center text-arena">✓</td>
+                            <td class="px-6 py-4 text-center text-arena">✓</td>
+                        </tr>
+                        <tr class="hover:bg-gray-800/30 transition">
+                            <td class="px-6 py-4 font-semibold text-white">Investor-ready metrics</td>
+                            <td class="px-6 py-4 text-center text-arena text-2xl">✓</td>
+                            <td class="px-6 py-4 text-center text-gray-500">✗</td>
+                            <td class="px-6 py-4 text-center text-gray-500">✗</td>
+                            <td class="px-6 py-4 text-center text-yellow-500">Basic</td>
+                        </tr>
+                        <tr class="hover:bg-gray-800/30 transition">
+                            <td class="px-6 py-4 font-semibold text-white">Setup time</td>
+                            <td class="px-6 py-4 text-center text-arena font-semibold">< 48h</td>
+                            <td class="px-6 py-4 text-center text-gray-400">1-2 weeks</td>
+                            <td class="px-6 py-4 text-center text-gray-400">2-4 weeks</td>
+                            <td class="px-6 py-4 text-center text-gray-400">1 week</td>
+                        </tr>
+                        <tr class="hover:bg-gray-800/30 transition">
+                            <td class="px-6 py-4 font-semibold text-white">Monthly cost</td>
+                            <td class="px-6 py-4 text-center text-arena font-bold">$49-$99</td>
+                            <td class="px-6 py-4 text-center text-gray-400">$20-$600</td>
+                            <td class="px-6 py-4 text-center text-gray-400">$400-$1,500</td>
+                            <td class="px-6 py-4 text-center text-gray-400">$49-$149</td>
+                        </tr>
+                        <tr class="hover:bg-gray-800/30 transition bg-arena/5">
+                            <td class="px-6 py-4 font-bold text-white text-lg">Best for</td>
+                            <td class="px-6 py-4 text-center text-arena font-semibold">Fundraising founders</td>
+                            <td class="px-6 py-4 text-center text-gray-400 text-xs">General automation</td>
+                            <td class="px-6 py-4 text-center text-gray-400 text-xs">High-touch manual</td>
+                            <td class="px-6 py-4 text-center text-gray-400 text-xs">Generic B2B sales</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="mt-12 text-center">
+                <p class="text-gray-400 mb-6">
+                    Jarvis combina lo mejor de todos: automatización + personalización + investor metrics.
+                </p>
+                <a href="#pricing" class="inline-block px-10 py-5 bg-arena text-obsidian font-black text-xl rounded-xl hover:bg-arena/90 transition-all transform hover:scale-105 shadow-2xl shadow-arena/40">
+                    Empieza con Beta $49/mo →
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- FINAL CTA SECTION -->
+    <section class="py-20 px-6 bg-gradient-to-br from-arena/10 via-obsidian to-obsidian border-t border-arena/20">
+        <div class="max-w-4xl mx-auto text-center">
+            <h2 class="text-3xl md:text-5xl font-black mb-6">
+                ¿Listo para tener números reales<br>
+                <span class="text-arena">ANTES de tu próximo pitch?</span>
+            </h2>
+            <p class="text-xl text-gray-400 mb-10 max-w-2xl mx-auto">
+                Emmanuel responde en <24h. Setup call jueves o viernes. Primer batch sale el lunes.
+            </p>
+            <a href="#pricing" class="inline-block px-10 py-5 bg-arena text-obsidian font-black text-xl rounded-xl hover:bg-arena/90 transition-all transform hover:scale-105 shadow-2xl shadow-arena/40">
+                Empezar ahora — $49/mo
+            </a>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="py-12 px-6 bg-obsidian border-t border-gray-800">
+        <div class="max-w-6xl mx-auto">
+            <div class="grid md:grid-cols-3 gap-8 mb-8">
+                <div>
+                    <h3 class="font-bold text-lg mb-3 text-arena">Jarvis V3</h3>
+                    <p class="text-gray-400 text-sm">
+                        Bootcamp outreach automation.<br>
+                        Built for founders raising funds.
+                    </p>
+                </div>
+                <div>
+                    <h3 class="font-bold text-lg mb-3">Contacto</h3>
+                    <ul class="space-y-2 text-gray-400 text-sm">
+                        <li><a href="mailto:emmanuel@jarvisai.com" class="hover:text-arena transition">emmanuel@jarvisai.com</a></li>
+                        <li><a href="https://t.me/corgipollo" class="hover:text-arena transition" target="_blank">Telegram: @corgipollo</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="font-bold text-lg mb-3">Legal</h3>
+                    <ul class="space-y-2 text-gray-400 text-sm">
+                        <li><a href="#" class="hover:text-arena transition">Términos de servicio</a></li>
+                        <li><a href="#" class="hover:text-arena transition">Política de privacidad</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="border-t border-gray-800 pt-8 text-center text-gray-500 text-sm">
+                © 2026 Jarvis AI by Emmanuel Pedraza. All rights reserved.
+            </div>
+        </div>
+    </footer>
+
+    <!-- ROI Calculator JavaScript -->
+    <script>
+    // ROI Calculator interactivo
+    const hoursSlider = document.getElementById('hoursPerWeek');
+    const rateSlider = document.getElementById('hourlyRate');
+    const automationSlider = document.getElementById('automation');
+
+    const hoursValue = document.getElementById('hoursValue');
+    const rateValue = document.getElementById('rateValue');
+    const automationValue = document.getElementById('automationValue');
+
+    const timeSaved = document.getElementById('timeSaved');
+    const monthlySavings = document.getElementById('monthlySavings');
+    const annualROI = document.getElementById('annualROI');
+    const roiMultiplier = document.getElementById('roiMultiplier');
+
+    function calculateROI() {
+        const hours = parseInt(hoursSlider.value);
+        const rate = parseInt(rateSlider.value);
+        const automation = parseInt(automationSlider.value);
+
+        // Update slider values
+        hoursValue.textContent = hours + 'h';
+        rateValue.textContent = '$' + rate;
+        automationValue.textContent = automation + '%';
+
+        // Calculate savings
+        const hoursAutomated = (hours * automation) / 100;
+        const weeklySavings = hoursAutomated * rate;
+        const monthlyValue = weeklySavings * 4;
+        const annualValue = monthlyValue * 12;
+        const jarvisCost = 99; // Monthly cost
+        const annualCost = jarvisCost * 12;
+        const netROI = annualValue - annualCost;
+        const multiplier = Math.round(netROI / annualCost);
+
+        // Update display
+        timeSaved.textContent = hoursAutomated.toFixed(1) + ' hrs';
+        monthlySavings.textContent = '$' + Math.round(monthlyValue).toLocaleString();
+        annualROI.textContent = '$' + Math.round(netROI).toLocaleString();
+        roiMultiplier.textContent = multiplier + 'x';
+    }
+
+    hoursSlider.addEventListener('input', calculateROI);
+    rateSlider.addEventListener('input', calculateROI);
+    automationSlider.addEventListener('input', calculateROI);
+
+    // Initial calculation
+    calculateROI();
+    </script>
+
+    <!-- Form handler JavaScript -->
+    <script>
+    const API_ENDPOINT = 'http://localhost:8090/api/leads';  // Cambiar a URL producción al deployar
+
+    document.getElementById('betaForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const submitBtn = document.getElementById('submitBtn');
+        const formMessage = document.getElementById('formMessage');
+
+        // Disable button y mostrar loading
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Enviando...';
+        formMessage.classList.add('hidden');
+
+        // Recopilar datos del form
+        const formData = {
+            name: document.getElementById('name').value,
+            email: document.getElementById('email').value,
+            product: document.getElementById('product').value || '',
+            target: document.getElementById('target').value || '',
+            setup_date: document.getElementById('setup_date').value || '',
+            message: document.getElementById('message').value || ''
+        };
+
+        try {
+            const response = await fetch(API_ENDPOINT, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(formData)
+            });
+
+            const result = await response.json();
+
+            if (response.ok && result.success) {
+                // Éxito
+                formMessage.textContent = result.message;
+                formMessage.className = 'text-center text-sm text-green-400 font-semibold';
+                formMessage.classList.remove('hidden');
+
+                // Reset form
+                document.getElementById('betaForm').reset();
+
+                // Redirect a página de éxito o mostrar modal
+                setTimeout(() => {
+                    window.location.hash = '#success';
+                }, 2000);
+            } else {
+                // Error del backend
+                formMessage.textContent = result.message || 'Error al procesar tu solicitud. Intenta nuevamente.';
+                formMessage.className = 'text-center text-sm text-red-400';
+                formMessage.classList.remove('hidden');
+            }
+        } catch (error) {
+            // Error de red o servidor
+            console.error('Error:', error);
+            formMessage.textContent = 'Error de conexión. Contacta directo: emmanuel@jarvisai.com';
+            formMessage.className = 'text-center text-sm text-red-400';
+            formMessage.classList.remove('hidden');
+        } finally {
+            // Re-enable button
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Confirmar Beta — $49/mo →';
+        }
+    });
+    </script>
+
+</body>
+</html>
