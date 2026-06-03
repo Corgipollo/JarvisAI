@@ -1,1 +1,30 @@
 *.exe
+
+.vercel
+
+# Environment variables (NUNCA commitear API keys)
+.env
+.env.local
+*.env.local
+
+# Python
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+
+# Logs y cache
+*.log
+.pytest_cache/
+*.pid
+
+# Jarvis V3 runtime
+jarvis_v3/data/
+AGENT_STOP
